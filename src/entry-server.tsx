@@ -18,10 +18,11 @@ export default createHandler(() => (
           <meta property="og:title" content="rex's place" />
           <meta property="og:description" content="rex's personal website" />
           <meta property="og:type" content="website" />
-          <meta property="og:url" content="https://rex.wf" />
+          <meta property="og:image:width" content="192" />
+          <meta property="og:image:height" content="192" />
           <meta property="og:image" content="/image.png" />
 
-          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:card" content="summary" />
           <meta name="twitter:title" content="rex's place" />
           <meta name="twitter:description" content="rex's personal website" />
           <meta name="twitter:image" content="/image.png" />
