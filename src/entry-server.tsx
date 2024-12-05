@@ -7,7 +7,7 @@ export default createHandler(() => (
       <html lang="en">
         <head>
           <meta charset="utf-8" />
-          <title>rex's place</title>
+          <title>www</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta name="description" content="rex's personal website" />
           <meta name="theme-color" content="#030303" />
@@ -15,7 +15,7 @@ export default createHandler(() => (
           <meta name="robots" content="index,follow" />
           <meta name="googlebot" content="index,follow" />
 
-          <meta property="og:title" content="rex's place" />
+          <meta property="og:title" content="rex's space" />
           <meta property="og:description" content="rex's personal website" />
           <meta property="og:type" content="website" />
           <meta property="og:image:width" content="192" />
@@ -23,7 +23,7 @@ export default createHandler(() => (
           <meta property="og:image" content="/image.png" />
 
           <meta name="twitter:card" content="summary" />
-          <meta name="twitter:title" content="rex's place" />
+          <meta name="twitter:title" content="rex's space" />
           <meta name="twitter:description" content="rex's personal website" />
           <meta name="twitter:image" content="/image.png" />
 
