@@ -7,7 +7,7 @@ export default createHandler(() => (
       <html lang="en">
         <head>
           <meta charset="utf-8" />
-          <title>www</title>
+          <title>rex's space</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta name="description" content="rex's personal website" />
           <meta name="theme-color" content="#030303" />
