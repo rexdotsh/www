@@ -1,0 +1,23 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-geist: "Geist Mono", system-ui, sans-serif;
+  --color-bg: #030303;
+  --color-text: #fafafa;
+  --color-accent: rgb(251 113 133 / 0.8);
+}
+
+* {
+  font-family: var(--font-geist);
+}
+
+body {
+  @apply bg-neutral-950 text-neutral-100;
+}
+
+#app {
+  @apply w-full leading-8 text-neutral-300 text-base md:text-lg;
+}
