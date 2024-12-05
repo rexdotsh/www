@@ -9,7 +9,8 @@ const AsciiArt: Component<AsciiArtProps> = (props) => {
   return (
     <div class="h-full flex justify-center flex-col items-center">
       {/* very weird bug that i cannot figure out, it is very dull on mobile, but fine on PC, even through devtools.
-      if i set it app.tsx to `fixed`, it becomes dull on pc too???? idk, maybe this shit needs a re-write
+      if i set it app.tsx to `fixed`, it becomes dull on pc too?? but not if i set the bg color there? either way, dull on mobile
+
       as a workaround, using text-rose-500 on mobile and text-rose-400/80 on pc. 
       looks atrocious on mobile through devtools, but looks fine on my actual phone. wtf
        */}
