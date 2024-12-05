@@ -4,7 +4,7 @@ import {createHandler, StartServer} from "@solidjs/start/server";
 export default createHandler(() => (
   <StartServer
     document={({assets, children, scripts}) => (
-      <html lang="en">
+      <html lang="en" class="dark bg-[#030303]">
         <head>
           <meta charset="utf-8" />
           <title>rex's space</title>

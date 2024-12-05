@@ -3,20 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --font-geist: "Geist Mono", system-ui, sans-serif;
-  --color-bg: #030303;
-  --color-text: #fafafa;
-}
-
 * {
-  font-family: var(--font-geist);
-}
-
-body {
-  @apply bg-neutral-950 text-neutral-100;
-}
-
-#app {
-  @apply w-full leading-8 text-neutral-300 text-base md:text-lg;
+  font-family: "Geist Mono", monospace;
 }
