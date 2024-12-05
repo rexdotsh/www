@@ -3,7 +3,7 @@ import {Component} from "solid-js";
 const Navigation: Component = () => {
   const links = [
     {href: "https://blog.rex.wf", text: "BLOG"},
-    {href: "/resume", text: "RESUME"},
+    // {href: "/resume", text: "RESUME"},
     {href: "https://github.com/rexdotsh", text: "GITHUB"},
     {href: "https://flora.tf", text: "FLORA"},
   ];
