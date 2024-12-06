@@ -9,7 +9,7 @@ export default function App() {
     <Router
       base={import.meta.env.SERVER_BASE_URL}
       root={(props) => (
-        <main class="absolute inset-0 overflow-hidden">
+        <main class="fixed inset-0 overflow-hidden">
           <Suspense>{props.children}</Suspense>
           <Footer />
         </main>
