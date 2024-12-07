@@ -1,8 +1,9 @@
 {
-  "name": "example-with-mdx",
+  "name": "rex.wf",
   "type": "module",
   "scripts": {
     "dev": "vinxi dev",
+    "prebuild": "tsx src/components/Art/generateAscii.ts",
     "build": "vinxi build",
     "start": "vinxi start"
   },
@@ -19,8 +20,11 @@
     "node": ">=18"
   },
   "devDependencies": {
+    "@types/node": "^20.11.0",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.15"
+    "tailwindcss": "^3.4.15",
+    "tsx": "^4.7.1",
+    "canvas": "^2.11.2"
   }
 }
