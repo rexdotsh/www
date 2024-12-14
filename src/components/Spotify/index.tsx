@@ -23,12 +23,19 @@ const SpotifyNowPlaying: Component = () => {
   const [track, setTrack] = createSignal<SpotifyTrack | null>(null);
   const [error, setError] = createSignal<string | null>(null);
   const [isVisible, setIsVisible] = createSignal(false);
+  const [accessToken, setAccessToken] = createSignal<string | null>(null);
+  const [tokenExpiry, setTokenExpiry] = createSignal<number>(0);
 
   const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
   const SPOTIFY_CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
   const SPOTIFY_REFRESH_TOKEN = import.meta.env.VITE_SPOTIFY_REFRESH_TOKEN;
 
-  const getAccessToken = async () => {
+  const getAccessToken = async (force = false) => {
+    // return cached token if it's still valid
+    if (!force && accessToken() && Date.now() < tokenExpiry()) {
+      return accessToken();
+    }
+
     try {
       const response = await fetch(SPOTIFY_API.TOKEN, {
         method: "POST",
@@ -42,6 +49,11 @@ const SpotifyNowPlaying: Component = () => {
         }),
       });
       const data = await response.json();
+
+      // cache the token and set expiry (subtract 1 minute for safety margin)
+      setAccessToken(data.access_token);
+      setTokenExpiry(Date.now() + (data.expires_in - 60) * 1000);
+
       return data.access_token;
     } catch (err) {
       console.error("Failed to get access token:", err);
@@ -78,6 +90,30 @@ const SpotifyNowPlaying: Component = () => {
         return;
       }
 
+      if (response.status === 401) {
+        // token expired, force refresh and retry
+        const newToken = await getAccessToken(true);
+        if (!newToken) throw new Error("Failed to refresh token");
+
+        const retryResponse = await fetch(SPOTIFY_API.NOW_PLAYING, {
+          headers: {Authorization: `Bearer ${newToken}`},
+        });
+
+        if (retryResponse.status === 204) {
+          const recentTrack = await fetchRecentlyPlayed(newToken);
+          setTrack(recentTrack);
+          return;
+        }
+
+        const data = await retryResponse.json();
+        if (!data.item) {
+          setTrack(null);
+          return;
+        }
+        setTrack(transformTrackData(data.item, data.is_playing));
+        return;
+      }
+
       const data = await response.json();
       if (!data.item) {
         setTrack(null);
@@ -94,7 +130,7 @@ const SpotifyNowPlaying: Component = () => {
 
   createEffect(() => {
     fetchNowPlaying();
-    const interval = setInterval(fetchNowPlaying, 30000);
+    const interval = setInterval(fetchNowPlaying, 60000);
     onCleanup(() => clearInterval(interval));
   });
 
