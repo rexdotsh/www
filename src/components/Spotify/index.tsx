@@ -230,7 +230,7 @@ const SpotifyNowPlaying: Component = () => {
   });
 
   return (
-    <div class="fixed bottom-24 md:bottom-20 w-full px-6">
+    <div class="fixed bottom-24 md:bottom-32 w-full px-6">
       <div class="max-w-sm mx-auto">
         {error() ? null : track() ? (
           <div class="relative">
@@ -262,7 +262,7 @@ const SpotifyNowPlaying: Component = () => {
               onClick={handlePlayPreview}
               class={`absolute right-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-400/80 
                      transition-colors duration-300
-                     ${isVisible() ? "opacity-100" : "opacity-0"}`}
+                     ${isVisible() ? "animate-fade-in" : "opacity-0"}`}
               title={isPlaying() ? "Pause Preview" : "Play Preview"}>
               {isPlaying() ? (
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">

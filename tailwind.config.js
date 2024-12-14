@@ -16,6 +16,10 @@ export default {
           "0%, 100%": {transform: "scaleY(0.85)"},
           "50%": {transform: "scaleY(0.75)"},
         },
+        "fade-in": {
+          "0%": {opacity: "0"},
+          "100%": {opacity: "1"},
+        },
       },
       animation: {
         "bar-1": "bar-1 1.4s ease-in-out infinite",
