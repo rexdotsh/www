@@ -1,6 +1,6 @@
 {
-  "buildCommand": "node run build",
-  "devCommand": "node run dev",
-  "installCommand": "node install",
+  "buildCommand": "bun run build",
+  "devCommand": "bun run dev",
+  "installCommand": "bun install --frozen-lockfile",
   "framework": "vite"
 }
