@@ -1,7 +1,8 @@
 import {APIEvent} from "@solidjs/start/server";
 
 // https://stackoverflow.com/questions/79237053/android-spotify-api-preview-url-for-tracks-is-suddenly-being-returned-as-null
-// TRILLION DOLLAR COMPANY BTW LOL
+// this is very cursed but it works, billion dollar company btw
+
 export async function GET({params}: APIEvent) {
   try {
     const {id} = params;
