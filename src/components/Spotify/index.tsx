@@ -58,10 +58,10 @@ const SpotifyNowPlaying: Component = () => {
             <div class="relative min-w-16 h-16">
               <img src={getAlbumArt()} alt={`${track()?.album} album art`} class="w-16 h-16 rounded-md object-cover" onLoad={handleImageLoad} />
               {track()?.isPlaying && isVisible() && (
-                <div class="absolute -bottom-2 -right-2 flex items-center gap-[3px] bg-neutral-900/90 p-1.5 rounded-md">
-                  <span class="w-[3px] h-3 bg-rose-400/80 animate-spotify-bar" />
-                  <span class="w-[3px] h-3 bg-rose-400/80 animate-spotify-bar delay-[0.25s]" />
-                  <span class="w-[3px] h-3 bg-rose-400/80 animate-spotify-bar delay-[0.5s]" />
+                <div class="absolute -bottom-2 -right-2 flex items-end gap-[2px] bg-neutral-900/90 p-1.5 rounded-md">
+                  <div class="w-[3px] h-3 bg-rose-400/80 origin-bottom animate-bar-1" />
+                  <div class="w-[3px] h-3 bg-rose-400/80 origin-bottom animate-bar-2" />
+                  <div class="w-[3px] h-3 bg-rose-400/80 origin-bottom animate-bar-3" />
                 </div>
               )}
             </div>

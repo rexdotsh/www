@@ -4,24 +4,23 @@ export default {
   theme: {
     extend: {
       keyframes: {
-        "spotify-bar": {
-          "0%, 100%": {height: "0.75rem"},
-          "50%": {height: "1.25rem"},
+        "bar-1": {
+          "0%, 100%": {transform: "scaleY(0.8)"},
+          "50%": {transform: "scaleY(1)"},
         },
-        "fade-in": {
-          "0%": {
-            opacity: "0",
-            transform: "translateY(10px)",
-          },
-          "100%": {
-            opacity: "1",
-            transform: "translateY(0)",
-          },
+        "bar-2": {
+          "0%, 100%": {transform: "scaleY(0.9)"},
+          "50%": {transform: "scaleY(0.7)"},
+        },
+        "bar-3": {
+          "0%, 100%": {transform: "scaleY(0.85)"},
+          "50%": {transform: "scaleY(0.75)"},
         },
       },
       animation: {
-        "spotify-bar": "spotify-bar 1s ease-in-out infinite",
-        "fade-in": "fade-in 0.6s ease-out forwards",
+        "bar-1": "bar-1 1.4s ease-in-out infinite",
+        "bar-2": "bar-2 1.6s ease-in-out infinite",
+        "bar-3": "bar-3 1.2s ease-in-out infinite",
       },
     },
   },
