@@ -21,6 +21,7 @@ export default {
         "bar-1": "bar-1 1.4s ease-in-out infinite",
         "bar-2": "bar-2 1.6s ease-in-out infinite",
         "bar-3": "bar-3 1.2s ease-in-out infinite",
+        "fade-in": "fade-in 0.2s ease-in-out forwards",
       },
     },
   },

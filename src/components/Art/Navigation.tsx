@@ -10,7 +10,7 @@ const Navigation: Component = () => {
   ];
 
   return (
-    <nav class="flex flex-col md:flex-row items-center gap-6 md:gap-12 mt-8 md:mt-12">
+    <nav class="flex flex-col md:flex-row items-center gap-6 md:gap-12 mt-8 mb-36 md:mt-12 md:mb-0">
       {links.map(({href, text}) => (
         <a href={href} class="text-lg md:text-2xl md:my-12 text-[#d6e9ef] font-bold hover:text-rose-400/80 transition-colors">
           {text}

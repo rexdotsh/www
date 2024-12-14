@@ -44,7 +44,7 @@ const SpotifyNowPlaying: Component = () => {
   };
 
   return (
-    <div class="fixed bottom-20 w-full px-6">
+    <div class="fixed bottom-24 md:bottom-20 w-full px-6">
       <div class="max-w-sm mx-auto">
         {error() ? null : track() ? (
           <a
