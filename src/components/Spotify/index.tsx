@@ -8,10 +8,18 @@ const SpotifyNowPlaying: Component = () => {
 
   const fetchNowPlaying = async () => {
     try {
-      const response = await fetch("/api/spotify");
+      const response = await fetch("https://lastfm-last-played.biancarosa.com.br/rexdotsh/latest-song");
       if (!response.ok) throw new Error("Failed to fetch");
       const data = await response.json();
-      setTrack(data);
+
+      setTrack({
+        isPlaying: data.track["@attr"]?.nowplaying === "true",
+        name: data.track.name,
+        artist: data.track.artist["#text"],
+        album: data.track.album["#text"],
+        url: data.track.url,
+        image: data.track.image,
+      });
       setError(null);
     } catch (err) {
       setError("Failed to load track data");
