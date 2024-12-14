@@ -3,7 +3,6 @@
   "type": "module",
   "scripts": {
     "dev": "vinxi dev",
-    "prebuild": "tsx src/components/Art/generateAscii.ts",
     "build": "vinxi build",
     "start": "vinxi start"
   },
