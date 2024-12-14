@@ -2,10 +2,5 @@
   "buildCommand": "bun build",
   "devCommand": "bun dev",
   "installCommand": "bun install",
-  "framework": "vite",
-  "buildEnvironment": {
-    "VITE_SPOTIFY_CLIENT_ID": "@spotify-client-id",
-    "VITE_SPOTIFY_CLIENT_SECRET": "@spotify-client-secret",
-    "VITE_SPOTIFY_REFRESH_TOKEN": "@spotify-refresh-token"
-  }
+  "framework": "vite"
 }
