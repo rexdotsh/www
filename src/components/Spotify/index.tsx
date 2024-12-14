@@ -6,20 +6,101 @@ const SpotifyNowPlaying: Component = () => {
   const [error, setError] = createSignal<string | null>(null);
   const [isVisible, setIsVisible] = createSignal(false);
 
-  const fetchNowPlaying = async () => {
+  const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+  const SPOTIFY_CLIENT_SECRET = import.meta.env.VITE_SPOTIFY_CLIENT_SECRET;
+  const SPOTIFY_REFRESH_TOKEN = import.meta.env.VITE_SPOTIFY_REFRESH_TOKEN;
+
+  const getAccessToken = async () => {
     try {
-      const response = await fetch("https://lastfm-last-played.biancarosa.com.br/rexdotsh/latest-song");
-      if (!response.ok) throw new Error("Failed to fetch");
+      const response = await fetch("https://accounts.spotify.com/api/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${btoa(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`)}`,
+        },
+        body: new URLSearchParams({
+          grant_type: "refresh_token",
+          refresh_token: SPOTIFY_REFRESH_TOKEN,
+        }),
+      });
+      const data = await response.json();
+      return data.access_token;
+    } catch (err) {
+      console.error("Failed to get access token:", err);
+      return null;
+    }
+  };
+
+  const fetchRecentlyPlayed = async (token: string) => {
+    try {
+      const response = await fetch("https://api.spotify.com/v1/me/player/recently-played?limit=1", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const data = await response.json();
 
-      setTrack({
-        isPlaying: data.track["@attr"]?.nowplaying === "true",
-        name: data.track.name,
-        artist: data.track.artist["#text"],
-        album: data.track.album["#text"],
-        url: data.track.url,
-        image: data.track.image,
+      if (!data.items?.[0]) {
+        return null;
+      }
+
+      const trackInfo = {
+        isPlaying: false,
+        name: data.items[0].track.name,
+        artist: data.items[0].track.artists.map((artist: any) => artist.name).join(", "),
+        album: data.items[0].track.album.name,
+        image: data.items[0].track.album.images.map((img: any) => ({
+          "#text": img.url,
+          size: img.height <= 64 ? "small" : img.height <= 300 ? "medium" : "large",
+        })),
+        url: data.items[0].track.external_urls.spotify,
+      };
+
+      return trackInfo;
+    } catch (err) {
+      console.error("Failed to fetch recently played:", err);
+      return null;
+    }
+  };
+
+  const fetchNowPlaying = async () => {
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error("Failed to get access token");
+
+      const response = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      if (response.status === 204) {
+        const recentTrack = await fetchRecentlyPlayed(token);
+        setTrack(recentTrack);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (!data.item) {
+        setTrack(null);
+        return;
+      }
+
+      const trackInfo = {
+        isPlaying: data.is_playing,
+        name: data.item.name,
+        artist: data.item.artists.map((artist: any) => artist.name).join(", "),
+        album: data.item.album.name,
+        image: data.item.album.images.map((img: any) => ({
+          "#text": img.url,
+          size: img.height <= 64 ? "small" : img.height <= 300 ? "medium" : "large",
+        })),
+        url: data.item.external_urls.spotify,
+      };
+
+      setTrack(trackInfo);
       setError(null);
     } catch (err) {
       setError("Failed to load track data");

@@ -1,15 +1,18 @@
 export interface SpotifyImage {
   "#text": string;
-  size: "small" | "medium" | "large" | "extralarge";
+  size: "small" | "medium" | "large";
 }
 
 export interface SpotifyTrack {
+  isPlaying: boolean;
   name: string;
   artist: string;
   album: string;
-  isPlaying: boolean;
+  image: Array<{
+    '#text': string;
+    size: string;
+  }>;
   url: string;
-  image: SpotifyImage[];
 }
 
 export interface SpotifyResponse {
@@ -18,7 +21,6 @@ export interface SpotifyResponse {
       nowplaying: string;
     };
     name: string;
-    url: string;
     artist: {
       "#text": string;
     };
@@ -26,5 +28,9 @@ export interface SpotifyResponse {
       "#text": string;
     };
     image: SpotifyImage[];
+    date?: {
+      uts: string;
+      "#text": string;
+    };
   };
 }
