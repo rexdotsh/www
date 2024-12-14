@@ -9,7 +9,7 @@ export interface SpotifyTrack {
   artist: string;
   album: string;
   image: Array<{
-    '#text': string;
+    "#text": string;
     size: string;
   }>;
   url: string;
