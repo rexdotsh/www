@@ -13,6 +13,7 @@ export interface SpotifyTrack {
     size: string;
   }>;
   url: string;
+  id: string;
 }
 
 export interface SpotifyResponse {
