@@ -253,7 +253,7 @@ const SpotifyNowPlaying: Component = () => {
                 )}
               </div>
               <div class="flex flex-col min-w-0 flex-1 mr-2">
-                <span class="text-xs text-rose-400/80 mb-0.5">{track()?.isPlaying ? "listening to" : "last played"}</span>
+                <span class="text-xs text-rose-400/80 mb-0.5">{track()?.isPlaying ? "currently listening to" : "last played"}</span>
                 <span class="font-medium text-neutral-200 truncate group-hover:text-rose-400/80 transition-colors">{track()?.name}</span>
                 <span class="text-neutral-400 text-sm truncate">{track()?.artist}</span>
                 <span class="text-neutral-500 text-sm truncate">{track()?.album}</span>
