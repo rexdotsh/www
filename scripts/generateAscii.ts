@@ -1,3 +1,10 @@
+// this is in it's own folder and package because bun doesn't support canvas
+// and it's an unnecessary dependency anyway since it's only used in the build process
+// so just using it with node for now, `npm run generate` to generate the ascii art
+// ascii art is generated from the public/image.png file in the root of the project
+// output is in src/components/Art/ascii-art.ts, both desktop and mobile
+// TODO: look into if both desktop and mobile are needed, or if we can just use one
+
 import {createCanvas, loadImage} from "canvas";
 import fs from "fs/promises";
 import path from "path";
