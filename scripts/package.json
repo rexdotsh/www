@@ -1,0 +1,17 @@
+{
+  "name": "ascii-art-generator",
+  "version": "1.0.0",
+  "description": "Script to generate ASCII art from images",
+  "main": "generateAscii.ts",
+  "scripts": {
+    "generate": "ts-node generateAscii.ts"
+  },
+  "dependencies": {
+    "canvas": "^2.11.2"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.5"
+  }
+} 
