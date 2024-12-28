@@ -1,4 +1,4 @@
-import {Component, Suspense} from "solid-js";
+import { Component, Suspense } from "solid-js";
 import AsciiArt from "../components/Art";
 import Footer from "../components/Footer";
 import SpotifyNowPlaying from "../components/Spotify";

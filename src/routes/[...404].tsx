@@ -1,5 +1,5 @@
-import {HttpStatusCode} from "@solidjs/start";
-import {Component} from "solid-js";
+import { HttpStatusCode } from "@solidjs/start";
+import { Component } from "solid-js";
 
 const NotFoundPage: Component = () => {
   return (

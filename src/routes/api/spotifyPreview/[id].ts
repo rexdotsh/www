@@ -1,11 +1,11 @@
-import {APIEvent} from "@solidjs/start/server";
+import { APIEvent } from "@solidjs/start/server";
 
 // https://stackoverflow.com/questions/79237053/android-spotify-api-preview-url-for-tracks-is-suddenly-being-returned-as-null
 // this is very cursed but it works, billion dollar company btw
 
-export async function GET({params}: APIEvent) {
+export async function GET({ params }: APIEvent) {
   try {
-    const {id} = params;
+    const { id } = params;
     const embedUrl = `https://open.spotify.com/embed/track/${id}`;
 
     const response = await fetch(embedUrl);
@@ -15,7 +15,7 @@ export async function GET({params}: APIEvent) {
     const previewUrl = matches ? matches[1] : null;
 
     if (!previewUrl) {
-      return new Response(JSON.stringify({error: "No preview URL found"}), {
+      return new Response(JSON.stringify({ error: "No preview URL found" }), {
         status: 404,
         headers: {
           "Content-Type": "application/json",
@@ -23,13 +23,13 @@ export async function GET({params}: APIEvent) {
       });
     }
 
-    return new Response(JSON.stringify({url: previewUrl}), {
+    return new Response(JSON.stringify({ url: previewUrl }), {
       headers: {
         "Content-Type": "application/json",
       },
     });
   } catch (error) {
-    return new Response(JSON.stringify({error: "Failed to fetch preview URL"}), {
+    return new Response(JSON.stringify({ error: "Failed to fetch preview URL" }), {
       status: 500,
       headers: {
         "Content-Type": "application/json",

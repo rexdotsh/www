@@ -5,7 +5,7 @@
 // output is in src/components/Art/ascii-art.ts, both desktop and mobile
 // TODO: look into if both desktop and mobile are needed, or if we can just use one
 
-import {createCanvas, loadImage} from "canvas";
+import { createCanvas, loadImage } from "canvas";
 import fs from "fs/promises";
 import path from "path";
 
