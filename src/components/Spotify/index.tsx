@@ -232,7 +232,8 @@ const SpotifyNowPlaying: Component = () => {
 
   const checkVisibility = () => {
     const minHeightForSpotify = 900;
-    setShouldShow(window.innerHeight >= minHeightForSpotify);
+    const isMobileScreen = window.innerWidth < 768; // make it show on mobile, always
+    setShouldShow(isMobileScreen || window.innerHeight >= minHeightForSpotify);
   };
 
   onMount(() => {
