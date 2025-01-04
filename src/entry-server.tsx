@@ -15,7 +15,9 @@ export default createHandler(() => (
           <meta name="robots" content="index,follow" />
           <meta name="googlebot" content="index,follow" />
 
+          <meta property="og:url" content="https://rex.wf" />
           <meta property="og:title" content="rex's space" />
+          <meta property="og:site_name" content="rex's space" />
           <meta property="og:description" content="rex's personal website" />
           <meta property="og:type" content="website" />
           <meta property="og:image:width" content="192" />
