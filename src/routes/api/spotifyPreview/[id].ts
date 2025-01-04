@@ -29,7 +29,7 @@ export async function GET({ params }: APIEvent) {
       },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Failed to fetch preview URL" }), {
+    return new Response(JSON.stringify({ error: `Failed to fetch preview URL: ${error}` }), {
       status: 500,
       headers: {
         "Content-Type": "application/json",

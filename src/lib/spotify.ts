@@ -1,6 +1,23 @@
+export interface SpotifyArtist {
+  name: string;
+}
+
 export interface SpotifyImage {
-  "#text": string;
-  size: "small" | "medium" | "large";
+  url: string;
+  height: number;
+}
+
+export interface SpotifyAlbum {
+  name: string;
+  images: SpotifyImage[];
+}
+
+export interface SpotifyTrackData {
+  name: string;
+  artists: SpotifyArtist[];
+  album: SpotifyAlbum;
+  external_urls: { spotify: string };
+  id: string;
 }
 
 export interface SpotifyTrack {
@@ -10,28 +27,8 @@ export interface SpotifyTrack {
   album: string;
   image: Array<{
     "#text": string;
-    size: string;
+    size: "small" | "medium" | "large";
   }>;
   url: string;
   id: string;
-}
-
-export interface SpotifyResponse {
-  track: {
-    "@attr"?: {
-      nowplaying: string;
-    };
-    name: string;
-    artist: {
-      "#text": string;
-    };
-    album: {
-      "#text": string;
-    };
-    image: SpotifyImage[];
-    date?: {
-      uts: string;
-      "#text": string;
-    };
-  };
 }

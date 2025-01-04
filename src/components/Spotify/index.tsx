@@ -1,5 +1,5 @@
 import { Component, createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
-import type { SpotifyTrack } from "../../lib/spotify";
+import type { SpotifyTrack, SpotifyTrackData } from "../../lib/spotify";
 
 const SPOTIFY_API = {
   NOW_PLAYING: "https://api.spotify.com/v1/me/player/currently-playing",
@@ -7,12 +7,12 @@ const SPOTIFY_API = {
   TOKEN: "https://accounts.spotify.com/api/token",
 } as const;
 
-const transformTrackData = (data: any, isPlaying = false): SpotifyTrack => ({
+const transformTrackData = (data: SpotifyTrackData, isPlaying = false): SpotifyTrack => ({
   isPlaying,
   name: data.name,
-  artist: data.artists.map((artist: any) => artist.name).join(", "),
+  artist: data.artists.map((artist) => artist.name).join(", "),
   album: data.album.name,
-  image: data.album.images.map((img: any) => ({
+  image: data.album.images.map((img) => ({
     "#text": img.url,
     size: img.height <= 64 ? "small" : img.height <= 300 ? "medium" : "large",
   })),
