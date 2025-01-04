@@ -1,4 +1,4 @@
-import { Component, createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
+import { Component, createSignal, onCleanup, onMount, Show } from "solid-js";
 import type { SpotifyTrack, SpotifyTrackData } from "../../lib/spotify";
 
 const SPOTIFY_API = {
@@ -130,12 +130,6 @@ const SpotifyNowPlaying: Component = () => {
     }
   };
 
-  createEffect(() => {
-    fetchNowPlaying();
-    const interval = setInterval(fetchNowPlaying, 60000);
-    onCleanup(() => clearInterval(interval));
-  });
-
   const getAlbumArt = () => {
     const images = track()?.image || [];
     return images.find((img) => img.size === "medium")?.["#text"] || "";
@@ -239,7 +233,14 @@ const SpotifyNowPlaying: Component = () => {
   onMount(() => {
     checkVisibility();
     window.addEventListener("resize", checkVisibility);
-    onCleanup(() => window.removeEventListener("resize", checkVisibility));
+
+    fetchNowPlaying();
+    const interval = setInterval(fetchNowPlaying, 30000);
+
+    onCleanup(() => {
+      window.removeEventListener("resize", checkVisibility);
+      clearInterval(interval);
+    });
   });
 
   return (
