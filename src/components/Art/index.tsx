@@ -1,5 +1,5 @@
 import { Component, createSignal, onMount } from "solid-js";
-import Navigation from "./Navigation";
+import Navigation from "../Navigation";
 import { desktopAsciiArt, mobileAsciiArt } from "./ascii-art";
 
 const AsciiArt: Component = () => {
