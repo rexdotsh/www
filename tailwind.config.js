@@ -5,20 +5,20 @@ export default {
     extend: {
       keyframes: {
         "bar-1": {
-          "0%, 100%": {transform: "scaleY(0.8)"},
-          "50%": {transform: "scaleY(1)"},
+          "0%, 100%": { transform: "scaleY(0.8)" },
+          "50%": { transform: "scaleY(1)" },
         },
         "bar-2": {
-          "0%, 100%": {transform: "scaleY(0.9)"},
-          "50%": {transform: "scaleY(0.7)"},
+          "0%, 100%": { transform: "scaleY(0.9)" },
+          "50%": { transform: "scaleY(0.7)" },
         },
         "bar-3": {
-          "0%, 100%": {transform: "scaleY(0.85)"},
-          "50%": {transform: "scaleY(0.75)"},
+          "0%, 100%": { transform: "scaleY(0.85)" },
+          "50%": { transform: "scaleY(0.75)" },
         },
         "fade-in": {
-          "0%": {opacity: "0"},
-          "100%": {opacity: "1"},
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
         },
       },
       animation: {
