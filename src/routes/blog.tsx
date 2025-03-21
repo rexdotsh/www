@@ -1,5 +1,8 @@
-import { redirect } from "@solidjs/router";
-
 export function GET() {
-  throw redirect("https://blog.rex.wf");
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: "https://blog.rex.wf",
+    },
+  });
 }
