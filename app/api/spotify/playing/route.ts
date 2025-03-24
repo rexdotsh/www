@@ -1,13 +1,14 @@
-import { NextResponse } from "next/server";
-import { kv } from "@vercel/kv";
+import { NextResponse } from 'next/server';
+import { kv } from '@vercel/kv';
 
 const SPOTIFY_API = {
-  NOW_PLAYING: "https://api.spotify.com/v1/me/player/currently-playing",
-  RECENTLY_PLAYED: "https://api.spotify.com/v1/me/player/recently-played?limit=1",
-  TOKEN: "https://accounts.spotify.com/api/token",
+  NOW_PLAYING: 'https://api.spotify.com/v1/me/player/currently-playing',
+  RECENTLY_PLAYED:
+    'https://api.spotify.com/v1/me/player/recently-played?limit=1',
+  TOKEN: 'https://accounts.spotify.com/api/token',
 } as const;
 
-const TOKEN_CACHE_KEY = "spotify:token";
+const TOKEN_CACHE_KEY = 'spotify:token';
 const TOKEN_CACHE_TTL = 3600; // 1 hour
 
 interface SpotifyToken {
@@ -51,24 +52,24 @@ async function getAccessToken() {
     const refreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
 
     if (!clientId || !clientSecret || !refreshToken) {
-      throw new Error("Missing Spotify credentials");
+      throw new Error('Missing Spotify credentials');
     }
 
-    const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+    const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
     const response = await fetch(SPOTIFY_API.TOKEN, {
-      method: "POST",
+      method: 'POST',
       headers: {
         Authorization: `Basic ${basic}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        grant_type: "refresh_token",
+        grant_type: 'refresh_token',
         refresh_token: refreshToken,
       }),
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error("Failed to get access token");
+    if (!response.ok) throw new Error('Failed to get access token');
 
     const token: SpotifyToken = {
       access_token: data.access_token,
@@ -81,7 +82,7 @@ async function getAccessToken() {
 
     return token.access_token;
   } catch (error) {
-    console.error("Failed to get access token:", error);
+    console.error('Failed to get access token:', error);
     throw error;
   }
 }
@@ -95,7 +96,7 @@ async function getNowPlaying(token: string) {
     return getRecentlyPlayed(token);
   }
 
-  if (!response.ok) throw new Error("Failed to fetch now playing");
+  if (!response.ok) throw new Error('Failed to fetch now playing');
 
   const data = await response.json();
   if (!data.item) return null;
@@ -108,21 +109,23 @@ async function getRecentlyPlayed(token: string) {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  if (!response.ok) throw new Error("Failed to fetch recently played");
+  if (!response.ok) throw new Error('Failed to fetch recently played');
 
   const data = await response.json();
-  return data.items?.[0] ? transformTrackData(data.items[0].track as SpotifyTrack) : null;
+  return data.items?.[0]
+    ? transformTrackData(data.items[0].track as SpotifyTrack)
+    : null;
 }
 
 function transformTrackData(data: SpotifyTrack, isPlaying = false) {
   return {
     isPlaying,
     name: data.name,
-    artist: data.artists.map((artist) => artist.name).join(", "),
+    artist: data.artists.map((artist) => artist.name).join(', '),
     album: data.album.name,
     image: data.album.images.map((img) => ({
-      "#text": img.url,
-      size: img.height <= 64 ? "small" : img.height <= 300 ? "medium" : "large",
+      '#text': img.url,
+      size: img.height <= 64 ? 'small' : img.height <= 300 ? 'medium' : 'large',
     })),
     url: data.external_urls.spotify,
     id: data.id,
@@ -135,7 +138,7 @@ export async function GET() {
     const track = await getNowPlaying(token);
     return NextResponse.json(track || null);
   } catch (error) {
-    console.error("Spotify API error:", error);
+    console.error('Spotify API error:', error);
     return NextResponse.json(null);
   }
 }
