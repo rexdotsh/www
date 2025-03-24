@@ -4,6 +4,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
+:root {
+  --bar-timing: ease-in-out infinite;
+}
+
 body {
   background: #030303;
   font-family: Arial, Helvetica, sans-serif;
@@ -18,6 +22,34 @@ body {
   }
 }
 
+@keyframes scale-y {
+  0%,
+  100% {
+    transform: scaleY(var(--scale-min));
+  }
+  50% {
+    transform: scaleY(var(--scale-max));
+  }
+}
+
 .fade-in {
   animation: fade-in 300ms ease-in forwards;
+}
+
+.animate-bar-1 {
+  --scale-min: 0.8;
+  --scale-max: 1;
+  animation: scale-y 1.4s var(--bar-timing);
+}
+
+.animate-bar-2 {
+  --scale-min: 0.9;
+  --scale-max: 0.7;
+  animation: scale-y 1.6s var(--bar-timing);
+}
+
+.animate-bar-3 {
+  --scale-min: 0.85;
+  --scale-max: 0.75;
+  animation: scale-y 1.2s var(--bar-timing);
 }
