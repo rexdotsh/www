@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+// TODO: cache the token
 export async function GET() {
   try {
     const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;

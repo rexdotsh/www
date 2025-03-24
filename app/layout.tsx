@@ -1,7 +1,7 @@
+import { Analytics } from "@vercel/analytics/react";
 import { GeistMono } from "geist/font/mono";
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -50,7 +50,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${GeistMono.className} antialiased`}>{children}</body>
+      <body className={`${GeistMono.className} antialiased`}>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
