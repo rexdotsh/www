@@ -3,9 +3,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
     const embedUrl = `https://open.spotify.com/embed/track/${id}`;
 
     const response = await fetch(embedUrl);
