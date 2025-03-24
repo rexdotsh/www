@@ -24,6 +24,28 @@ const SpotifyNowPlaying = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTrackId = useRef<string | null>(null);
+
+  const fetchPreviewUrl = useCallback(async (trackId: string) => {
+    try {
+      const response = await fetch(`/api/spotify/preview/${trackId}`);
+      const data = await response.json();
+      return data.url;
+    } catch (err) {
+      console.error("Failed to fetch preview URL:", err);
+      return null;
+    }
+  }, []);
+
+  // preload preview url when track changes
+  useEffect(() => {
+    if (track?.id && track.id !== lastTrackId.current) {
+      lastTrackId.current = track.id;
+      fetchPreviewUrl(track.id).then((url) => {
+        if (url) setPreviewUrl(url);
+      });
+    }
+  }, [track?.id, fetchPreviewUrl]);
 
   const fetchTrack = useCallback(async () => {
     try {
@@ -39,25 +61,14 @@ const SpotifyNowPlaying = () => {
     const images = track?.image || [];
     return images.find((img) => img.size === "medium")?.["#text"] || "";
   }, [track]);
-
-  const fetchPreviewUrl = useCallback(async (trackId: string) => {
-    try {
-      const response = await fetch(`/api/spotify/preview/${trackId}`);
-      const data = await response.json();
-      return data.url;
-    } catch (err) {
-      console.error("Failed to fetch preview URL:", err);
-      return null;
-    }
-  }, []);
-
-  const handlePlayPreview = async (e: React.MouseEvent) => {
+  const handlePlayPreview = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!track) return;
 
     try {
+      // if we don't have preview url yet (somehow), fetch it
       if (!previewUrl) {
         const url = await fetchPreviewUrl(track.id);
         if (!url) {
@@ -65,7 +76,10 @@ const SpotifyNowPlaying = () => {
           return;
         }
         setPreviewUrl(url);
-        const audio = new Audio(url);
+      }
+
+      if (!audioRef.current && previewUrl) {
+        const audio = new Audio(previewUrl);
         audio.volume = 0;
         audio.addEventListener("ended", () => setIsPlaying(false));
         audio.addEventListener("error", () => setIsPlaying(false));
@@ -80,10 +94,7 @@ const SpotifyNowPlaying = () => {
             audioRef.current.currentTime = 0;
           }
         });
-        return;
-      }
-
-      if (audioRef.current) {
+      } else if (audioRef.current) {
         audioRef.current.volume = 0;
         setIsPlaying(true);
         try {
