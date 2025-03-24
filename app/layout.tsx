@@ -1,4 +1,5 @@
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { GeistMono } from "geist/font/mono";
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
@@ -52,7 +53,8 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${GeistMono.className} antialiased`}>
         {children}
-        <Analytics />
+        <Analytics basePath="/monitor" />
+        <SpeedInsights basePath="/monitor" />
       </body>
     </html>
   );
