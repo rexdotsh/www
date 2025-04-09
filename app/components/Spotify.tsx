@@ -20,6 +20,24 @@ interface SpotifyTrack {
 const MIN_HEIGHT_FOR_SPOTIFY = 900;
 const POLL_INTERVAL = 30000;
 
+const SpotifySkeleton = () => (
+  <div className="fixed bottom-20 md:bottom-32 w-full px-6 animate-pulse">
+    <div className="max-w-sm mx-auto">
+      <div className="relative">
+        <div className="flex items-center gap-4 bg-neutral-900/50 p-4 rounded-lg border border-neutral-800">
+          <div className="min-w-16 h-16 bg-neutral-700 rounded-md" />
+          <div className="flex flex-col min-w-0 flex-1 mr-2 space-y-2">
+            <div className="h-3 bg-neutral-700 rounded w-1/3" />
+            <div className="h-4 bg-neutral-700 rounded w-3/4" />
+            <div className="h-3 bg-neutral-700 rounded w-1/2" />
+            <div className="h-3 bg-neutral-700 rounded w-2/3" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const SpotifyNowPlaying = () => {
   const [track, setTrack] = useState<SpotifyTrack | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -99,7 +117,13 @@ const SpotifyNowPlaying = () => {
     return () => clearTimeout(pollTimeoutRef.current);
   }, [fetchTrack, shouldShow]);
 
-  if (!track || !shouldShow) return null;
+  if (!shouldShow) return null;
+
+  if (!track) {
+    return <SpotifySkeleton />;
+  }
+
+  const fadeInClass = isVisible ? 'animate-fade-in' : 'opacity-0';
 
   return (
     <div className="fixed bottom-20 md:bottom-32 w-full px-6">
@@ -112,16 +136,17 @@ const SpotifyNowPlaying = () => {
             className={`group flex items-center gap-4 bg-neutral-900/50 backdrop-blur-sm p-4 
                     rounded-lg border border-neutral-800 hover:border-neutral-700 
                     transition-all duration-300 pr-16
-                    ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
+                    ${fadeInClass}`}
           >
             <div className="relative min-w-16 h-16">
               <Image
                 src={getAlbumArt()}
                 alt={`${track.album} album art`}
-                className="rounded-md object-cover"
+                className="rounded-md object-cover transition-opacity duration-200"
                 width={64}
                 height={64}
-                onLoad={() => setTimeout(() => setIsVisible(true), 1)}
+                onLoad={() => setTimeout(() => setIsVisible(true), 50)}
+                priority
               />
               {track.isPlaying && isVisible && (
                 <div className="absolute -bottom-2 -right-2 flex items-end gap-[2px] bg-neutral-900/90 p-1.5 rounded-md">
@@ -151,7 +176,7 @@ const SpotifyNowPlaying = () => {
             onClick={handlePlayPreview}
             className={`absolute right-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-400/80 
                      transition-colors duration-300 cursor-pointer
-                     ${isVisible ? 'animate-fade-in' : 'opacity-0'}`}
+                     ${fadeInClass}`}
             title={isPlaying ? 'Pause Preview' : 'Play Preview'}
             aria-label={isPlaying ? 'Pause song preview' : 'Play song preview'}
           >
