@@ -18,7 +18,7 @@ interface SpotifyTrack {
 }
 
 const MIN_HEIGHT_FOR_SPOTIFY = 900;
-const POLL_INTERVAL = 30000;
+const POLL_INTERVAL = 60000;
 
 const SpotifyNowPlaying = () => {
   const [track, setTrack] = useState<SpotifyTrack | null>(null);
