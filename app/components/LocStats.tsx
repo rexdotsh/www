@@ -49,9 +49,38 @@ export default function LocStats() {
                    text-xs md:text-sm transition-all duration-300
                    ${isVisible ? 'opacity-100' : 'opacity-0'}`}
       >
-        <span className="text-neutral-400 group-hover:text-neutral-300 transition-colors">
-          {stats.user_name}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-neutral-400 group-hover:text-neutral-300 transition-colors">
+            diff
+          </span>
+          <div className="relative flex items-center group/tooltip">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="w-3.5 h-3.5 text-neutral-500 hover:text-neutral-300 transition-colors cursor-help"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <div
+              className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 px-2.5 py-1.5
+                          bg-neutral-800 text-neutral-200 text-[10px] rounded-lg
+                          opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible
+                          transition-all duration-200 pointer-events-none z-20
+                          border border-neutral-700 backdrop-blur-sm"
+            >
+              <div
+                className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full
+                            border-4 border-transparent border-b-neutral-800"
+              />
+              total lines of code added and removed by me across all repos
+            </div>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center text-green-400">
             <span className="mr-1">+</span>
