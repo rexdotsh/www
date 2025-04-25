@@ -13,7 +13,6 @@ interface LocStats {
 
 export default function LocStats() {
   const [stats, setStats] = useState<LocStats | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   const fetchStats = useCallback(async () => {
@@ -30,17 +29,9 @@ export default function LocStats() {
     fetchStats();
   }, [fetchStats]);
 
-  useEffect(() => {
-    if (stats) {
-      setTimeout(() => setIsVisible(true), 100);
-    }
-  }, [stats]);
-
   const formatNumber = (num: number) => {
     return num.toLocaleString();
   };
-
-  if (!stats) return null;
 
   return (
     <div className="fixed top-6 left-0 right-0 flex justify-center w-full px-4 z-10">
@@ -48,7 +39,7 @@ export default function LocStats() {
         className={`group flex items-center gap-3 bg-neutral-900/50 backdrop-blur-sm py-1.5 px-3 
                    rounded-lg border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-800/60 
                    text-xs md:text-sm transition-all duration-300
-                   ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+                   ${stats ? 'opacity-100' : 'opacity-0'}`}
       >
         <div className="flex items-center gap-2">
           <span className="text-neutral-400 group-hover:text-neutral-300 transition-colors">
@@ -98,11 +89,11 @@ export default function LocStats() {
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center text-green-400">
             <span className="mr-1">+</span>
-            {formatNumber(stats.additions)}
+            {formatNumber(stats?.additions || 0)}
           </span>
           <span className="inline-flex items-center text-rose-400/80">
             <span className="mr-1">−</span>
-            {formatNumber(stats.deletions)}
+            {formatNumber(stats?.deletions || 0)}
           </span>
         </div>
       </div>
