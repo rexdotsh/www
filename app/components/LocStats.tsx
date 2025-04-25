@@ -14,6 +14,7 @@ interface LocStats {
 export default function LocStats() {
   const [stats, setStats] = useState<LocStats | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -53,7 +54,17 @@ export default function LocStats() {
           <span className="text-neutral-400 group-hover:text-neutral-300 transition-colors">
             diff
           </span>
-          <div className="relative flex items-center group/tooltip">
+          <div
+            className="relative flex items-center"
+            onMouseEnter={() => setIsTooltipOpen(true)}
+            onMouseLeave={() => setIsTooltipOpen(false)}
+            onClick={() => setIsTooltipOpen(!isTooltipOpen)}
+            onFocus={() => setIsTooltipOpen(true)}
+            onBlur={() => setIsTooltipOpen(false)}
+            role="button"
+            tabIndex={0}
+            aria-describedby="loc-tooltip"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
@@ -67,11 +78,13 @@ export default function LocStats() {
               />
             </svg>
             <div
-              className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 px-2.5 py-1.5
+              id="loc-tooltip"
+              role="tooltip"
+              className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 px-2.5 py-1.5
                           bg-neutral-800 text-neutral-200 text-[10px] rounded-lg
-                          opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible
                           transition-all duration-200 pointer-events-none z-20
-                          border border-neutral-700 backdrop-blur-sm"
+                          border border-neutral-700 backdrop-blur-sm
+                          ${isTooltipOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
             >
               <div
                 className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full
