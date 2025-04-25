@@ -6,8 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint && biome lint",
-    "lint:fix": "next lint --fix && biome lint --write --unsafe",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --write --unsafe",
     "format": "biome format --write"
   },
   "dependencies": {
@@ -15,20 +15,17 @@
     "@vercel/kv": "^3.0.0",
     "@vercel/speed-insights": "^1.2.0",
     "geist": "^1.3.1",
-    "next": "15.2.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "next": "15.3.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-use-audio-player": "^4.0.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.2.3",
+    "@types/react": "19.1.2",
+    "@types/react-dom": "19.1.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
