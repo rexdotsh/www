@@ -46,7 +46,7 @@ export default function LocStats() {
     <div className="fixed top-6 left-0 right-0 flex justify-center w-full px-4 z-10">
       <div
         className={`group flex items-center gap-3 bg-neutral-900/50 backdrop-blur-sm py-1.5 px-3 
-                   border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-800/60 
+                   rounded-lg border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-800/60 
                    text-xs md:text-sm transition-all duration-300
                    ${isVisible ? 'opacity-100' : 'opacity-0'}`}
       >
@@ -69,7 +69,7 @@ export default function LocStats() {
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 20 20"
               fill="currentColor"
-              className="w-3.5 h-3.5 text-neutral-500 hover:text-neutral-300 transition-colors cursor-help"
+              className="w-3.5 h-3.5 text-neutral-500 hover:text-rose-300 transition-colors duration-300 cursor-help"
             >
               <path
                 fillRule="evenodd"
@@ -82,24 +82,25 @@ export default function LocStats() {
               role="tooltip"
               className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 px-2.5 py-1.5
                           bg-neutral-800 text-neutral-200 text-[10px] rounded-lg
-                          transition-all duration-200 pointer-events-none z-20
-                          border border-neutral-700 backdrop-blur-sm
-                          ${isTooltipOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+                          transition-all duration-300 pointer-events-none z-20
+                          backdrop-blur-sm
+                          transform ${isTooltipOpen ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95'}`}
             >
               <div
-                className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full
-                            border-4 border-transparent border-b-neutral-800"
+                className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full
+                            border-4 border-transparent ${isTooltipOpen ? 'border-b-rose-500/70' : 'border-b-neutral-800'}
+                            transition-colors duration-300`}
               />
               total lines of code added and removed by me across all repos
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center text-rose-400/80">
+          <span className="inline-flex items-center text-green-400">
             <span className="mr-1">+</span>
             {formatNumber(stats.additions)}
           </span>
-          <span className="inline-flex items-center text-neutral-400">
+          <span className="inline-flex items-center text-rose-400/80">
             <span className="mr-1">−</span>
             {formatNumber(stats.deletions)}
           </span>
