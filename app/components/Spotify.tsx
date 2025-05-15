@@ -102,7 +102,7 @@ const SpotifyNowPlaying = () => {
   if (!track || !shouldShow) return null;
 
   return (
-    <div className="fixed bottom-20 md:bottom-32 w-full px-6">
+    <div className="fixed bottom-20 md:bottom-28 w-full px-6">
       <div className="max-w-sm mx-auto">
         <div className="relative">
           <a

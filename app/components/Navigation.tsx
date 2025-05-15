@@ -13,7 +13,7 @@ const Navigation = async () => {
   ];
 
   return (
-    <nav className="flex flex-col md:flex-row items-center gap-6 md:gap-12 mt-8 mb-36 md:mt-12 md:mb-0">
+    <nav className="flex flex-col md:flex-row items-center gap-6 md:gap-12 mt-8 mb-36 md:mt-8 md:mb-0">
       {links.map(({ href, text }) => (
         <a
           key={href}
