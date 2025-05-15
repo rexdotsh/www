@@ -2,15 +2,12 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
-import { headers } from 'next/headers';
 import './globals.css';
+import { getBaseUrl } from '@/app/lib/utils';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const headersList = await headers();
   // it's hosted on mridul.sh, and rex.wf, so need to generate metadata dynamically
-  const host = headersList.get('host') || 'rex.wf';
-  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-  const baseUrl = `${protocol}://${host}`;
+  const baseUrl = await getBaseUrl();
 
   return {
     title: "rex's space",

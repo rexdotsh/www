@@ -1,5 +1,3 @@
-'use client';
-
 import Navigation from '../Navigation';
 import { asciiArt } from './ascii-art';
 

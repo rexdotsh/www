@@ -1,8 +1,13 @@
-const Navigation = () => {
+import { getHost } from '@/app/lib/utils';
+
+const Navigation = async () => {
+  const host = await getHost();
+
   const links = [
     { href: 'https://blog.rex.wf', text: 'BLOG' },
-    // {href: "/resume", text: "RESUME"},
-    { href: 'https://x.com/rexmkv', text: 'TWITTER' },
+    ...(host === 'mridul.sh'
+      ? [{ href: '/resume', text: 'RESUME' }]
+      : [{ href: 'https://x.com/rexmkv', text: 'TWITTER' }]),
     { href: 'https://github.com/rexdotsh', text: 'GITHUB' },
     { href: 'https://flora.tf', text: 'FLORA' },
   ];
