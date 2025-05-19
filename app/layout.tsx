@@ -8,17 +8,21 @@ import { getBaseUrl } from '@/app/lib/utils';
 export async function generateMetadata(): Promise<Metadata> {
   // it's hosted on mridul.sh, and rex.wf, so need to generate metadata dynamically
   const baseUrl = await getBaseUrl();
+  const { hostname } = new URL(await getBaseUrl());
+  const name = hostname.includes('mridul.sh') ? 'mridul' : 'rex';
+  const common = {
+    title: `${name}'s space`,
+    description: `${name}'s personal website`,
+  };
 
   return {
-    title: "rex's space",
-    description: "rex's personal website",
+    ...common,
     robots: 'index,follow',
     metadataBase: new URL(baseUrl),
     openGraph: {
-      title: "rex's space",
-      description: "rex's personal website",
+      ...common,
       url: baseUrl,
-      siteName: "rex's space",
+      siteName: common.title,
       type: 'website',
       images: [
         {
@@ -30,8 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: 'summary',
-      title: "rex's space",
-      description: "rex's personal website",
+      ...common,
       images: ['/image.png'],
     },
   };
