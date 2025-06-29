@@ -6,9 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "biome lint",
-    "lint:fix": "biome lint --write --unsafe",
-    "format": "biome format --write"
+    "lint": "biome lint --write --unsafe .",
+    "format": "biome format --write ."
   },
   "dependencies": {
     "@vercel/analytics": "^1.5.0",
