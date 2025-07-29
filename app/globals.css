@@ -2,14 +2,23 @@
 
 @theme inline {
   --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--color-rose-500);
 }
 
 :root {
   --bar-timing: ease-in-out infinite;
+  --background: #030303;
+  --foreground: #d6e9ef;
+  --primary: #d6e9ef;
+  --secondary: #6e7681;
 }
 
 body {
-  background: #030303;
+  background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
 

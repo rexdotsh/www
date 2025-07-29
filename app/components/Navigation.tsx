@@ -20,7 +20,7 @@ const Navigation = async () => {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-lg md:text-2xl md:my-12 text-[#d6e9ef] font-bold hover:text-rose-400/80 transition-colors"
+          className="text-lg md:text-2xl md:my-12 text-primary font-bold hover:text-rose-500/80 transition-colors"
         >
           {text}
         </a>
