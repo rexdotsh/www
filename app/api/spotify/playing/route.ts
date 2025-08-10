@@ -1,5 +1,14 @@
+import { Redis } from '@upstash/redis';
 import { NextResponse } from 'next/server';
-import { kv } from '@vercel/kv';
+
+if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
+  throw new Error('Missing Redis environment variables');
+}
+
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
+});
 
 const SPOTIFY_API = {
   NOW_PLAYING: 'https://api.spotify.com/v1/me/player/currently-playing',
@@ -42,7 +51,7 @@ interface SpotifyTrack {
 
 async function getAccessToken() {
   try {
-    const cached = await kv?.get<SpotifyToken>(TOKEN_CACHE_KEY);
+    const cached = await redis.get<SpotifyToken>(TOKEN_CACHE_KEY);
     if (cached && Date.now() < cached.expires_at) {
       return cached.access_token;
     }
@@ -76,9 +85,7 @@ async function getAccessToken() {
       expires_at: Date.now() + (data.expires_in - 60) * 1000, // subtract 60s for safety
     };
 
-    if (kv) {
-      await kv.set(TOKEN_CACHE_KEY, token, { ex: TOKEN_CACHE_TTL });
-    }
+    await redis.set(TOKEN_CACHE_KEY, token, { ex: TOKEN_CACHE_TTL });
 
     return token.access_token;
   } catch (error) {
