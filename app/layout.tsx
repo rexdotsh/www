@@ -2,7 +2,8 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { GeistMono } from 'geist/font/mono';
 import type { Metadata, Viewport } from 'next';
-import './globals.css';
+import '@/app/globals.css';
+import { UmamiAnalytics } from '@/app/components/UmamiAnalytics';
 import { getBaseUrl } from '@/app/lib/utils';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -53,6 +54,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${GeistMono.className} antialiased`}>
         {children}
+        <UmamiAnalytics />
         <Analytics basePath="/monitor" />
         <SpeedInsights basePath="/monitor" />
       </body>
