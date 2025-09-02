@@ -6,7 +6,7 @@ const Navigation = async () => {
   const links = [
     { href: 'https://blog.rex.wf', text: 'BLOG' },
     ...(host === 'mridul.sh'
-      ? [{ href: '/resume', text: 'RESUME' }]
+      ? [{ href: '/resume', text: 'Résumé' }]
       : [{ href: 'https://x.com/rexmkv', text: 'TWITTER' }]),
     { href: 'https://github.com/rexdotsh', text: 'GITHUB' },
     { href: 'https://flora.tf', text: 'FLORA' },
