@@ -117,9 +117,9 @@ export default function SpotifyNowPlaying() {
 
   return (
     <div
-      className="fixed bottom-10 w-full px-6 md:bottom-28"
+      className="fixed w-full px-6 md:bottom-[calc(7rem+env(safe-area-inset-bottom,0px))]"
       style={{
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        bottom: "calc(2.5rem + env(safe-area-inset-bottom, 0px))",
       }}
     >
       <div className="mx-auto max-w-sm">
