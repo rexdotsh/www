@@ -25,7 +25,10 @@
     top right / 0 no-repeat;
   mask-origin: content-box;
   animation: scale 1s;
-  animation-fill-mode: both;
+  /* for chrome 140 compatibility, else `both` is default 
+  https://github.com/rudrodip/theme-toggle-effect/issues/1 
+  haven't tested, but better to be safe. same effect visually. */
+  animation-fill-mode: forwards;
   transform-origin: top right;
 }
 
