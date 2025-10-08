@@ -39,17 +39,25 @@
   /* light mode */
   --background: #f2ecdf;
   --primary: #be123c;
-  --secondary: #8b7d6b;
+  --primary-hover: #f43f5e;
+  --secondary: #92400eb3;
   --accent: #be123c;
-  --accent-hover: #f43f5e;
+  --surface: #fffbeb99;
+  --surface-hover: #fffbebe6;
+  --border: #fde68a99;
+  --border-hover: #fcd34dcc;
 }
 
 [data-theme="dark"] {
   --background: #030303;
   --primary: #ffffff;
-  --secondary: #6e7681;
+  --primary-hover: #f43f5ecc;
+  --secondary: #737373;
   --accent: #fb7185cc;
-  --accent-hover: #f43f5ecc;
+  --surface: #17171780;
+  --surface-hover: #262626cc;
+  --border: #262626;
+  --border-hover: #404040;
 }
 
 body {

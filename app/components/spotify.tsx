@@ -128,7 +128,7 @@ export default function SpotifyNowPlaying() {
       <div className="mx-auto max-w-sm">
         <div className="relative">
           <a
-            className={`group flex items-center gap-4 rounded-lg border border-amber-200/60 bg-amber-50/60 p-4 pr-16 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-amber-300/80 hover:bg-amber-50/90 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900/50 dark:hover:border-neutral-700 dark:hover:bg-neutral-900/60 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
+            className={`group flex items-center gap-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 pr-16 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-[var(--border-hover)] hover:bg-[var(--surface-hover)] hover:shadow-md ${isVisible ? "animate-fade-in" : "opacity-0"}`}
             href={track.url}
             rel="noopener noreferrer"
             target="_blank"
@@ -143,7 +143,7 @@ export default function SpotifyNowPlaying() {
                 width={64}
               />
               {track.isPlaying && isVisible && (
-                <div className="-bottom-2 -right-2 absolute flex items-end gap-[2px] rounded-md bg-amber-50/95 p-1.5 shadow-sm dark:bg-neutral-900/90">
+                <div className="-bottom-2 -right-2 absolute flex items-end gap-[2px] rounded-md bg-[var(--surface-hover)] p-1.5 shadow-sm">
                   <div className="h-3 w-[3px] origin-bottom animate-bar-1 bg-[var(--accent)]" />
                   <div className="h-3 w-[3px] origin-bottom animate-bar-2 bg-[var(--accent)]" />
                   <div className="h-3 w-[3px] origin-bottom animate-bar-3 bg-[var(--accent)]" />
@@ -154,13 +154,13 @@ export default function SpotifyNowPlaying() {
               <span className="mb-0.5 text-[var(--accent)] text-xs">
                 {track.isPlaying ? "currently listening to" : "last played"}
               </span>
-              <span className="truncate font-medium text-amber-950 transition-colors group-hover:text-[var(--accent)] dark:text-neutral-200">
+              <span className="truncate font-medium text-[#451a03] transition-colors group-hover:text-[var(--accent)] dark:text-[#e5e5e5]">
                 {track.name}
               </span>
-              <span className="truncate text-amber-900/80 text-sm dark:text-neutral-400">
+              <span className="truncate text-[#78350fcc] text-sm dark:text-[#a3a3a3]">
                 {track.artist}
               </span>
-              <span className="truncate text-amber-800/70 text-sm dark:text-neutral-500">
+              <span className="truncate text-[var(--secondary)] text-sm">
                 {track.album}
               </span>
             </div>
