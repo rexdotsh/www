@@ -117,9 +117,12 @@ export default function SpotifyNowPlaying() {
 
   return (
     <div
-      className="fixed w-full px-6 md:bottom-[calc(7rem+env(safe-area-inset-bottom,0px))]"
+      // i don't know why this doesn't work when i move it to globals.css
+      // may god save this codebase
+      className="fixed inset-x-0 bottom-[var(--spotify-bottom)] z-10 w-full px-6 md:bottom-[calc(7rem+env(safe-area-inset-bottom,0px))]"
       style={{
-        bottom: "calc(2.5rem + env(safe-area-inset-bottom, 0px))",
+        ["--spotify-bottom" as string]:
+          "calc(1.75rem + env(safe-area-inset-bottom, 0px))",
       }}
     >
       <div className="mx-auto max-w-sm">
