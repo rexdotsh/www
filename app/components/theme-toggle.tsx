@@ -57,29 +57,66 @@ export default function ThemeToggle() {
   );
 }
 
-const YinYang = ({ isDark }: { isDark: boolean }) => (
-  <svg
-    className="transition-transform duration-500 ease-in-out"
-    fill="none"
-    height="32"
-    style={{ transform: isDark ? "rotate(180deg)" : "rotate(0deg)" }}
-    viewBox="0 0 100 100"
-    width="32"
-  >
-    <title>{isDark ? "Dark mode" : "Light mode"}</title>
-    <circle
-      cx="50"
-      cy="50"
-      fill="currentColor"
-      r="48"
-      stroke="currentColor"
-      strokeWidth="2"
-    />
-    <path
-      d="M50 2 A48 48 0 0 1 50 98 A24 24 0 0 1 50 50 A24 24 0 0 0 50 2"
-      fill={isDark ? "#030303" : "#f2ecdf"}
-    />
-    <circle cx="50" cy="25" fill={isDark ? "#030303" : "#f2ecdf"} r="6" />
-    <circle cx="50" cy="75" fill={isDark ? "#f2ecdf" : "#030303"} r="6" />
-  </svg>
-);
+const YinYang = ({ isDark }: { isDark: boolean }) => {
+  // done like this so it's actually readable. fuck this shit
+  const COLORS = {
+    cream: "#f2ecdf",
+    red: "#be123c",
+    dark: "#030303",
+  };
+
+  // this represents the light mode half: always cream, with red accent when in light mode
+  const lightHalf = {
+    fill: COLORS.cream,
+    stroke: isDark ? COLORS.cream : COLORS.red,
+  };
+
+  // this represents the dark mode half: dark when in dark mode, red when in light mode
+  const darkHalf = {
+    fill: isDark ? COLORS.dark : COLORS.red,
+    stroke: isDark ? COLORS.dark : COLORS.red,
+  };
+
+  return (
+    <svg
+      className="transition-transform duration-500 ease-in-out"
+      fill="none"
+      height="32"
+      style={{ transform: isDark ? "rotate(0deg)" : "rotate(180deg)" }}
+      viewBox="0 0 100 100"
+      width="32"
+    >
+      <title>{isDark ? "Dark mode" : "Light mode"}</title>
+      <circle
+        cx="50"
+        cy="50"
+        fill={lightHalf.fill}
+        r="48"
+        stroke={lightHalf.stroke}
+        strokeWidth="2"
+      />
+      <path
+        d="M50 2 A48 48 0 0 1 50 98 A24 24 0 0 1 50 50 A24 24 0 0 0 50 2"
+        fill={darkHalf.fill}
+        stroke={darkHalf.stroke}
+        strokeWidth="2"
+      />
+      <circle
+        cx="50"
+        cy="25"
+        fill={darkHalf.fill}
+        r="6"
+        stroke={darkHalf.stroke}
+        strokeWidth="1"
+      />
+      <circle
+        cx="50"
+        cy="75"
+        fill={lightHalf.fill}
+        r="6"
+        stroke={lightHalf.stroke}
+        strokeWidth="1"
+      />
+    </svg>
+  );
+};
