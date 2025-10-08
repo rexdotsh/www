@@ -99,3 +99,22 @@ body {
   --scale-max: 0.75;
   animation: scale-y 1.2s var(--bar-timing);
 }
+
+.ascii-container {
+  width: clamp(220px, 80vw, 280px);
+  margin-left: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .ascii-container {
+    width: clamp(350px, 45vw, 480px);
+    margin-left: 0;
+    margin-inline: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ascii-container {
+    width: clamp(260px, 18vw, 300px);
+  }
+}
