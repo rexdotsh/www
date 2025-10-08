@@ -7,7 +7,9 @@ export default function Home() {
     <main className="fixed inset-0 overflow-hidden">
       <AsciiArt />
       <SpotifyNowPlaying />
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </main>
   );
 }
