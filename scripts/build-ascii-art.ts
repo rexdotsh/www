@@ -40,9 +40,10 @@ const convertToAscii = async (
   ctx.drawImage(img, 0, 0, width, height);
 
   const imageData = ctx.getImageData(0, 0, width, height).data;
-  let art = "";
+  const lines: string[] = [];
 
   for (let y = 0; y < height; y++) {
+    const row: string[] = [];
     for (let x = 0; x < width; x++) {
       const i = (y * width + x) * 4;
       const [r, g, b, a] = [
@@ -53,24 +54,21 @@ const convertToAscii = async (
       ];
 
       if (a === 0) {
-        art += " ";
+        row.push(" ");
         continue;
       }
 
       const brightness = (r + g + b) / 3;
       const charIndex = Math.floor((brightness / 255) * (chars.length - 1));
-      art += chars[charIndex];
+      row.push(chars[charIndex]);
     }
-    art += "\n";
+    lines.push(row.join(""));
   }
 
-  return art;
+  return lines.join("\n");
 };
 
-const roundCoord = (n: number): string => {
-  const v = Math.round(n * 10) / 10;
-  return v.toString();
-};
+const roundCoord = (n: number): string => (Math.round(n * 10) / 10).toFixed(1);
 
 const collectUniqueChars = (lines: string[]): Set<string> => {
   const set = new Set<string>();
@@ -89,41 +87,6 @@ type GlyphDefsResult = {
   defsMarkup: string;
 };
 
-type Command = {
-  type: string;
-  x?: number;
-  y?: number;
-  x1?: number;
-  y1?: number;
-  x2?: number;
-  y2?: number;
-};
-
-const commandToPathSegment = (c: Command): string => {
-  switch (c.type) {
-    case "M":
-      return `M${c.x ?? 0},${c.y ?? 0}`;
-    case "L":
-      return `L${c.x ?? 0},${c.y ?? 0}`;
-    case "C":
-      return `C${c.x1 ?? 0},${c.y1 ?? 0},${c.x2 ?? 0},${c.y2 ?? 0},${c.x ?? 0},${c.y ?? 0}`;
-    case "Q":
-      return `Q${c.x1 ?? 0},${c.y1 ?? 0},${c.x ?? 0},${c.y ?? 0}`;
-    case "Z":
-      return "Z";
-    default:
-      return "";
-  }
-};
-
-const commandsToPath = (commands: Command[]): string => {
-  let d = "";
-  for (const c of commands) {
-    d += commandToPathSegment(c);
-  }
-  return d;
-};
-
 const buildGlyphDefs = (
   font: opentype.Font,
   ascender: number,
@@ -136,40 +99,10 @@ const buildGlyphDefs = (
     const id = `g${ch.charCodeAt(0)}`;
     idForChar.set(ch, id);
     const glyph = font.charToGlyph(ch);
-    const basePath = glyph.getPath(0, ascender, fontSize);
-    const base = basePath as {
-      toPathData?: (dp?: number) => string;
-      commands?: Command[];
-    };
-    const dStr = base.toPathData
-      ? base.toPathData(1)
-      : commandsToPath(base.commands ?? []);
-    defsParts.push(`<path id="${id}" d="${dStr}" />`);
+    const pathData = glyph.getPath(0, ascender, fontSize).toPathData(1);
+    defsParts.push(`<path id="${id}" d="${pathData}" />`);
   }
   return { idForChar, defsMarkup: defsParts.join("") };
-};
-
-const processLineChars = (
-  line: string,
-  idForChar: Map<string, string>,
-  yOff: number,
-  advanceX: number
-): string[] => {
-  const parts: string[] = [];
-  let col = 0;
-  for (const ch of line) {
-    if (ch !== " ") {
-      const id = idForChar.get(ch);
-      if (id) {
-        const xOff = col * advanceX;
-        parts.push(
-          `<use href="#${id}" x="${roundCoord(xOff)}" y="${roundCoord(yOff)}" />`
-        );
-      }
-    }
-    col++;
-  }
-  return parts;
 };
 
 const buildUsesForLines = (
@@ -179,19 +112,26 @@ const buildUsesForLines = (
   advanceX: number
 ): string => {
   const usesParts: string[] = [];
-  let row = 0;
-  for (const line of lines) {
-    const yOff = row * lineAdvance;
-    usesParts.push(...processLineChars(line, idForChar, yOff, advanceX));
-    row++;
-  }
-  return usesParts.join("");
-};
 
-const ensureDir = (dir: string): void => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  for (let row = 0; row < lines.length; row++) {
+    const yOff = row * lineAdvance;
+    const line = lines[row];
+
+    for (let col = 0; col < line.length; col++) {
+      const ch = line[col];
+      if (ch !== " ") {
+        const id = idForChar.get(ch);
+        if (id) {
+          const xOff = col * advanceX;
+          usesParts.push(
+            `<use href="#${id}" x="${roundCoord(xOff)}" y="${roundCoord(yOff)}" />`
+          );
+        }
+      }
+    }
   }
+
+  return usesParts.join("");
 };
 
 const getMonospaceAdvance = (
@@ -203,21 +143,24 @@ const getMonospaceAdvance = (
   return (g.advanceWidth ?? unitsPerEm) * scale;
 };
 
-type SvgDimensions = {
+type SvgConfig = {
   width: number;
   height: number;
   xOffset: number;
+  horizontalScale: number;
+  defsMarkup: string;
+  usesMarkup: string;
 };
 
-const generateSvgMarkup = (
-  dims: SvgDimensions,
-  horizontalScale: number,
-  defsMarkup: string,
-  usesMarkup: string
-): string => {
-  const { width, height, xOffset } = dims;
-  return `<svg viewBox="0 0 ${roundCoord(width)} ${roundCoord(height)}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="roseTitle"><title id="roseTitle">Rose, generated from ASCII</title><defs>${defsMarkup}</defs><g transform="translate(${roundCoord(xOffset)}, ${roundCoord(height)}) scale(${horizontalScale}, -1)" fill="#ff1f56">${usesMarkup}</g></svg>`;
-};
+const generateSvgMarkup = ({
+  width,
+  height,
+  xOffset,
+  horizontalScale,
+  defsMarkup,
+  usesMarkup,
+}: SvgConfig): string =>
+  `<svg viewBox="0 0 ${roundCoord(width)} ${roundCoord(height)}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="roseTitle"><title id="roseTitle">Rose, generated from ASCII</title><defs>${defsMarkup}</defs><g transform="translate(${roundCoord(xOffset)}, ${roundCoord(height)}) scale(${horizontalScale}, -1)" fill="#ff1f56">${usesMarkup}</g></svg>`;
 
 const buildSvgBuffer = async (asciiArt: string): Promise<Buffer> => {
   if (!fs.existsSync(FONT_PATH)) {
@@ -256,18 +199,19 @@ const buildSvgBuffer = async (asciiArt: string): Promise<Buffer> => {
   const horizontalScale = 0.9;
   const xOffset = (width * (1 - horizontalScale)) / 2;
 
-  const dims = { width, height, xOffset };
-  const svgMarkup = generateSvgMarkup(
-    dims,
+  const svgMarkup = generateSvgMarkup({
+    width,
+    height,
+    xOffset,
     horizontalScale,
     defsMarkup,
-    usesMarkup
-  );
+    usesMarkup,
+  });
   return Buffer.from(svgMarkup);
 };
 
 const rasterizeAVIF = async (svgBuffer: Buffer): Promise<void> => {
-  ensureDir(PUBLIC_DIR);
+  fs.mkdirSync(PUBLIC_DIR, { recursive: true });
   await sharp(svgBuffer)
     .flip()
     .trim()
