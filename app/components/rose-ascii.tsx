@@ -10,6 +10,7 @@ export default function RoseAscii() {
           alt="Rose"
           className="select-none object-contain"
           fill
+          placeholder="blur"
           priority
           sizes="(min-width: 1667px) 300px, (min-width: 1024px) 260px, (min-width: 768px) 45vw, 70vw"
           src={rose}
