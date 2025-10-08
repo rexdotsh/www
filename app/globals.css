@@ -101,14 +101,14 @@ body {
 }
 
 .ascii-container {
-  width: clamp(140px, 70vw, 260px);
+  width: clamp(150px, 70vw, 270px);
   margin-left: 1.5rem;
   aspect-ratio: 1 / 1;
 }
 
 @media (min-width: 768px) {
   .ascii-container {
-    width: clamp(350px, 45vw, 480px);
+    width: clamp(360px, 45vw, 490px);
     margin-left: 0;
     margin-inline: auto;
     aspect-ratio: 1 / 1;
@@ -117,7 +117,7 @@ body {
 
 @media (min-width: 1024px) {
   .ascii-container {
-    width: clamp(260px, 18vw, 300px);
+    width: clamp(270px, 18vw, 310px);
     aspect-ratio: 1 / 1;
   }
 }

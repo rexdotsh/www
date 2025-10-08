@@ -269,9 +269,14 @@ const buildSvgBuffer = async (asciiArt: string): Promise<Buffer> => {
 const rasterizeAVIF = async (svgBuffer: Buffer): Promise<void> => {
   ensureDir(PUBLIC_DIR);
   await sharp(svgBuffer)
-    .resize({ width: TARGET_WIDTH })
     .flip()
     .trim()
+    .resize({
+      width: TARGET_WIDTH,
+      height: TARGET_WIDTH,
+      fit: "contain",
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
     .avif({ quality: 62 })
     .toFile(AVIF_PATH);
 };
