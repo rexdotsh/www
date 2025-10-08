@@ -3,7 +3,7 @@ import Navigation from "../navigation";
 
 const AsciiArt = () => (
   <div className="flex h-full flex-col items-center justify-center">
-    <div className="fade-in ml-8 w-full max-w-[300px] lg:mx-auto lg:max-w-[300px]">
+    <div className="fade-in ml-6 w-full max-w-xs lg:mx-auto lg:max-w-sm">
       <Image
         alt="Rose"
         className="h-auto w-full select-none"
