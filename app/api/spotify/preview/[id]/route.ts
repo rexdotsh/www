@@ -1,11 +1,13 @@
 // ref: https://github.com/rexdotsh/spotify-preview-url-workaround
 
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+
+const AUDIO_PREVIEW_REGEX = /"audioPreview":\s*{\s*"url":\s*"([^"]+)"/;
 
 export async function GET(
   _request: NextRequest,
-  context: { params: Promise<{ id: string }> },
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await context.params;
@@ -14,13 +16,13 @@ export async function GET(
     const response = await fetch(embedUrl);
     const html = await response.text();
 
-    const matches = html.match(/"audioPreview":\s*{\s*"url":\s*"([^"]+)"/);
+    const matches = html.match(AUDIO_PREVIEW_REGEX);
     const previewUrl = matches ? matches[1] : null;
 
     if (!previewUrl) {
       return NextResponse.json(
-        { error: 'No preview URL found' },
-        { status: 404 },
+        { error: "No preview URL found" },
+        { status: 404 }
       );
     }
 
@@ -28,7 +30,7 @@ export async function GET(
   } catch (error) {
     return NextResponse.json(
       { error: `Failed to fetch preview URL: ${error}` },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

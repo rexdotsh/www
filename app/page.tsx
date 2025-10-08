@@ -1,6 +1,6 @@
-import AsciiArt from '@/app/components/AsciiArt';
-import Footer from '@/app/components/Footer';
-import SpotifyNowPlaying from '@/app/components/Spotify';
+import AsciiArt from "@/app/components/AsciiArt";
+import Footer from "@/app/components/footer";
+import SpotifyNowPlaying from "@/app/components/spotify";
 
 export default function Home() {
   return (

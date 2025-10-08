@@ -1,16 +1,16 @@
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/react';
-import { GeistMono } from 'geist/font/mono';
-import type { Metadata, Viewport } from 'next';
-import '@/app/globals.css';
-import { UmamiAnalytics } from '@/app/components/UmamiAnalytics';
-import { getBaseUrl } from '@/app/lib/utils';
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { GeistMono } from "geist/font/mono";
+import type { Metadata, Viewport } from "next";
+import "@/app/globals.css";
+import { UmamiAnalytics } from "@/app/components/umami-analytics";
+import { getBaseUrl } from "@/app/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   // it's hosted on mridul.sh, and rex.wf, so need to generate metadata dynamically
   const baseUrl = await getBaseUrl();
   const { hostname } = new URL(await getBaseUrl());
-  const name = hostname.includes('mridul.sh') ? 'mridul' : 'rex';
+  const name = hostname.includes("mridul.sh") ? "mridul" : "rex";
   const common = {
     title: `${name}'s space`,
     description: `${name}'s personal website`,
@@ -18,31 +18,31 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     ...common,
-    robots: 'index,follow',
+    robots: "index,follow",
     metadataBase: new URL(baseUrl),
     openGraph: {
       ...common,
       url: baseUrl,
       siteName: common.title,
-      type: 'website',
+      type: "website",
       images: [
         {
-          url: '/image.png',
+          url: "/image.png",
           width: 192,
           height: 192,
         },
       ],
     },
     twitter: {
-      card: 'summary',
+      card: "summary",
       ...common,
-      images: ['/image.png'],
+      images: ["/image.png"],
     },
   };
 }
 
 export const viewport: Viewport = {
-  themeColor: '#030303',
+  themeColor: "#030303",
 };
 
 export default function RootLayout({
@@ -51,7 +51,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html className="dark" lang="en">
       <body className={`${GeistMono.className} antialiased`}>
         {children}
         <UmamiAnalytics />
