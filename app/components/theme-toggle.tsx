@@ -48,7 +48,7 @@ export default function ThemeToggle() {
     <button
       aria-label={`Switch to ${nextTheme} mode`}
       aria-pressed={isDark}
-      className="group fixed top-4 right-4 z-50 inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-900/40 active:scale-95 dark:focus-visible:ring-neutral-500"
+      className="group fixed top-4 right-4 z-50 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-900/40 active:scale-95 dark:focus-visible:ring-neutral-500"
       onClick={handleToggle}
       type="button"
     >
@@ -68,10 +68,10 @@ const YinYang = ({ isDark }: { isDark: boolean }) => {
     <svg
       className="transition-transform duration-500 ease-in-out"
       fill="none"
-      height="16"
+      height="24"
       style={{ transform: isDark ? "rotate(0deg)" : "rotate(180deg)" }}
       viewBox="0 0 100 100"
-      width="16"
+      width="24"
     >
       <title>{isDark ? "Dark mode" : "Light mode"}</title>
       <circle
