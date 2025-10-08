@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
@@ -48,47 +49,17 @@ export default function ThemeToggle() {
     <button
       aria-label={`Switch to ${nextTheme} mode`}
       aria-pressed={isDark}
-      className="group fixed top-4 right-4 z-50 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent text-amber-900/60 transition-all duration-200 hover:text-amber-950 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-900/40 active:scale-95 dark:text-neutral-400 dark:focus-visible:ring-neutral-500 dark:hover:text-neutral-100"
+      className="group fixed top-4 right-4 z-50 inline-flex h-12 w-12 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent transition-all duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-900/40 active:scale-95 dark:focus-visible:ring-neutral-500"
       onClick={handleToggle}
       type="button"
     >
-      {isDark ? <SunIcon /> : <MoonIcon />}
+      <Image
+        alt={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        height={48}
+        priority
+        src={isDark ? "/lever-1.png" : "/lever-2.png"}
+        width={48}
+      />
     </button>
   );
 }
-
-const SunIcon = () => (
-  <svg
-    aria-hidden="true"
-    fill="none"
-    height="18"
-    viewBox="0 0 24 24"
-    width="18"
-  >
-    <title>Sun</title>
-    <path
-      d="M12 4V2m0 20v-2M4 12H2m20 0h-2M5.64 5.64 4.22 4.22m15.56 15.56-1.42-1.42M18.36 5.64l1.42-1.42M4.22 19.78l1.42-1.42M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeWidth="1.5"
-    />
-  </svg>
-);
-
-const MoonIcon = () => (
-  <svg
-    aria-hidden="true"
-    fill="none"
-    height="18"
-    viewBox="0 0 24 24"
-    width="18"
-  >
-    <title>Moon</title>
-    <path
-      d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeWidth="1.5"
-    />
-  </svg>
-);
