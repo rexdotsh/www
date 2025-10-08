@@ -120,24 +120,29 @@ body {
   animation: scale-y 1.2s var(--bar-timing);
 }
 
-.ascii-container {
+.rose-container {
   width: clamp(150px, 70vw, 270px);
   margin-left: 1.5rem;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1;
+  position: relative;
 }
 
 @media (min-width: 768px) {
-  .ascii-container {
-    width: clamp(360px, 45vw, 490px);
+  .rose-container {
+    width: clamp(240px, 30vw, 320px);
     margin-left: 0;
     margin-inline: auto;
-    aspect-ratio: 1 / 1;
   }
 }
 
 @media (min-width: 1024px) {
-  .ascii-container {
+  .rose-container {
     width: clamp(270px, 18vw, 310px);
-    aspect-ratio: 1 / 1;
+  }
+}
+
+@media (min-width: 1440px) {
+  .rose-container {
+    width: clamp(310px, 16vw, 360px);
   }
 }

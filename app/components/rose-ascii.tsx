@@ -5,13 +5,13 @@ import Navigation from "./navigation";
 export default function RoseAscii() {
   return (
     <div className="flex h-full flex-col items-center justify-center">
-      <div className="fade-in ascii-container relative select-none">
+      <div className="fade-in rose-container relative select-none">
         <Image
           alt="Rose"
           className="select-none object-contain"
           fill
           priority
-          sizes="(min-width: 1667px) 300px, (min-width: 1024px) 260px, (min-width: 768px) 45vw, 70vw"
+          sizes="(min-width: 1024px) 310px, (min-width: 768px) 30vw, 70vw"
           src={rose}
         />
       </div>
