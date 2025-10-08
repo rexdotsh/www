@@ -1,8 +1,9 @@
 /*
-  Build-time script: Image -> ASCII -> WebP raster using Geist Mono glyphs.
+  Build-time script: Image -> ASCII -> SVG -> raster (AVIF) using Geist Mono glyphs.
   Usage: npm run generate
   
-  Converts public/image.png to ASCII art, then renders it using font glyphs and outputs public/rose.webp
+  Converts public/image.png to ASCII art, renders it as SVG glyphs, then outputs
+  public/rose.avif.
 */
 
 import fs from "node:fs";
@@ -17,7 +18,8 @@ const ROOT = path.resolve(SCRIPT_DIR, "..");
 const IMAGE_PATH = path.join(ROOT, "public", "image.png");
 const FONT_PATH = path.join(SCRIPT_DIR, "geist-mono.ttf");
 const PUBLIC_DIR = path.join(ROOT, "public");
-const WEBP_PATH = path.join(PUBLIC_DIR, "rose.webp");
+const AVIF_PATH = path.join(PUBLIC_DIR, "rose.avif");
+const TARGET_WIDTH = 320;
 
 const convertToAscii = async (
   imagePath: string,
@@ -217,7 +219,7 @@ const generateSvgMarkup = (
   return `<svg viewBox="0 0 ${roundCoord(width)} ${roundCoord(height)}" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="roseTitle"><title id="roseTitle">Rose, generated from ASCII</title><defs>${defsMarkup}</defs><g transform="translate(${roundCoord(xOffset)}, ${roundCoord(height)}) scale(${horizontalScale}, -1)" fill="#ff1f56">${usesMarkup}</g></svg>`;
 };
 
-const generateWebP = async (asciiArt: string): Promise<void> => {
+const buildSvgBuffer = async (asciiArt: string): Promise<Buffer> => {
   if (!fs.existsSync(FONT_PATH)) {
     throw new Error(`Font not found at ${FONT_PATH}`);
   }
@@ -261,22 +263,24 @@ const generateWebP = async (asciiArt: string): Promise<void> => {
     defsMarkup,
     usesMarkup
   );
-  ensureDir(PUBLIC_DIR);
+  return Buffer.from(svgMarkup);
+};
 
-  const targetWidth = 320;
-  const svgBuffer = Buffer.from(svgMarkup);
+const rasterizeAVIF = async (svgBuffer: Buffer): Promise<void> => {
+  ensureDir(PUBLIC_DIR);
   await sharp(svgBuffer)
-    .resize({ width: targetWidth })
+    .resize({ width: TARGET_WIDTH })
     .flip()
     .trim()
-    .webp()
-    .toFile(WEBP_PATH);
+    .avif({ quality: 62 })
+    .toFile(AVIF_PATH);
 };
 
 const main = async (): Promise<void> => {
   const asciiArt = await convertToAscii(IMAGE_PATH, 500, 1000);
-  await generateWebP(asciiArt);
-  console.log(`Successfully generated ${WEBP_PATH}`);
+  const svgBuffer = await buildSvgBuffer(asciiArt);
+  await rasterizeAVIF(svgBuffer);
+  console.log(`Successfully generated ${AVIF_PATH}`);
 };
 
 main().catch((error) => {

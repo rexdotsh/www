@@ -1,5 +1,5 @@
 import Image from "next/image";
-import rose from "@/public/rose.webp";
+import rose from "@/public/rose.avif";
 import Navigation from "./navigation";
 
 export default function RoseAscii() {
