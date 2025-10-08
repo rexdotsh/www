@@ -20,7 +20,7 @@ type SpotifyTrack = {
 const MIN_HEIGHT_FOR_SPOTIFY = 900;
 const POLL_INTERVAL = 60_000;
 
-const SpotifyNowPlaying = () => {
+export default function SpotifyNowPlaying() {
   const [track, setTrack] = useState<SpotifyTrack | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [shouldShow, setShouldShow] = useState(false);
@@ -116,11 +116,19 @@ const SpotifyNowPlaying = () => {
   }
 
   return (
-    <div className="fixed bottom-20 w-full px-6 md:bottom-28">
+    <div
+      // i don't know why this doesn't work when i move it to globals.css
+      // may god save this codebase
+      className="fixed inset-x-0 bottom-[var(--spotify-bottom)] z-10 w-full px-6 md:bottom-[calc(7rem+env(safe-area-inset-bottom,0px))]"
+      style={{
+        ["--spotify-bottom" as string]:
+          "calc(1.75rem + env(safe-area-inset-bottom, 0px))",
+      }}
+    >
       <div className="mx-auto max-w-sm">
         <div className="relative">
           <a
-            className={`group flex items-center gap-4 rounded-lg border border-neutral-800 bg-neutral-900/50 p-4 pr-16 backdrop-blur-sm transition-all duration-300 hover:border-neutral-700 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
+            className={`group flex items-center gap-4 rounded-lg border border-amber-200/60 bg-amber-50/60 p-4 pr-16 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-amber-300/80 hover:bg-amber-50/90 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900/50 dark:hover:border-neutral-700 dark:hover:bg-neutral-900/60 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
             href={track.url}
             rel="noopener noreferrer"
             target="_blank"
@@ -135,31 +143,31 @@ const SpotifyNowPlaying = () => {
                 width={64}
               />
               {track.isPlaying && isVisible && (
-                <div className="-bottom-2 -right-2 absolute flex items-end gap-[2px] rounded-md bg-neutral-900/90 p-1.5">
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-1 bg-rose-400/80" />
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-2 bg-rose-400/80" />
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-3 bg-rose-400/80" />
+                <div className="-bottom-2 -right-2 absolute flex items-end gap-[2px] rounded-md bg-amber-50/95 p-1.5 shadow-sm dark:bg-neutral-900/90">
+                  <div className="h-3 w-[3px] origin-bottom animate-bar-1 bg-rose-700 dark:bg-rose-400/80" />
+                  <div className="h-3 w-[3px] origin-bottom animate-bar-2 bg-rose-700 dark:bg-rose-400/80" />
+                  <div className="h-3 w-[3px] origin-bottom animate-bar-3 bg-rose-700 dark:bg-rose-400/80" />
                 </div>
               )}
             </div>
             <div className="mr-2 flex min-w-0 flex-1 flex-col">
-              <span className="mb-0.5 text-rose-400/80 text-xs">
+              <span className="mb-0.5 text-rose-700 text-xs dark:text-rose-400/80">
                 {track.isPlaying ? "currently listening to" : "last played"}
               </span>
-              <span className="truncate font-medium text-neutral-200 transition-colors group-hover:text-rose-400/80">
+              <span className="truncate font-medium text-amber-950 transition-colors group-hover:text-rose-700 dark:text-neutral-200 dark:group-hover:text-rose-400/80">
                 {track.name}
               </span>
-              <span className="truncate text-neutral-400 text-sm">
+              <span className="truncate text-amber-900/80 text-sm dark:text-neutral-400">
                 {track.artist}
               </span>
-              <span className="truncate text-neutral-500 text-sm">
+              <span className="truncate text-amber-800/70 text-sm dark:text-neutral-500">
                 {track.album}
               </span>
             </div>
           </a>
           <button
             aria-label={isPlaying ? "Pause song preview" : "Play song preview"}
-            className={`-translate-y-1/2 absolute top-1/2 right-4 cursor-pointer rounded-full bg-rose-500/10 p-2.5 text-rose-400/80 transition-colors duration-300 hover:bg-rose-500/20 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
+            className={`-translate-y-1/2 absolute top-1/2 right-4 cursor-pointer rounded-full bg-rose-700/10 p-2.5 text-rose-700 transition-colors duration-300 hover:bg-rose-700/20 dark:bg-rose-500/10 dark:text-rose-400/80 dark:hover:bg-rose-500/20 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
             onClick={handlePlayPreview}
             title={isPlaying ? "Pause Preview" : "Play Preview"}
             type="button"
@@ -198,6 +206,4 @@ const SpotifyNowPlaying = () => {
       </div>
     </div>
   );
-};
-
-export default SpotifyNowPlaying;
+}

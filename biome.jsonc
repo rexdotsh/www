@@ -8,6 +8,9 @@
       },
       "style": {
         "noMagicNumbers": "off"
+      },
+      "correctness": {
+        "noUnknownTypeSelector": "off"
       }
     }
   }

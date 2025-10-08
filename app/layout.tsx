@@ -3,7 +3,9 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { GeistMono } from "geist/font/mono";
 import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
-import { UmamiAnalytics } from "@/app/components/umami-analytics";
+import { ThemeProvider } from "next-themes";
+import ThemeToggle from "@/app/components/theme-toggle";
+import UmamiAnalytics from "@/app/components/umami-analytics";
 import { getBaseUrl } from "@/app/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -51,12 +53,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html className="dark" lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${GeistMono.className} antialiased`}>
-        {children}
-        <UmamiAnalytics />
-        <Analytics basePath="/monitor" />
-        <SpeedInsights basePath="/monitor" />
+        <ThemeProvider
+          attribute="data-theme"
+          defaultTheme="system"
+          enableSystem
+        >
+          {children}
+          <ThemeToggle />
+          <UmamiAnalytics />
+          <Analytics basePath="/monitor" />
+          <SpeedInsights basePath="/monitor" />
+        </ThemeProvider>
       </body>
     </html>
   );

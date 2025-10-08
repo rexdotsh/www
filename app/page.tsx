@@ -1,5 +1,5 @@
-import AsciiArt from "@/app/components/AsciiArt";
 import Footer from "@/app/components/footer";
+import AsciiArt from "@/app/components/rose-ascii";
 import SpotifyNowPlaying from "@/app/components/spotify";
 
 export default function Home() {
@@ -7,7 +7,9 @@ export default function Home() {
     <main className="fixed inset-0 overflow-hidden">
       <AsciiArt />
       <SpotifyNowPlaying />
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </main>
   );
 }

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
   --font-mono: var(--font-geist-mono);
@@ -11,6 +12,16 @@
 
 :root {
   --bar-timing: ease-in-out infinite;
+  --expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Light theme - warm, soothing palette */
+  --background: #f2ecdf;
+  --foreground: #2c2416;
+  --primary: #1a1410;
+  --secondary: #8b7d6b;
+}
+
+[data-theme="dark"] {
   --background: #030303;
   --foreground: #d6e9ef;
   --primary: #d6e9ef;
@@ -19,7 +30,33 @@
 
 body {
   background: var(--background);
+  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+::view-transition-group(root) {
+  animation-timing-function: var(--expo-out);
+}
+::view-transition-new(root) {
+  mask:
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><defs><filter id="blur"><feGaussianBlur stdDeviation="2"/></filter></defs><circle cx="40" cy="0" r="18" fill="white" filter="url(%23blur)"/></svg>')
+    top right / 0 no-repeat;
+  mask-origin: content-box;
+  animation: scale 1s;
+  animation-fill-mode: both;
+  transform-origin: top right;
+}
+::view-transition-old(root),
+[data-theme="dark"]::view-transition-old(root) {
+  animation: scale 1s;
+  animation-fill-mode: both;
+  transform-origin: top right;
+  z-index: -1;
+}
+@keyframes scale {
+  to {
+    mask-size: 350vmax;
+  }
 }
 
 @keyframes fade-in {
@@ -61,4 +98,23 @@ body {
   --scale-min: 0.85;
   --scale-max: 0.75;
   animation: scale-y 1.2s var(--bar-timing);
+}
+
+.ascii-container {
+  width: clamp(140px, 70vw, 260px);
+  margin-left: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .ascii-container {
+    width: clamp(350px, 45vw, 480px);
+    margin-left: 0;
+    margin-inline: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ascii-container {
+    width: clamp(260px, 18vw, 300px);
+  }
 }

@@ -1,6 +1,6 @@
 import { getHost } from "@/app/lib/utils";
 
-const Navigation = async () => {
+export default async function Navigation() {
   const host = await getHost();
 
   const links = [
@@ -13,10 +13,10 @@ const Navigation = async () => {
   ];
 
   return (
-    <nav className="mt-8 mb-36 flex flex-col items-center gap-6 md:mt-8 md:mb-0 md:flex-row md:gap-12">
+    <nav className="mt-6 mb-36 flex flex-col items-center gap-6 md:mt-8 md:mb-0 md:flex-row md:gap-12">
       {links.map(({ href, text }) => (
         <a
-          className="font-bold text-lg text-primary transition-colors hover:text-rose-500/80 md:my-12 md:text-2xl"
+          className="font-bold text-[var(--primary)] text-lg transition-colors hover:text-rose-700 md:my-12 md:text-2xl dark:hover:text-rose-500/80"
           href={href}
           key={href}
           rel="noopener noreferrer"
@@ -27,6 +27,4 @@ const Navigation = async () => {
       ))}
     </nav>
   );
-};
-
-export default Navigation;
+}
