@@ -103,6 +103,7 @@ body {
 .ascii-container {
   width: clamp(140px, 70vw, 260px);
   margin-left: 1.5rem;
+  aspect-ratio: 1 / 1;
 }
 
 @media (min-width: 768px) {
@@ -110,11 +111,13 @@ body {
     width: clamp(350px, 45vw, 480px);
     margin-left: 0;
     margin-inline: auto;
+    aspect-ratio: 1 / 1;
   }
 }
 
 @media (min-width: 1024px) {
   .ascii-container {
     width: clamp(260px, 18vw, 300px);
+    aspect-ratio: 1 / 1;
   }
 }

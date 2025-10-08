@@ -1,4 +1,5 @@
 import Image from "next/image";
+import rose from "@/public/rose.webp";
 import Navigation from "./navigation";
 
 export default function RoseAscii() {
@@ -10,7 +11,8 @@ export default function RoseAscii() {
           className="h-auto w-full select-none"
           height={300}
           priority
-          src="/rose.webp"
+          sizes="(min-width: 1667px) 300px, (min-width: 1024px) 260px, (min-width: 768px) 45vw, 70vw"
+          src={rose}
           width={300}
         />
       </div>
