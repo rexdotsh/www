@@ -1,9 +1,8 @@
 /*
   Build-time script: Image -> ASCII -> WebP raster using Geist Mono glyphs.
-  Usage: node scripts/build-ascii-art.ts
+  Usage: npm run generate
   
-  Converts public/image.png to ASCII art, then renders it using font glyphs
-  and outputs public/rose.webp (all in memory, no intermediate files)
+  Converts public/image.png to ASCII art, then renders it using font glyphs and outputs public/rose.webp
 */
 
 import fs from "node:fs";
@@ -269,6 +268,7 @@ const generateWebP = async (asciiArt: string): Promise<void> => {
   await sharp(svgBuffer)
     .resize({ width: targetWidth })
     .flip()
+    .trim()
     .webp({ quality: 82, effort: 4 })
     .toFile(WEBP_PATH);
 };
