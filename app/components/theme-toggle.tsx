@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
@@ -49,17 +48,38 @@ export default function ThemeToggle() {
     <button
       aria-label={`Switch to ${nextTheme} mode`}
       aria-pressed={isDark}
-      className="group fixed top-4 right-4 z-50 inline-flex h-12 w-12 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent transition-all duration-200 hover:scale-105 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-amber-900/40 active:scale-95 dark:focus-visible:ring-neutral-500"
+      className="group fixed top-4 right-4 z-50 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-900/40 active:scale-95 dark:focus-visible:ring-neutral-500"
       onClick={handleToggle}
       type="button"
     >
-      <Image
-        alt={isDark ? "Switch to light mode" : "Switch to dark mode"}
-        height={48}
-        priority
-        src={isDark ? "/lever-1.png" : "/lever-2.png"}
-        width={48}
-      />
+      <YinYang isDark={isDark} />
     </button>
   );
 }
+
+const YinYang = ({ isDark }: { isDark: boolean }) => (
+  <svg
+    className="transition-transform duration-500 ease-in-out"
+    fill="none"
+    height="32"
+    style={{ transform: isDark ? "rotate(180deg)" : "rotate(0deg)" }}
+    viewBox="0 0 100 100"
+    width="32"
+  >
+    <title>{isDark ? "Dark mode" : "Light mode"}</title>
+    <circle
+      cx="50"
+      cy="50"
+      fill="currentColor"
+      r="48"
+      stroke="currentColor"
+      strokeWidth="2"
+    />
+    <path
+      d="M50 2 A48 48 0 0 1 50 98 A24 24 0 0 1 50 50 A24 24 0 0 0 50 2"
+      fill={isDark ? "#030303" : "#fafafa"}
+    />
+    <circle cx="50" cy="25" fill={isDark ? "#030303" : "#fafafa"} r="6" />
+    <circle cx="50" cy="75" fill={isDark ? "#fafafa" : "#030303"} r="6" />
+  </svg>
+);
