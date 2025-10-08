@@ -77,9 +77,9 @@ const YinYang = ({ isDark }: { isDark: boolean }) => (
     />
     <path
       d="M50 2 A48 48 0 0 1 50 98 A24 24 0 0 1 50 50 A24 24 0 0 0 50 2"
-      fill={isDark ? "#030303" : "#fafafa"}
+      fill={isDark ? "#030303" : "#f2ecdf"}
     />
-    <circle cx="50" cy="25" fill={isDark ? "#030303" : "#fafafa"} r="6" />
-    <circle cx="50" cy="75" fill={isDark ? "#fafafa" : "#030303"} r="6" />
+    <circle cx="50" cy="25" fill={isDark ? "#030303" : "#f2ecdf"} r="6" />
+    <circle cx="50" cy="75" fill={isDark ? "#f2ecdf" : "#030303"} r="6" />
   </svg>
 );
