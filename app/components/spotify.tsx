@@ -20,7 +20,7 @@ type SpotifyTrack = {
 const MIN_HEIGHT_FOR_SPOTIFY = 900;
 const POLL_INTERVAL = 60_000;
 
-const SpotifyNowPlaying = () => {
+export default function SpotifyNowPlaying() {
   const [track, setTrack] = useState<SpotifyTrack | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [shouldShow, setShouldShow] = useState(false);
@@ -198,6 +198,4 @@ const SpotifyNowPlaying = () => {
       </div>
     </div>
   );
-};
-
-export default SpotifyNowPlaying;
+}

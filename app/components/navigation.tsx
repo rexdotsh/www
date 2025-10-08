@@ -1,6 +1,6 @@
 import { getHost } from "@/app/lib/utils";
 
-const Navigation = async () => {
+export default async function Navigation() {
   const host = await getHost();
 
   const links = [
@@ -27,6 +27,4 @@ const Navigation = async () => {
       ))}
     </nav>
   );
-};
-
-export default Navigation;
+}

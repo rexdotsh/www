@@ -4,8 +4,8 @@ import { GeistMono } from "geist/font/mono";
 import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
 import { ThemeProvider } from "next-themes";
-import { ThemeToggle } from "@/app/components/theme-toggle";
-import { UmamiAnalytics } from "@/app/components/umami-analytics";
+import ThemeToggle from "@/app/components/theme-toggle";
+import UmamiAnalytics from "@/app/components/umami-analytics";
 import { getBaseUrl } from "@/app/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
