@@ -5,8 +5,13 @@
   --font-mono: var(--font-geist-mono);
   --color-background: var(--background);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
-  --color-accent: var(--color-rose-500);
+  --color-accent: var(--accent);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
 }
 
 /* animation for switching themes */
