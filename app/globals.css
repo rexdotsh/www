@@ -101,7 +101,7 @@ body {
 }
 
 .ascii-container {
-  width: clamp(220px, 80vw, 280px);
+  width: clamp(140px, 70vw, 260px);
   margin-left: 1.5rem;
 }
 
