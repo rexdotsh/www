@@ -4,10 +4,14 @@
 @theme inline {
   --font-mono: var(--font-geist-mono);
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
-  --color-accent: var(--color-rose-500);
+  --color-accent: var(--accent);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
 }
 
 /* animation for switching themes */
@@ -21,7 +25,10 @@
     top right / 0 no-repeat;
   mask-origin: content-box;
   animation: scale 1s;
-  animation-fill-mode: both;
+  /* for chrome 140 compatibility, else `both` is default 
+  https://github.com/rudrodip/theme-toggle-effect/issues/1 
+  haven't tested, but better to be safe. same effect visually. */
+  animation-fill-mode: forwards;
   transform-origin: top right;
 }
 
@@ -36,22 +43,33 @@
 :root {
   --bar-timing: ease-in-out infinite;
   --expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* light mode */
   --background: #f2ecdf;
-  --foreground: #2c2416;
-  --primary: #1a1410;
-  --secondary: #8b7d6b;
+  --primary: #be123c;
+  --primary-hover: #f43f5e;
+  --secondary: #92400eb3;
+  --accent: #be123c;
+  --surface: #fffbeb99;
+  --surface-hover: #fffbebe6;
+  --border: #fde68a99;
+  --border-hover: #fcd34dcc;
 }
 
 [data-theme="dark"] {
   --background: #030303;
-  --foreground: #d6e9ef;
-  --primary: #d6e9ef;
-  --secondary: #6e7681;
+  --primary: #ffffff;
+  --primary-hover: #f43f5ecc;
+  --secondary: #737373;
+  --accent: #fb7185cc;
+  --surface: #17171780;
+  --surface-hover: #262626cc;
+  --border: #262626;
+  --border-hover: #404040;
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 

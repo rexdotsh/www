@@ -128,7 +128,7 @@ export default function SpotifyNowPlaying() {
       <div className="mx-auto max-w-sm">
         <div className="relative">
           <a
-            className={`group flex items-center gap-4 rounded-lg border border-amber-200/60 bg-amber-50/60 p-4 pr-16 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-amber-300/80 hover:bg-amber-50/90 hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900/50 dark:hover:border-neutral-700 dark:hover:bg-neutral-900/60 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
+            className={`group flex items-center gap-4 rounded-lg border border-border bg-surface p-4 pr-16 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-border-hover hover:bg-surface-hover hover:shadow-md ${isVisible ? "animate-fade-in" : "opacity-0"}`}
             href={track.url}
             rel="noopener noreferrer"
             target="_blank"
@@ -143,31 +143,31 @@ export default function SpotifyNowPlaying() {
                 width={64}
               />
               {track.isPlaying && isVisible && (
-                <div className="-bottom-2 -right-2 absolute flex items-end gap-[2px] rounded-md bg-amber-50/95 p-1.5 shadow-sm dark:bg-neutral-900/90">
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-1 bg-rose-700 dark:bg-rose-400/80" />
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-2 bg-rose-700 dark:bg-rose-400/80" />
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-3 bg-rose-700 dark:bg-rose-400/80" />
+                <div className="-bottom-2 -right-2 absolute flex items-end gap-[2px] rounded-md bg-surface-hover p-1.5 shadow-sm">
+                  <div className="h-3 w-[3px] origin-bottom animate-bar-1 bg-accent" />
+                  <div className="h-3 w-[3px] origin-bottom animate-bar-2 bg-accent" />
+                  <div className="h-3 w-[3px] origin-bottom animate-bar-3 bg-accent" />
                 </div>
               )}
             </div>
             <div className="mr-2 flex min-w-0 flex-1 flex-col">
-              <span className="mb-0.5 text-rose-700 text-xs dark:text-rose-400/80">
+              <span className="mb-0.5 text-accent text-xs">
                 {track.isPlaying ? "currently listening to" : "last played"}
               </span>
-              <span className="truncate font-medium text-amber-950 transition-colors group-hover:text-rose-700 dark:text-neutral-200 dark:group-hover:text-rose-400/80">
+              <span className="truncate font-medium text-[#451a03] transition-colors group-hover:text-accent dark:text-[#e5e5e5]">
                 {track.name}
               </span>
-              <span className="truncate text-amber-900/80 text-sm dark:text-neutral-400">
+              <span className="truncate text-[#78350fcc] text-sm dark:text-[#a3a3a3]">
                 {track.artist}
               </span>
-              <span className="truncate text-amber-800/70 text-sm dark:text-neutral-500">
+              <span className="truncate text-secondary text-sm">
                 {track.album}
               </span>
             </div>
           </a>
           <button
             aria-label={isPlaying ? "Pause song preview" : "Play song preview"}
-            className={`-translate-y-1/2 absolute top-1/2 right-4 cursor-pointer rounded-full bg-rose-700/10 p-2.5 text-rose-700 transition-colors duration-300 hover:bg-rose-700/20 dark:bg-rose-500/10 dark:text-rose-400/80 dark:hover:bg-rose-500/20 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
+            className={`-translate-y-1/2 absolute top-1/2 right-4 cursor-pointer rounded-full bg-accent/10 p-2.5 text-accent transition-colors duration-300 hover:bg-accent/20 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
             onClick={handlePlayPreview}
             title={isPlaying ? "Pause Preview" : "Play Preview"}
             type="button"
