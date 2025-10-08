@@ -58,20 +58,20 @@ export default function ThemeToggle() {
 }
 
 const YinYang = ({ isDark }: { isDark: boolean }) => {
-  // done like this so it's actually readable. fuck this shit
   const COLORS = {
+    white: "#ffffff",
     cream: "#f2ecdf",
     red: "#be123c",
     dark: "#030303",
   };
 
-  // this represents the light mode half: always cream, with red accent when in light mode
+  // Dark mode: white/cream light half, dark dark half
+  // Light mode: cream/red light half, red dark half
   const lightHalf = {
-    fill: COLORS.cream,
+    fill: isDark ? COLORS.white : COLORS.cream,
     stroke: isDark ? COLORS.cream : COLORS.red,
   };
 
-  // this represents the dark mode half: dark when in dark mode, red when in light mode
   const darkHalf = {
     fill: isDark ? COLORS.dark : COLORS.red,
     stroke: isDark ? COLORS.dark : COLORS.red,
