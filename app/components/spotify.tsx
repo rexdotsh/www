@@ -144,17 +144,17 @@ export default function SpotifyNowPlaying() {
               />
               {track.isPlaying && isVisible && (
                 <div className="-bottom-2 -right-2 absolute flex items-end gap-[2px] rounded-md bg-amber-50/95 p-1.5 shadow-sm dark:bg-neutral-900/90">
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-1 bg-rose-700 dark:bg-rose-400/80" />
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-2 bg-rose-700 dark:bg-rose-400/80" />
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-3 bg-rose-700 dark:bg-rose-400/80" />
+                  <div className="h-3 w-[3px] origin-bottom animate-bar-1 bg-[var(--accent)]" />
+                  <div className="h-3 w-[3px] origin-bottom animate-bar-2 bg-[var(--accent)]" />
+                  <div className="h-3 w-[3px] origin-bottom animate-bar-3 bg-[var(--accent)]" />
                 </div>
               )}
             </div>
             <div className="mr-2 flex min-w-0 flex-1 flex-col">
-              <span className="mb-0.5 text-rose-700 text-xs dark:text-rose-400/80">
+              <span className="mb-0.5 text-[var(--accent)] text-xs">
                 {track.isPlaying ? "currently listening to" : "last played"}
               </span>
-              <span className="truncate font-medium text-amber-950 transition-colors group-hover:text-rose-700 dark:text-neutral-200 dark:group-hover:text-rose-400/80">
+              <span className="truncate font-medium text-amber-950 transition-colors group-hover:text-[var(--accent)] dark:text-neutral-200">
                 {track.name}
               </span>
               <span className="truncate text-amber-900/80 text-sm dark:text-neutral-400">
@@ -167,7 +167,7 @@ export default function SpotifyNowPlaying() {
           </a>
           <button
             aria-label={isPlaying ? "Pause song preview" : "Play song preview"}
-            className={`-translate-y-1/2 absolute top-1/2 right-4 cursor-pointer rounded-full bg-rose-700/10 p-2.5 text-rose-700 transition-colors duration-300 hover:bg-rose-700/20 dark:bg-rose-500/10 dark:text-rose-400/80 dark:hover:bg-rose-500/20 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
+            className={`-translate-y-1/2 absolute top-1/2 right-4 cursor-pointer rounded-full bg-[var(--accent)]/10 p-2.5 text-[var(--accent)] transition-colors duration-300 hover:bg-[var(--accent)]/20 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
             onClick={handlePlayPreview}
             title={isPlaying ? "Pause Preview" : "Play Preview"}
             type="button"

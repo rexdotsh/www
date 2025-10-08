@@ -58,23 +58,17 @@ export default function ThemeToggle() {
 }
 
 const YinYang = ({ isDark }: { isDark: boolean }) => {
-  const COLORS = {
-    white: "#ffffff",
-    cream: "#f2ecdf",
-    red: "#be123c",
-    dark: "#030303",
-  };
-
-  // Dark mode: white/cream light half, dark dark half
+  // Dark mode: white light half, dark dark half
   // Light mode: cream/red light half, red dark half
-  const lightHalf = {
-    fill: isDark ? COLORS.white : COLORS.cream,
-    stroke: isDark ? COLORS.cream : COLORS.red,
-  };
-
-  const darkHalf = {
-    fill: isDark ? COLORS.dark : COLORS.red,
-    stroke: isDark ? COLORS.dark : COLORS.red,
+  const colors = {
+    light: {
+      fill: isDark ? "var(--primary)" : "var(--background)",
+      stroke: isDark ? "var(--primary)" : "var(--accent)",
+    },
+    dark: {
+      fill: isDark ? "var(--background)" : "var(--accent)",
+      stroke: isDark ? "var(--background)" : "var(--accent)",
+    },
   };
 
   return (
@@ -90,31 +84,31 @@ const YinYang = ({ isDark }: { isDark: boolean }) => {
       <circle
         cx="50"
         cy="50"
-        fill={lightHalf.fill}
+        fill={colors.light.fill}
         r="48"
-        stroke={lightHalf.stroke}
+        stroke={colors.light.stroke}
         strokeWidth="2"
       />
       <path
         d="M50 2 A48 48 0 0 1 50 98 A24 24 0 0 1 50 50 A24 24 0 0 0 50 2"
-        fill={darkHalf.fill}
-        stroke={darkHalf.stroke}
+        fill={colors.dark.fill}
+        stroke={colors.dark.stroke}
         strokeWidth="2"
       />
       <circle
         cx="50"
         cy="25"
-        fill={darkHalf.fill}
+        fill={colors.dark.fill}
         r="6"
-        stroke={darkHalf.stroke}
+        stroke={colors.dark.stroke}
         strokeWidth="1"
       />
       <circle
         cx="50"
         cy="75"
-        fill={lightHalf.fill}
+        fill={colors.light.fill}
         r="6"
-        stroke={lightHalf.stroke}
+        stroke={colors.light.stroke}
         strokeWidth="1"
       />
     </svg>

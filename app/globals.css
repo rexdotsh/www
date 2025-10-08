@@ -4,7 +4,6 @@
 @theme inline {
   --font-mono: var(--font-geist-mono);
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-accent: var(--color-rose-500);
@@ -36,22 +35,25 @@
 :root {
   --bar-timing: ease-in-out infinite;
   --expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* light mode */
   --background: #f2ecdf;
-  --foreground: #2c2416;
-  --primary: #1a1410;
+  --primary: #be123c;
   --secondary: #8b7d6b;
+  --accent: #be123c;
+  --accent-hover: #f43f5e;
 }
 
 [data-theme="dark"] {
   --background: #030303;
-  --foreground: #d6e9ef;
-  --primary: #d6e9ef;
+  --primary: #ffffff;
   --secondary: #6e7681;
+  --accent: #fb7185cc;
+  --accent-hover: #f43f5ecc;
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
