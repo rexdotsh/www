@@ -3,14 +3,14 @@ import Navigation from "../navigation";
 
 const AsciiArt = () => (
   <div className="flex h-full flex-col items-center justify-center">
-    <div className="fade-in ml-8 w-full max-w-[260px] lg:mx-auto">
+    <div className="fade-in ml-8 w-full max-w-[300px] lg:mx-auto lg:max-w-[300px]">
       <Image
         alt="Rose"
         className="h-auto w-full select-none"
-        height={260}
+        height={300}
         priority
         src="/rose.webp"
-        width={260}
+        width={300}
       />
     </div>
     <div className="fade-in">

@@ -263,13 +263,13 @@ const generateWebP = async (asciiArt: string): Promise<void> => {
   );
   ensureDir(PUBLIC_DIR);
 
-  const targetWidth = 370;
+  const targetWidth = 320;
   const svgBuffer = Buffer.from(svgMarkup);
   await sharp(svgBuffer)
     .resize({ width: targetWidth })
     .flip()
     .trim()
-    .webp({ quality: 82, effort: 4 })
+    .webp()
     .toFile(WEBP_PATH);
 };
 

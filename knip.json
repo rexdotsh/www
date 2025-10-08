@@ -1,0 +1,4 @@
+{
+  "ignore": ["scripts/**"],
+  "ignoreDependencies": ["tailwindcss", "postcss"]
+}
