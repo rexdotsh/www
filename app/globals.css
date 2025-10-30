@@ -35,7 +35,8 @@
 ::view-transition-old(root),
 [data-theme="dark"]::view-transition-old(root) {
   animation: scale 1s;
-  animation-fill-mode: both;
+  /* see comment above */
+  animation-fill-mode: forwards;
   transform-origin: top right;
   z-index: -1;
 }
