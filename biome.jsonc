@@ -1,17 +1,57 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["ultracite"],
+  "files": {
+    "includes": ["**/*", "!components/ui", "!bun.lock", "!globals.css"]
+  },
   "linter": {
     "rules": {
       "suspicious": {
-        "noUnknownAtRules": "off"
+        "noUnknownAtRules": "off",
+        "noDocumentCookie": "off",
+        "noArrayIndexKey": "off",
+        "noConsole": {
+          "level": "error",
+          "options": {
+            "allow": ["error", "warn"]
+          }
+        }
       },
       "style": {
-        "noMagicNumbers": "off"
+        "useBlockStatements": "off",
+        "noMagicNumbers": "off",
+        "useCollapsedIf": "off",
+        "noNestedTernary": "off"
       },
       "correctness": {
         "noUnknownTypeSelector": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off",
+        "useSimplifiedLogicExpression": "off"
+      },
+      "nursery": {
+        "useSortedClasses": "off",
+        "noShadow": "off"
+      },
+      "performance": {
+        "noNamespaceImport": "off",
+        "useTopLevelRegex": "off",
+        "noImgElement": "off"
+      },
+      "a11y": {
+        "useSemanticElements": "off"
       }
     }
-  }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off",
+        "useSortedAttributes": "off",
+        "useSortedKeys": "off",
+        "useSortedProperties": "off"
+      }
+    }
+  },
+  "extends": ["ultracite/core", "ultracite/next"]
 }
