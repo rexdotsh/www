@@ -4,27 +4,33 @@ export default async function Navigation() {
   const host = await getHost();
 
   const links = [
-    { href: "https://blog.rex.wf", text: "BLOG" },
+    { href: "https://blog.rex.wf", text: "Blog", meta: "01" },
     ...(host === "mridul.sh"
-      ? [{ href: "/resume", text: "RESUME" }]
-      : [{ href: "https://x.com/rexmkv", text: "TWITTER" }]),
-    { href: "https://github.com/rexdotsh", text: "GITHUB" },
-    { href: "https://flora.tf", text: "FLORA" },
+      ? [{ href: "/resume", text: "Resume", meta: "02" }]
+      : [{ href: "https://x.com/rexmkv", text: "Twitter", meta: "02" }]),
+    { href: "https://github.com/rexdotsh", text: "Github", meta: "03" },
+    { href: "https://flora.tf", text: "Flora", meta: "04" },
   ];
 
   return (
-    <nav className="mt-6 mb-36 flex flex-col items-center gap-6 md:mt-8 md:mb-0 md:flex-row md:gap-12">
-      {links.map(({ href, text }) => (
-        <a
-          className="font-bold text-lg text-primary transition-colors hover:text-primary-hover md:my-12 md:text-2xl"
-          href={href}
-          key={href}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          {text}
-        </a>
-      ))}
+    <nav className="flex flex-col w-full">
+      <ul className="w-full space-y-2">
+        {links.map(({ href, text, meta }) => (
+          <li key={href} className="w-full">
+            <a
+              className="nav-link group flex items-baseline justify-between w-full font-serif text-2xl hover:text-accent transition-colors"
+              href={href}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <span className="group-hover:italic">{text}</span>
+              <span className="font-mono text-xs text-gray-400 group-hover:text-accent/50">
+                {meta}
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 }

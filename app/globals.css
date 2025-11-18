@@ -3,147 +3,85 @@
 
 @theme inline {
   --font-mono: var(--font-geist-mono);
+  --font-serif: "Times New Roman", Times, serif;
   --color-background: var(--background);
-  --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-secondary: var(--secondary);
+  --color-foreground: var(--foreground);
   --color-accent: var(--accent);
-  --color-surface: var(--surface);
-  --color-surface-hover: var(--surface-hover);
   --color-border: var(--border);
-  --color-border-hover: var(--border-hover);
-}
-
-/* animation for switching themes */
-::view-transition-group(root) {
-  animation-timing-function: var(--expo-out);
-}
-
-::view-transition-new(root) {
-  mask:
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><defs><filter id="blur"><feGaussianBlur stdDeviation="2"/></filter></defs><circle cx="40" cy="0" r="18" fill="white" filter="url(%23blur)"/></svg>')
-    top right / 0 no-repeat;
-  mask-origin: content-box;
-  animation: scale 1s;
-  /* for chrome 140 compatibility, else `both` is default 
-  https://github.com/rudrodip/theme-toggle-effect/issues/1 
-  haven't tested, but better to be safe. same effect visually. */
-  animation-fill-mode: forwards;
-  transform-origin: top right;
-}
-
-::view-transition-old(root),
-[data-theme="dark"]::view-transition-old(root) {
-  animation: scale 1s;
-  /* see comment above */
-  animation-fill-mode: forwards;
-  transform-origin: top right;
-  z-index: -1;
 }
 
 :root {
-  --bar-timing: ease-in-out infinite;
-  --expo-out: cubic-bezier(0.16, 1, 0.3, 1);
-
-  /* light mode */
-  --background: #f2ecdf;
-  --primary: #be123c;
-  --primary-hover: #f43f5e;
-  --secondary: #92400eb3;
-  --accent: #be123c;
-  --surface: #fffbeb99;
-  --surface-hover: #fffbebe6;
-  --border: #fde68a99;
-  --border-hover: #fcd34dcc;
+  /* Zine / Editorial Palette */
+  --background: #f2f0e9; /* Warm paper */
+  --foreground: #1a1a1a; /* Soft black */
+  --primary: #1a1a1a; /* Alias for legacy components */
+  --accent: #cc0000; /* Editorial red correction pen */
+  --border: #1a1a1a;
 }
 
 [data-theme="dark"] {
-  --background: #030303;
-  --primary: #ffffff;
-  --primary-hover: #f43f5ecc;
-  --secondary: #737373;
-  --accent: #fb7185cc;
-  --surface: #17171780;
-  --surface-hover: #262626cc;
-  --border: #262626;
-  --border-hover: #404040;
+  /* Inverted Zine */
+  --background: #111111;
+  --foreground: #e5e5e5;
+  --primary: #e5e5e5;
+  --accent: #ff3333;
+  --border: #e5e5e5;
 }
 
 body {
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--foreground);
+  font-family: var(--font-serif);
+  /* Grain texture overlay */
 }
 
-@keyframes scale {
-  to {
-    mask-size: 350vmax;
-  }
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  z-index: 9999;
+  mix-blend-mode: multiply;
 }
 
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+/* Utility classes for the aesthetic */
+.font-serif-display {
+  font-family: var(--font-serif);
+  letter-spacing: -0.03em;
 }
 
-@keyframes scale-y {
-  0%,
-  100% {
-    transform: scaleY(var(--scale-min));
-  }
-  50% {
-    transform: scaleY(var(--scale-max));
-  }
+.border-raw {
+  border: 1px solid var(--border);
 }
 
-.fade-in {
-  animation: fade-in 300ms ease-in forwards;
+.border-thick {
+  border: 2px solid var(--border);
 }
 
-.animate-bar-1 {
-  --scale-min: 0.8;
-  --scale-max: 1;
-  animation: scale-y 1.4s var(--bar-timing);
-}
-
-.animate-bar-2 {
-  --scale-min: 0.9;
-  --scale-max: 0.7;
-  animation: scale-y 1.6s var(--bar-timing);
-}
-
-.animate-bar-3 {
-  --scale-min: 0.85;
-  --scale-max: 0.75;
-  animation: scale-y 1.2s var(--bar-timing);
-}
-
-.rose-container {
-  width: clamp(150px, 70vw, 270px);
-  margin-left: 1.5rem;
-  aspect-ratio: 1;
+/* Navigation Links */
+.nav-link {
   position: relative;
+  display: inline-block;
 }
 
-@media (min-width: 768px) {
-  .rose-container {
-    width: clamp(240px, 30vw, 320px);
-    margin-left: 0;
-    margin-inline: auto;
-  }
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
 }
 
-@media (min-width: 1024px) {
-  .rose-container {
-    width: clamp(270px, 18vw, 310px);
-  }
-}
-
-@media (min-width: 1440px) {
-  .rose-container {
-    width: clamp(310px, 16vw, 360px);
-  }
+.nav-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
 }

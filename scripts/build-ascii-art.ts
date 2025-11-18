@@ -19,7 +19,7 @@ const IMAGE_PATH = path.join(ROOT, "public", "image.png");
 const FONT_PATH = path.join(SCRIPT_DIR, "geist-mono.ttf");
 const PUBLIC_DIR = path.join(ROOT, "public");
 const AVIF_PATH = path.join(PUBLIC_DIR, "rose.avif");
-const TARGET_WIDTH = 320;
+const TARGET_WIDTH = 400;
 
 const convertToAscii = async (
   imagePath: string,
@@ -221,7 +221,7 @@ const rasterizeAVIF = async (svgBuffer: Buffer): Promise<void> => {
       fit: "contain",
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     })
-    .avif({ quality: 62 })
+    .avif({ quality: 100 })
     .toFile(AVIF_PATH);
 };
 
