@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "includes": ["**/*", "!components/ui", "!bun.lock", "!globals.css"]
+    "includes": ["**/*", "!bun.lock", "!app/globals.css"]
   },
   "linter": {
     "rules": {
