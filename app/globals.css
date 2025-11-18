@@ -25,9 +25,6 @@
     top right / 0 no-repeat;
   mask-origin: content-box;
   animation: scale 1s;
-  /* for chrome 140 compatibility, else `both` is default 
-  https://github.com/rudrodip/theme-toggle-effect/issues/1 
-  haven't tested, but better to be safe. same effect visually. */
   animation-fill-mode: forwards;
   transform-origin: top right;
 }
@@ -35,7 +32,6 @@
 ::view-transition-old(root),
 [data-theme="dark"]::view-transition-old(root) {
   animation: scale 1s;
-  /* see comment above */
   animation-fill-mode: forwards;
   transform-origin: top right;
   z-index: -1;
@@ -45,33 +41,60 @@
   --bar-timing: ease-in-out infinite;
   --expo-out: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* light mode */
-  --background: #f2ecdf;
-  --primary: #be123c;
-  --primary-hover: #f43f5e;
-  --secondary: #92400eb3;
-  --accent: #be123c;
-  --surface: #fffbeb99;
-  --surface-hover: #fffbebe6;
-  --border: #fde68a99;
-  --border-hover: #fcd34dcc;
+  /* light mode - Editorial Palette: Cream, Black, Deep Red */
+  --background: #f7f5f0;
+  --primary: #1a1a1a;
+  --primary-hover: #4a4a4a;
+  --secondary: #666666;
+  --accent: #c92a2a; /* distinct editorial red */
+  --surface: #ffffff;
+  --surface-hover: #f0f0f0;
+  --border: #e0e0e0;
+  --border-hover: #cdcdcd;
 }
 
 [data-theme="dark"] {
-  --background: #030303;
-  --primary: #ffffff;
-  --primary-hover: #f43f5ecc;
-  --secondary: #737373;
-  --accent: #fb7185cc;
-  --surface: #17171780;
-  --surface-hover: #262626cc;
-  --border: #262626;
-  --border-hover: #404040;
+  /* dark mode - Editorial Palette: Charcoal, Off-white, Muted Red */
+  --background: #121212;
+  --primary: #e0e0e0;
+  --primary-hover: #ffffff;
+  --secondary: #a0a0a0;
+  --accent: #e05252;
+  --surface: #1e1e1e;
+  --surface-hover: #2a2a2a;
+  --border: #333333;
+  --border-hover: #444444;
 }
 
 body {
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-mono), monospace;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border: 2px solid var(--background);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}
+
+/* Firefox scrollbar support */
+html {
+  scrollbar-color: var(--border) var(--background);
+  scrollbar-width: thin;
 }
 
 @keyframes scale {
@@ -89,61 +112,19 @@ body {
   }
 }
 
-@keyframes scale-y {
-  0%,
-  100% {
-    transform: scaleY(var(--scale-min));
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
   }
-  50% {
-    transform: scaleY(var(--scale-max));
+  100% {
+    transform: translateX(-50%);
   }
 }
 
 .fade-in {
-  animation: fade-in 300ms ease-in forwards;
+  animation: fade-in 500ms ease-out forwards;
 }
 
-.animate-bar-1 {
-  --scale-min: 0.8;
-  --scale-max: 1;
-  animation: scale-y 1.4s var(--bar-timing);
-}
-
-.animate-bar-2 {
-  --scale-min: 0.9;
-  --scale-max: 0.7;
-  animation: scale-y 1.6s var(--bar-timing);
-}
-
-.animate-bar-3 {
-  --scale-min: 0.85;
-  --scale-max: 0.75;
-  animation: scale-y 1.2s var(--bar-timing);
-}
-
-.rose-container {
-  width: clamp(150px, 70vw, 270px);
-  margin-left: 1.5rem;
-  aspect-ratio: 1;
-  position: relative;
-}
-
-@media (min-width: 768px) {
-  .rose-container {
-    width: clamp(240px, 30vw, 320px);
-    margin-left: 0;
-    margin-inline: auto;
-  }
-}
-
-@media (min-width: 1024px) {
-  .rose-container {
-    width: clamp(270px, 18vw, 310px);
-  }
-}
-
-@media (min-width: 1440px) {
-  .rose-container {
-    width: clamp(310px, 16vw, 360px);
-  }
+.animate-marquee {
+  animation: marquee 30s linear infinite;
 }

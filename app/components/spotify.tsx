@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAudioPlayer } from "react-use-audio-player";
 
@@ -17,41 +16,13 @@ type SpotifyTrack = {
   id: string;
 };
 
-const MIN_HEIGHT_FOR_SPOTIFY = 900;
 const POLL_INTERVAL = 60_000;
 
 export default function SpotifyNowPlaying() {
   const [track, setTrack] = useState<SpotifyTrack | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const [shouldShow, setShouldShow] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const pollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const resizeTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const { load, isPlaying, play, pause, fade } = useAudioPlayer();
-
-  const checkShouldShow = useCallback(() => {
-    setShouldShow(
-      window.innerWidth < 768 || window.innerHeight >= MIN_HEIGHT_FOR_SPOTIFY
-    );
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const handleResize = () => {
-      clearTimeout(resizeTimeoutRef.current);
-      resizeTimeoutRef.current = setTimeout(checkShouldShow, 100);
-    };
-
-    // temp: until i get around to updating the layout entirely
-    checkShouldShow();
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      clearTimeout(resizeTimeoutRef.current);
-    };
-  }, [checkShouldShow]);
 
   const fetchTrack = useCallback(async () => {
     try {
@@ -71,21 +42,12 @@ export default function SpotifyNowPlaying() {
 
       setTrack(trackData);
     } catch (_err) {
-      // Silently fail - Spotify API errors shouldn't break the UI
+      // Silently fail
     }
   }, [track?.id, load]);
 
-  const getAlbumArt = () =>
-    track?.image?.find((img) => img.size === "medium")?.["#text"] || "";
-
-  const handlePlayPreview = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!track) {
-      return;
-    }
-
-    // add fade out logic as well? ran into weird playback issues in first attempt
+  const togglePlayback = () => {
+    if (!track) return;
     if (isPlaying) {
       pause();
     } else {
@@ -95,13 +57,6 @@ export default function SpotifyNowPlaying() {
   };
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    if (!shouldShow) {
-      return;
-    }
-
     const poll = () => {
       fetchTrack();
       pollTimeoutRef.current = setTimeout(poll, POLL_INTERVAL);
@@ -109,101 +64,37 @@ export default function SpotifyNowPlaying() {
 
     poll();
     return () => clearTimeout(pollTimeoutRef.current);
-  }, [fetchTrack, shouldShow]);
+  }, [fetchTrack]);
 
-  if (!(track && shouldShow)) {
+  if (!track || !track.isPlaying) {
     return null;
   }
 
+  // Duplicate text for seamless marquee
+  const text = `LISTENING TO: ${track.name.toUpperCase()} — ${track.artist.toUpperCase()} — ${track.album.toUpperCase()} +++ `;
+  const repeats = 10;
+
   return (
-    <div
-      // i don't know why this doesn't work when i move it to globals.css
-      // may god save this codebase
-      className="fixed inset-x-0 bottom-[var(--spotify-bottom)] z-10 w-full px-6 md:bottom-[calc(7rem+env(safe-area-inset-bottom,0px))]"
-      style={{
-        ["--spotify-bottom" as string]:
-          "calc(1.75rem + env(safe-area-inset-bottom, 0px))",
-      }}
+    <button
+      type="button"
+      onClick={togglePlayback}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="fixed top-0 left-0 z-50 w-full overflow-hidden border-b border-border bg-background py-2 text-sm uppercase tracking-widest cursor-pointer hover:bg-surface transition-colors"
     >
-      <div className="mx-auto max-w-sm">
-        <div className="relative">
-          <a
-            className={`group flex items-center gap-4 rounded-lg border border-border bg-surface p-4 pr-16 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-border-hover hover:bg-surface-hover hover:shadow-md ${isVisible ? "animate-fade-in" : "opacity-0"}`}
-            href={track.url}
-            rel="noopener noreferrer"
-            target="_blank"
+      <div
+        className="animate-marquee whitespace-nowrap flex"
+        style={{ animationPlayState: isHovered ? "paused" : "running" }}
+      >
+        {Array.from({ length: repeats }).map((_, i) => (
+          <span
+            key={i}
+            className={`mx-4 ${isPlaying ? "text-accent" : "text-secondary"}`}
           >
-            <div className="relative h-16 min-w-16">
-              <Image
-                alt={`${track.album} album art`}
-                className="rounded-md object-cover"
-                height={64}
-                onLoad={() => setTimeout(() => setIsVisible(true), 1)}
-                src={getAlbumArt()}
-                width={64}
-              />
-              {track.isPlaying && isVisible && (
-                <div className="-bottom-2 -right-2 absolute flex items-end gap-[2px] rounded-md bg-surface-hover p-1.5 shadow-sm">
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-1 bg-accent" />
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-2 bg-accent" />
-                  <div className="h-3 w-[3px] origin-bottom animate-bar-3 bg-accent" />
-                </div>
-              )}
-            </div>
-            <div className="mr-2 flex min-w-0 flex-1 flex-col">
-              <span className="mb-0.5 text-accent text-xs">
-                {track.isPlaying ? "currently listening to" : "last played"}
-              </span>
-              <span className="truncate font-medium text-[#451a03] transition-colors group-hover:text-accent dark:text-[#e5e5e5]">
-                {track.name}
-              </span>
-              <span className="truncate text-[#78350fcc] text-sm dark:text-[#a3a3a3]">
-                {track.artist}
-              </span>
-              <span className="truncate text-secondary text-sm">
-                {track.album}
-              </span>
-            </div>
-          </a>
-          <button
-            aria-label={isPlaying ? "Pause song preview" : "Play song preview"}
-            className={`-translate-y-1/2 absolute top-1/2 right-4 cursor-pointer rounded-full bg-accent/10 p-2.5 text-accent transition-colors duration-300 hover:bg-accent/20 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
-            onClick={handlePlayPreview}
-            title={isPlaying ? "Pause Preview" : "Play Preview"}
-            type="button"
-          >
-            {isPlaying ? (
-              <svg
-                aria-hidden="true"
-                className="h-5 w-5"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  clipRule="evenodd"
-                  d="M6.75 5.25a.75.75 0 01.75-.75H9a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H7.5a.75.75 0 01-.75-.75V5.25zm7.5 0A.75.75 0 0115 4.5h1.5a.75.75 0 01.75.75v13.5a.75.75 0 01-.75.75H15a.75.75 0 01-.75-.75V5.25z"
-                  fillRule="evenodd"
-                />
-              </svg>
-            ) : (
-              <svg
-                aria-hidden="true"
-                className="h-5 w-5"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  clipRule="evenodd"
-                  d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
-                  fillRule="evenodd"
-                />
-              </svg>
-            )}
-          </button>
-        </div>
+            {text}
+          </span>
+        ))}
       </div>
-    </div>
+    </button>
   );
 }
