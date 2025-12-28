@@ -10,7 +10,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // biome-ignore lint/suspicious/useAwait: next config, false positive
+  experimental: {
+    turbopackFileSystemCacheForDev: true,
+    turbopackFileSystemCacheForBuild: true,
+  },
   async redirects() {
     return [
       {
