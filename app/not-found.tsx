@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const GRID = [
   [1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1],
@@ -43,6 +43,46 @@ function forEachCell(
       if (el) fn(el, r, c);
     }
   }
+}
+
+const GLYPHS =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+
+function ScrambleLink({ text, href }: { text: string; href: string }) {
+  const [display, setDisplay] = useState(text);
+  const ref = useRef<ReturnType<typeof setInterval>>(null);
+
+  const stop = () => {
+    if (ref.current) clearInterval(ref.current);
+    setDisplay(text);
+  };
+
+  const start = () => {
+    let t = 0;
+    stop();
+    ref.current = setInterval(() => {
+      if (t >= text.length) return stop();
+      setDisplay(
+        Array.from(text, (ch, i) =>
+          ch === " " || i < t
+            ? ch
+            : GLYPHS[Math.floor(Math.random() * GLYPHS.length)]
+        ).join("")
+      );
+      t += 1 / 3;
+    }, 30);
+  };
+
+  return (
+    <Link
+      className="mt-1.5 text-lg text-secondary transition-colors duration-200 hover:text-primary-hover dark:hover:text-white"
+      href={href}
+      onMouseEnter={start}
+      onMouseLeave={stop}
+    >
+      {display}
+    </Link>
+  );
 }
 
 export default function NotFoundPage() {
@@ -158,7 +198,7 @@ export default function NotFoundPage() {
                   ref={(el) => {
                     cellRefs.current[idx] = el;
                   }}
-                  className="absolute text-primary"
+                  className="absolute text-accent"
                   style={{
                     left: `${(c / COLS) * 100}%`,
                     top: `${(r / ROWS) * 100}%`,
@@ -177,13 +217,8 @@ export default function NotFoundPage() {
             })
           )}
         </div>
-        <p className="mt-6 text-lg text-primary">page not found</p>
-        <Link
-          className="mt-4 text-lg text-secondary transition-colors duration-200 hover:text-primary"
-          href="/"
-        >
-          return home
-        </Link>
+        <p className="mt-12 text-lg text-accent">page not found</p>
+        <ScrambleLink text="return home" href="/" />
       </div>
     </main>
   );
