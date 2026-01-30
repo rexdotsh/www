@@ -28,8 +28,9 @@ export async function GET(
 
     return NextResponse.json({ url: previewUrl });
   } catch (error) {
+    console.error("Failed to fetch preview URL:", error);
     return NextResponse.json(
-      { error: `Failed to fetch preview URL: ${error}` },
+      { error: "Failed to fetch preview URL" },
       { status: 500 }
     );
   }
