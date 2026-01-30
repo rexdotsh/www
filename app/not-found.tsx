@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 const ASCII_404 = [
   [1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1],
@@ -16,13 +16,6 @@ const COLS = ASCII_404[0].length;
 const REPEL_RADIUS = 120;
 const REPEL_STRENGTH = 4000;
 
-function getCellSize() {
-  if (typeof window === "undefined") return 28;
-  const vw = window.innerWidth;
-  return vw < 480 ? Math.floor((vw * 0.85) / COLS) : 28;
-}
-
-// seeded PRNG to avoid hydration mismatch (Math.random differs server vs client)
 function seededRandom(seed: number) {
   let s = seed;
   return () => {
@@ -53,17 +46,7 @@ export default function NotFoundPage() {
   const mousePos = useRef<{ x: number; y: number } | null>(null);
   const rafId = useRef<number>(0);
   const assembled = useRef(false);
-  const scatterOffsets = useRef(SCATTER_OFFSETS);
-  const [cs, setCs] = useState(28);
 
-  useEffect(() => {
-    setCs(getCellSize());
-    const onResize = () => setCs(getCellSize());
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  // entrance animation: assemble from scattered positions
   useEffect(() => {
     const cells = cellRefs.current;
 
@@ -80,7 +63,6 @@ export default function NotFoundPage() {
         }
       }
 
-      // after entrance completes, switch to fast transition for mouse interaction
       const resetTimeout = setTimeout(() => {
         assembled.current = true;
         for (let r = 0; r < ROWS; r++) {
@@ -180,53 +162,45 @@ export default function NotFoundPage() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div
-        ref={containerRef}
-        className="absolute left-1/2 top-1/2"
-        style={{
-          width: COLS * cs,
-          height: ROWS * cs,
-          marginLeft: (-COLS * cs) / 2,
-          marginTop: (-ROWS * cs) / 2 - 32,
-        }}
-        role="img"
-        aria-label="404"
-      >
-        {ASCII_404.flatMap((row, r) =>
-          row.map((cell, c) => {
-            if (!cell) return null;
-            const idx = r * COLS + c;
-            const offset = scatterOffsets.current[idx];
-            return (
-              <span
-                key={idx}
-                ref={(el) => {
-                  cellRefs.current[idx] = el;
-                }}
-                className="absolute text-primary"
-                style={{
-                  left: c * cs,
-                  top: r * cs,
-                  width: cs,
-                  height: cs,
-                  fontSize: cs,
-                  lineHeight: `${cs}px`,
-                  transform: `translate(${offset.x}px, ${offset.y}px)`,
-                  opacity: 0,
-                  willChange: "transform, opacity",
-                }}
-              >
-                █
-              </span>
-            );
-          })
-        )}
-      </div>
-      <div
-        className="absolute left-1/2 top-1/2 flex -translate-x-1/2 flex-col items-center"
-        style={{ marginTop: (ROWS * cs) / 2 - 8 }}
-      >
-        <p className="text-lg text-primary">page not found</p>
+      <div className="flex h-full flex-col items-center justify-center">
+        <div
+          ref={containerRef}
+          className="relative w-[min(448px,85vw)]"
+          style={{ aspectRatio: `${COLS} / ${ROWS}` }}
+          role="img"
+          aria-label="404"
+        >
+          {ASCII_404.flatMap((row, r) =>
+            row.map((cell, c) => {
+              if (!cell) return null;
+              const idx = r * COLS + c;
+              const offset = SCATTER_OFFSETS[idx];
+              return (
+                <span
+                  key={idx}
+                  ref={(el) => {
+                    cellRefs.current[idx] = el;
+                  }}
+                  className="absolute text-primary"
+                  style={{
+                    left: `${(c / COLS) * 100}%`,
+                    top: `${(r / ROWS) * 100}%`,
+                    width: `${(1 / COLS) * 100}%`,
+                    height: `${(1 / ROWS) * 100}%`,
+                    fontSize: "min(28px, calc(85vw / 16))",
+                    lineHeight: "min(28px, calc(85vw / 16))",
+                    transform: `translate(${offset.x}px, ${offset.y}px)`,
+                    opacity: 0,
+                    willChange: "transform, opacity",
+                  }}
+                >
+                  █
+                </span>
+              );
+            })
+          )}
+        </div>
+        <p className="mt-6 text-lg text-primary">page not found</p>
         <Link
           className="mt-4 text-lg text-secondary transition-colors duration-200 hover:text-primary"
           href="/"
