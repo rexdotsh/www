@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-// Block-letter "404" — each sub-array is a row, 1 = filled, 0 = empty
-// Letters are 5 tall x 4 wide, with 2-col gaps between them
 const ASCII_404 = [
   [1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1],
   [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
@@ -15,15 +13,28 @@ const ASCII_404 = [
 
 const ROWS = ASCII_404.length;
 const COLS = ASCII_404[0].length;
-const CELL_SIZE = 28;
 const REPEL_RADIUS = 120;
 const REPEL_STRENGTH = 4000;
+
+function getCellSize() {
+  if (typeof window === "undefined") return 28;
+  const vw = window.innerWidth;
+  return vw < 480 ? Math.floor((vw * 0.85) / COLS) : 28;
+}
 
 export default function NotFoundPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const mousePos = useRef<{ x: number; y: number } | null>(null);
   const rafId = useRef<number>(0);
+  const [cs, setCs] = useState(28);
+
+  useEffect(() => {
+    setCs(getCellSize());
+    const onResize = () => setCs(getCellSize());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const animate = useCallback(() => {
     const container = containerRef.current;
@@ -31,12 +42,13 @@ export default function NotFoundPage() {
 
     const rect = container.getBoundingClientRect();
     const cells = cellRefs.current;
+    const cellW = rect.width / COLS;
+    const cellH = rect.height / ROWS;
 
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         if (!ASCII_404[r][c]) continue;
-        const idx = r * COLS + c;
-        const el = cells[idx];
+        const el = cells[r * COLS + c];
         if (!el) continue;
 
         const mp = mousePos.current;
@@ -46,8 +58,8 @@ export default function NotFoundPage() {
           continue;
         }
 
-        const cx = rect.left + c * CELL_SIZE + CELL_SIZE / 2;
-        const cy = rect.top + r * CELL_SIZE + CELL_SIZE / 2;
+        const cx = rect.left + c * cellW + cellW / 2;
+        const cy = rect.top + r * cellH + cellH / 2;
         const dx = cx - mp.x;
         const dy = cy - mp.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -55,9 +67,7 @@ export default function NotFoundPage() {
         if (dist < REPEL_RADIUS) {
           const force = REPEL_STRENGTH / (dist * dist + 1);
           const angle = Math.atan2(dy, dx);
-          const tx = Math.cos(angle) * force;
-          const ty = Math.sin(angle) * force;
-          el.style.transform = `translate(${tx}px, ${ty}px)`;
+          el.style.transform = `translate(${Math.cos(angle) * force}px, ${Math.sin(angle) * force}px)`;
           el.style.opacity = `${Math.max(0.2, dist / REPEL_RADIUS)}`;
         } else {
           el.style.transform = "translate(0px, 0px)";
@@ -105,7 +115,7 @@ export default function NotFoundPage() {
         <div
           ref={containerRef}
           className="relative"
-          style={{ width: COLS * CELL_SIZE, height: ROWS * CELL_SIZE }}
+          style={{ width: COLS * cs, height: ROWS * cs }}
           role="img"
           aria-label="404"
         >
@@ -121,12 +131,12 @@ export default function NotFoundPage() {
                   }}
                   className="absolute text-primary"
                   style={{
-                    left: c * CELL_SIZE,
-                    top: r * CELL_SIZE,
-                    width: CELL_SIZE,
-                    height: CELL_SIZE,
-                    fontSize: CELL_SIZE,
-                    lineHeight: `${CELL_SIZE}px`,
+                    left: c * cs,
+                    top: r * cs,
+                    width: cs,
+                    height: cs,
+                    fontSize: cs,
+                    lineHeight: `${cs}px`,
                     transition:
                       "transform 0.3s ease-out, opacity 0.3s ease-out",
                     willChange: "transform, opacity",
