@@ -9,7 +9,7 @@ export default async function Navigation() {
       ? [{ href: "/resume", text: "RESUME" }]
       : [{ href: "https://x.com/rexmkv", text: "TWITTER" }]),
     { href: "https://github.com/rexdotsh", text: "GITHUB" },
-    { href: "https://flora.tf", text: "FLORA" },
+    { href: "https://analytiqo.org", text: "ANLYTQ" },
   ];
 
   return (
