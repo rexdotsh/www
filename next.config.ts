@@ -36,8 +36,8 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: "/analytiqo",
-        destination: "https://analytiqo.org",
+        source: "/flora",
+        destination: "https://floraorg.github.io",
         permanent: true,
       },
       {
