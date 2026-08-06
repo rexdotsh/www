@@ -13,7 +13,9 @@ export async function GET(
     const { id } = await context.params;
     const embedUrl = `https://open.spotify.com/embed/track/${id}`;
 
-    const response = await fetch(embedUrl);
+    const response = await fetch(embedUrl, {
+      next: { revalidate: 86_400 },
+    });
     const html = await response.text();
 
     const matches = html.match(AUDIO_PREVIEW_REGEX);
@@ -26,7 +28,15 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ url: previewUrl });
+    return NextResponse.json(
+      { url: previewUrl },
+      {
+        headers: {
+          "Cache-Control":
+            "public, s-maxage=86400, stale-while-revalidate=604800",
+        },
+      }
+    );
   } catch (error) {
     console.error("Failed to fetch preview URL:", error);
     return NextResponse.json(

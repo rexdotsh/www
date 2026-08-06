@@ -61,6 +61,8 @@ export default function SpotifyNowPlaying() {
         return;
       }
 
+      setTrack(trackData);
+
       if (trackData.id !== track?.id) {
         const previewRes = await fetch(`/api/spotify/preview/${trackData.id}`);
         const { url } = await previewRes.json();
@@ -68,8 +70,6 @@ export default function SpotifyNowPlaying() {
           load(url, { html5: true });
         }
       }
-
-      setTrack(trackData);
     } catch (_err) {
       // Silently fail - Spotify API errors shouldn't break the UI
     }
