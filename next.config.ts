@@ -40,11 +40,6 @@ const nextConfig: NextConfig = {
         destination: "https://floraorg.github.io",
         permanent: true,
       },
-      {
-        source: "/resume",
-        destination: "https://mridul.sh/resume",
-        permanent: true,
-      },
     ];
   },
 };
