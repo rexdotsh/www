@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import NotFoundPage from "@/components/not-found";
 import { getSiteInfo } from "@/lib/site";
+import geistMonoWoff2 from "@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url";
 import appCss from "../styles.css?url";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
@@ -41,6 +42,7 @@ export const Route = createRootRoute({
         { property: "og:url", content: canonicalUrl },
         { property: "og:site_name", content: title },
         { property: "og:type", content: "website" },
+        { property: "og:locale", content: "en_US" },
         { property: "og:image", content: imageUrl },
         { property: "og:image:type", content: "image/png" },
         { property: "og:image:width", content: "1200" },
@@ -51,10 +53,20 @@ export const Route = createRootRoute({
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: imageUrl },
         { name: "twitter:image:alt", content: title },
+        { name: "twitter:site", content: "@rexmkv" },
+        { name: "twitter:creator", content: "@rexmkv" },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
+        {
+          rel: "preload",
+          href: geistMonoWoff2,
+          as: "font",
+          type: "font/woff2",
+          crossOrigin: "anonymous",
+        },
         { rel: "icon", href: "/favicon.ico" },
+        { rel: "apple-touch-icon", href: "/image.png" },
         { rel: "canonical", href: canonicalUrl },
         {
           rel: "preconnect",
@@ -66,10 +78,20 @@ export const Route = createRootRoute({
           type: "application/ld+json",
           children: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "WebSite",
-            description,
-            name: title,
-            url: canonicalUrl,
+            "@graph": [
+              {
+                "@type": "WebSite",
+                description,
+                name: title,
+                url: canonicalUrl,
+              },
+              {
+                "@type": "Person",
+                name,
+                sameAs: ["https://github.com/rexdotsh", "https://x.com/rexmkv"],
+                url: canonicalUrl,
+              },
+            ],
           }),
         },
         {
