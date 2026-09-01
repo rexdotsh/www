@@ -46,10 +46,10 @@ export default function AmbientDesign({ hostname }: { hostname: string }) {
       <div className="relative mx-auto flex w-full max-w-2xl flex-col px-6">
         {/* hero */}
         <section className="flex min-h-dvh flex-col items-center justify-center text-center">
-          <div className="rise breathe" style={{ animationDelay: "80ms" }}>
+          <div className="rise" style={{ animationDelay: "80ms" }}>
             <img
               alt="A pink ASCII rose, glowing softly"
-              className="w-44 select-none [filter:drop-shadow(0_0_36px_rgba(255,46,99,0.45))] md:w-56"
+              className="breathe w-44 select-none [filter:drop-shadow(0_0_36px_rgba(255,46,99,0.45))] md:w-56"
               fetchPriority="high"
               height="320"
               src="/rose.avif"

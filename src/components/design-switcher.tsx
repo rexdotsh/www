@@ -42,7 +42,7 @@ export default function DesignSwitcher({ active }: { active: DesignId }) {
   const activeName = DESIGNS.find((d) => d.id === active)?.name ?? "classic";
 
   return (
-    <div className="-translate-x-1/2 fixed bottom-3 left-1/2 z-[100] font-mono">
+    <div className="fixed right-3 bottom-3 z-[100] font-mono opacity-60 transition-opacity duration-200 hover:opacity-100 focus-within:opacity-100">
       <div className="flex items-center gap-0.5 rounded-full border border-white/10 bg-black/75 px-1.5 py-1 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md">
         {DESIGNS.map((design) => (
           <button

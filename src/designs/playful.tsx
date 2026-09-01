@@ -40,10 +40,7 @@ export default function PlayfulDesign({ hostname }: { hostname: string }) {
           />
           <h1 className="rise mt-8 font-bold text-[clamp(2.4rem,9vw,3.6rem)] leading-[1.05] tracking-tight">
             hi, i'm {identity.name}{" "}
-            <span
-              aria-hidden="true"
-              className="inline-block origin-[70%_70%] hover:animate-none"
-            >
+            <span aria-hidden="true" className="inline-block text-[#ff5d8f]">
               ☺
             </span>
           </h1>
@@ -126,7 +123,7 @@ export default function PlayfulDesign({ hostname }: { hostname: string }) {
           <div className="mt-8 grid gap-5 md:grid-cols-2">
             {PROJECTS.map((project, index) => (
               <a
-                className="rise group relative rounded-2xl border-2 border-[#2b2118] bg-white p-5 shadow-[4px_4px_0_#2b2118] transition-[transform,box-shadow] duration-150 ease-strong hover:[transform:translate(-2px,-2px)_rotate(0deg)] hover:shadow-[6px_6px_0_#2b2118]"
+                className="rise group relative rounded-2xl border-2 border-[#2b2118] bg-white p-5 shadow-[4px_4px_0_#2b2118] transition-[transform,box-shadow,rotate] duration-150 ease-strong hover:rotate-0 hover:[transform:translate(-2px,-2px)] hover:shadow-[6px_6px_0_#2b2118]"
                 href={project.href}
                 key={project.name}
                 rel="noopener noreferrer"

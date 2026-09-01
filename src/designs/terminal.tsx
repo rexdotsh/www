@@ -144,7 +144,7 @@ export default function TerminalDesign({ hostname }: { hostname: string }) {
       </div>
 
       {/* statusline */}
-      <footer className="fixed inset-x-0 bottom-0 hidden border-[#1c1c1c] border-t bg-[#0a0a0a]/90 px-4 py-1.5 text-[#5c5c56] text-xs backdrop-blur-sm md:block">
+      <footer className="fixed inset-x-0 bottom-0 hidden border-[#1c1c1c] border-t bg-[#0a0a0a]/90 px-4 py-1.5 pr-52 text-[#5c5c56] text-xs backdrop-blur-sm md:block xl:pr-4">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-4">
           <span className="text-[#ff3b5c]">{NOW.prompt}</span>
           <span className="min-w-0 truncate">
