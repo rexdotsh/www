@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import {
   getIdentity,
   getNavLinks,
@@ -218,6 +218,11 @@ function Peek({
   peek: ReactNode;
   tone?: "link" | "name";
 }) {
+  // touch devices: first tap arms the word (conducts the rose, shows
+  // the peek), second tap navigates. tapping elsewhere disarms.
+  const [armed, setArmed] = useState(false);
+  const anchorRef = useRef<HTMLAnchorElement>(null);
+
   const toneClass =
     tone === "name"
       ? "text-[#17140f] decoration-dotted decoration-[#17140f]/30 hover:decoration-[#17140f]/70"
@@ -229,14 +234,56 @@ function Peek({
     }
   };
 
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!hoverKey) {
+      return;
+    }
+    if (!window.matchMedia("(hover: none)").matches) {
+      return;
+    }
+    if (armed) {
+      // second tap — navigate, and stand down
+      setArmed(false);
+      return;
+    }
+    event.preventDefault();
+    setArmed(true);
+    report(hoverKey);
+  };
+
+  useEffect(() => {
+    if (!armed) {
+      return;
+    }
+    const onDocumentPointerDown = (event: PointerEvent) => {
+      if (anchorRef.current?.contains(event.target as Node)) {
+        return;
+      }
+      setArmed(false);
+      if (onHover && hoverKey) {
+        onHover(null);
+      }
+    };
+    document.addEventListener("pointerdown", onDocumentPointerDown);
+    return () =>
+      document.removeEventListener("pointerdown", onDocumentPointerDown);
+  }, [armed, onHover, hoverKey]);
+
   return (
     <a
       className={`peek-trigger relative inline-block underline decoration-[0.04em] underline-offset-[0.14em] transition-[text-decoration-color] duration-150 ${toneClass}`}
+      data-peek-open={armed ? "" : undefined}
       href={href}
       onBlur={() => report(null)}
+      onClick={handleClick}
       onFocus={() => report(hoverKey ?? null)}
       onPointerEnter={() => report(hoverKey ?? null)}
-      onPointerLeave={() => report(null)}
+      onPointerLeave={() => {
+        if (!armed) {
+          report(null);
+        }
+      }}
+      ref={anchorRef}
       rel="noopener noreferrer"
       target="_blank"
     >

@@ -123,14 +123,14 @@ function Home() {
 
   return (
     <main className="fixed inset-0 overflow-y-auto bg-[#faf8f2] font-serif-display text-[#17140f] selection:bg-[#b3123a] selection:text-[#faf8f2]">
-      <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col items-center gap-10 px-6 py-16 md:flex-row md:gap-14 md:px-12">
+      <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-16 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:px-12 md:py-16">
         {/* the sentence, typesetting itself */}
         <div
-          className="sentence-root relative z-10 order-2 max-w-2xl flex-1 md:order-1"
+          className="sentence-root relative z-10 max-w-2xl md:flex-1"
           ref={sentenceRef}
         >
           <TheSentence
-            className="text-[clamp(1.9rem,4.4vw,3.5rem)] leading-[1.2] tracking-[-0.01em]"
+            className="text-[clamp(1.9rem,8.6vw,2.5rem)] leading-[1.22] tracking-[-0.01em] md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"
             hostname={hostname}
             onWordHover={setWord}
             track={track}
@@ -140,12 +140,12 @@ function Home() {
 
         {/* the rose, conducted by the words */}
         <div
-          className="rise order-1 flex shrink-0 flex-col items-center md:order-2"
+          className="rise flex shrink-0 flex-col items-center"
           style={{ animationDelay: "200ms" }}
         >
           <ParticleRose
             artUrl={albumArt}
-            className="w-[min(68vw,270px)] md:w-[min(34vw,440px)]"
+            className="w-[min(64vw,300px)] md:w-[min(34vw,440px)]"
             mode={word ? MODES[word] : "rest"}
           />
           <p

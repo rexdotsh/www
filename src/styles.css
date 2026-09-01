@@ -63,19 +63,30 @@ body {
   animation: word-in 550ms var(--ease-strong) backwards;
 }
 
-/* hovering one word softens every other word in the sentence */
-@media (hover: hover) and (pointer: fine) {
-  .sentence-root .word-in {
-    transition:
-      filter 240ms var(--ease-strong),
-      opacity 240ms var(--ease-strong);
-  }
+/* focusing one word softens every other word in the sentence */
+.sentence-root .word-in {
+  transition:
+    filter 240ms var(--ease-strong),
+    opacity 240ms var(--ease-strong);
+}
 
+@media (hover: hover) and (pointer: fine) {
   .sentence-root:has(.peek-trigger:hover)
     .word-in:not(:has(.peek-trigger:hover)) {
     filter: blur(3px);
     opacity: 0.35;
   }
+}
+
+/* touch: a tap-armed word conducts + peeks; everything else softens */
+.peek-trigger[data-peek-open] .peek {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.sentence-root:has([data-peek-open]) .word-in:not(:has([data-peek-open])) {
+  filter: blur(3px);
+  opacity: 0.35;
 }
 
 /* media peek cards, with a springy pop */
@@ -99,6 +110,20 @@ body {
   .peek-trigger:focus-visible .peek {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+/* on phones the peek detaches from the word and docks near the thumb —
+   a small card floating above the bottom edge */
+@media (max-width: 767px) {
+  .peek {
+    position: fixed;
+    top: auto;
+    bottom: max(1.5rem, env(safe-area-inset-bottom));
+    left: 50%;
+    translate: -50% 0;
+    transform-origin: bottom center;
+    z-index: 40;
   }
 }
 
