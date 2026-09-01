@@ -16,6 +16,7 @@ export const getSiteInfo = createServerFn({ method: "GET" }).handler(() => {
     ?.trim();
 
   if (forwardedHost) {
+    publicUrl.port = "";
     publicUrl.host = forwardedHost;
   }
   if (forwardedProtocol === "http" || forwardedProtocol === "https") {
