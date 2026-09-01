@@ -350,7 +350,55 @@ function ResumePeek() {
   );
 }
 
+interface Contributions {
+  total: number;
+  weeks: number[][];
+}
+
+/** github's green ramp, re-dyed in the rose's reds. -1 = padding day */
+const HEAT_COLORS = ["#efe9dc", "#f0c3cd", "#e5798f", "#ce2955", "#8f1236"];
+
+function useContributions() {
+  const [data, setData] = useState<Contributions | null>(null);
+  useEffect(() => {
+    fetch("/api/github/contributions")
+      .then((response) =>
+        response.ok ? (response.json() as Promise<Contributions | null>) : null
+      )
+      .then(setData)
+      .catch(() => setData(null));
+  }, []);
+  return data;
+}
+
+function Heatmap({ total, weeks }: Contributions) {
+  return (
+    <span className="mt-3 block border-[#17140f]/10 border-t pt-3">
+      <span className="flex justify-center gap-px">
+        {weeks.slice(-52).map((week, weekIndex) => (
+          <span className="flex flex-col gap-px" key={`w${weekIndex}`}>
+            {week.map((level, dayIndex) => (
+              <span
+                className="h-[3px] w-[3px] rounded-[1px]"
+                key={`d${dayIndex}`}
+                style={{
+                  backgroundColor:
+                    level < 0 ? "transparent" : HEAT_COLORS[level],
+                }}
+              />
+            ))}
+          </span>
+        ))}
+      </span>
+      <span className="mt-2 block text-center text-[#a29a89] text-[9px] tracking-[0.1em]">
+        {total.toLocaleString()} contributions, past year
+      </span>
+    </span>
+  );
+}
+
 function ProjectsPeek() {
+  const graph = useContributions();
   return (
     <PeekCard>
       <span className="block text-[#a29a89] text-[9px] uppercase tracking-[0.25em]">
@@ -366,6 +414,7 @@ function ProjectsPeek() {
           </span>
         </span>
       ))}
+      {graph && graph.weeks.length > 0 ? <Heatmap {...graph} /> : null}
     </PeekCard>
   );
 }
