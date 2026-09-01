@@ -3,6 +3,7 @@
 @variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
+  --animate-fade-in: fade-in 300ms ease-in forwards;
   --font-mono: "Geist Mono Variable", monospace;
   --color-background: var(--background);
   --color-primary: var(--primary);
@@ -100,10 +101,6 @@ body {
   }
 }
 
-.fade-in {
-  animation: fade-in 300ms ease-in forwards;
-}
-
 .animate-bar-1 {
   --scale-min: 0.8;
   --scale-max: 1;
@@ -146,5 +143,22 @@ body {
 @media (min-width: 1440px) {
   .rose-container {
     width: clamp(310px, 16vw, 360px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-group(root),
+  ::view-transition-new(root),
+  ::view-transition-old(root) {
+    animation: none;
   }
 }
