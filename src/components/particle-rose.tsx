@@ -432,6 +432,16 @@ export default function ParticleRose({
       }
     };
 
+    // idle life: a petal shed now and then
+    let petal: {
+      p: Particle;
+      phase: "fall" | "return";
+      startAt: number;
+      x0: number;
+      y0: number;
+    } | null = null;
+    let nextPetalAt = performance.now() + 9000 + Math.random() * 8000;
+
     const tick = (now: number) => {
       if (!startedAt) {
         startedAt = now;
@@ -439,6 +449,7 @@ export default function ParticleRose({
       const elapsed = now - startedAt;
       const t = now / 1000;
       const repelRadius = size * 0.16;
+      const resting = modeRef.current === "rest";
       const artMode = modeRef.current === "art" && hasArt;
       const blink =
         modeRef.current === "caret"
@@ -447,31 +458,68 @@ export default function ParticleRose({
       context.font = artMode ? artFont : baseFont;
       context.clearRect(0, 0, size, size);
 
+      if (resting && !petal && now > nextPetalAt) {
+        const p = particles[Math.floor(Math.random() * particles.length)];
+        petal = { p, phase: "fall", startAt: now, x0: p.x, y0: p.y };
+      }
+      if (petal && !resting) {
+        petal = null;
+        nextPetalAt = now + 9000 + Math.random() * 8000;
+      }
+
       for (const p of particles) {
         if (elapsed < p.activateAt) {
           continue;
         }
 
-        const [targetX, targetY] = targetFor(p, t);
-        p.vx += (targetX - p.x) * SPRING;
-        p.vy += (targetY - p.y) * SPRING;
+        let alpha = Math.min(1, (elapsed - p.activateAt) / 350) * blink;
 
-        const dx = p.x - pointer.x;
-        const dy = p.y - pointer.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist < repelRadius && dist > 0.01) {
-          const force = (1 - dist / repelRadius) * REPEL_FORCE;
-          p.vx += (dx / dist) * force;
-          p.vy += (dy / dist) * force;
+        if (petal?.p === p) {
+          if (petal.phase === "fall") {
+            const u = (now - petal.startAt) / 2800;
+            if (u >= 1) {
+              petal.phase = "return";
+              petal.startAt = now;
+              p.x = p.homeX;
+              p.y = p.homeY;
+              p.vx = 0;
+              p.vy = 0;
+              alpha = 0;
+            } else {
+              p.x = petal.x0 + Math.sin(u * TAU * 1.2) * size * 0.02;
+              p.y = petal.y0 + u * u * size * 0.3;
+              alpha *= 1 - u;
+            }
+          } else {
+            const u = (now - petal.startAt) / 900;
+            if (u >= 1) {
+              petal = null;
+              nextPetalAt = now + 14_000 + Math.random() * 10_000;
+            } else {
+              alpha *= u;
+            }
+          }
+        } else {
+          const [targetX, targetY] = targetFor(p, t);
+          p.vx += (targetX - p.x) * SPRING;
+          p.vy += (targetY - p.y) * SPRING;
+
+          const dx = p.x - pointer.x;
+          const dy = p.y - pointer.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < repelRadius && dist > 0.01) {
+            const force = (1 - dist / repelRadius) * REPEL_FORCE;
+            p.vx += (dx / dist) * force;
+            p.vy += (dy / dist) * force;
+          }
+
+          p.vx *= DAMPING;
+          p.vy *= DAMPING;
+          p.x += p.vx;
+          p.y += p.vy;
         }
 
-        p.vx *= DAMPING;
-        p.vy *= DAMPING;
-        p.x += p.vx;
-        p.y += p.vy;
-
-        context.globalAlpha =
-          Math.min(1, (elapsed - p.activateAt) / 350) * blink;
+        context.globalAlpha = alpha;
         if (artMode && p.art) {
           const k = artFadeRef.current ** 1.5;
           const [r, g, b] = p.art;
