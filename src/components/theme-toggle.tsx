@@ -1,11 +1,11 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
-type ViewTransitionLike = {
-  ready?: Promise<unknown>;
+interface ViewTransitionLike {
   finished?: Promise<unknown>;
+  ready?: Promise<unknown>;
   updateCallbackDone?: Promise<unknown>;
-};
+}
 
 type DocumentWithStartViewTransition = Document & {
   startViewTransition?: (callback: () => void) => ViewTransitionLike;

@@ -17,11 +17,10 @@
         "noArrayIndexKey": "off",
         "noShadow": "off",
         "noUnnecessaryConditions": "off",
-        "noLeakedRender": "off",
         "noConsole": {
           "level": "error",
           "options": {
-            "allow": ["error", "log", "warn"]
+            "allow": ["error", "warn"]
           }
         }
       },
@@ -29,17 +28,14 @@
         "useBlockStatements": "off",
         "noMagicNumbers": "off",
         "useCollapsedIf": "off",
-        "noNestedTernary": "off",
-        "noIncrementDecrement": "off",
-        "useConsistentTypeDefinitions": "off"
+        "noNestedTernary": "off"
       },
       "correctness": {
         "noUnknownTypeSelector": "off"
       },
       "complexity": {
         "noExcessiveCognitiveComplexity": "off",
-        "useSimplifiedLogicExpression": "off",
-        "noUselessCatchBinding": "off"
+        "useSimplifiedLogicExpression": "off"
       },
       "nursery": {
         "useSortedClasses": "off"

@@ -42,9 +42,9 @@ const convertToAscii = async (
   const imageData = ctx.getImageData(0, 0, width, height).data;
   const lines: string[] = [];
 
-  for (let y = 0; y < height; y++) {
+  for (let y = 0; y < height; y += 1) {
     const row: string[] = [];
-    for (let x = 0; x < width; x++) {
+    for (let x = 0; x < width; x += 1) {
       const i = (y * width + x) * 4;
       const [r, g, b, a] = [
         imageData[i],
@@ -82,10 +82,10 @@ const collectUniqueChars = (lines: string[]): Set<string> => {
   return set;
 };
 
-type GlyphDefsResult = {
-  idForChar: Map<string, string>;
+interface GlyphDefsResult {
   defsMarkup: string;
-};
+  idForChar: Map<string, string>;
+}
 
 const buildGlyphDefs = (
   font: opentype.Font,
@@ -113,11 +113,11 @@ const buildUsesForLines = (
 ): string => {
   const usesParts: string[] = [];
 
-  for (let row = 0; row < lines.length; row++) {
+  for (let row = 0; row < lines.length; row += 1) {
     const yOff = row * lineAdvance;
     const line = lines[row];
 
-    for (let col = 0; col < line.length; col++) {
+    for (let col = 0; col < line.length; col += 1) {
       const ch = line[col];
       if (ch !== " ") {
         const id = idForChar.get(ch);
@@ -143,14 +143,14 @@ const getMonospaceAdvance = (
   return (g.advanceWidth ?? unitsPerEm) * scale;
 };
 
-type SvgConfig = {
-  width: number;
-  height: number;
-  xOffset: number;
-  horizontalScale: number;
+interface SvgConfig {
   defsMarkup: string;
+  height: number;
+  horizontalScale: number;
   usesMarkup: string;
-};
+  width: number;
+  xOffset: number;
+}
 
 const generateSvgMarkup = ({
   width,
@@ -229,7 +229,7 @@ const main = async (): Promise<void> => {
   const asciiArt = await convertToAscii(IMAGE_PATH, 500, 1000);
   const svgBuffer = await buildSvgBuffer(asciiArt);
   await rasterizeAVIF(svgBuffer);
-  console.log(`Successfully generated ${AVIF_PATH}`);
+  process.stdout.write(`Successfully generated ${AVIF_PATH}\n`);
 };
 
 main().catch((error) => {

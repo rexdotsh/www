@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAudioPlayer } from "react-use-audio-player";
 
-type SpotifyTrack = {
-  isPlaying: boolean;
-  name: string;
-  artist: string;
+interface SpotifyTrack {
   album: string;
+  artist: string;
+  id: string;
   image: Array<{
     "#text": string;
     size: "small" | "medium" | "large";
   }>;
+  isPlaying: boolean;
+  name: string;
   url: string;
-  id: string;
-};
+}
 
 const MIN_HEIGHT_FOR_SPOTIFY = 900;
 const POLL_INTERVAL = 60_000;
@@ -73,7 +73,7 @@ export default function SpotifyNowPlaying() {
           load(url, { html5: true });
         }
       }
-    } catch (_err) {
+    } catch {
       // Silently fail - Spotify API errors shouldn't break the UI
     }
   }, [track?.id, load]);
@@ -144,13 +144,13 @@ export default function SpotifyNowPlaying() {
                 src={getAlbumArt()}
                 width={64}
               />
-              {track.isPlaying && (
+              {track.isPlaying ? (
                 <div className="-bottom-2 -right-2 absolute flex items-end gap-[2px] rounded-md bg-surface-hover p-1.5 shadow-sm">
                   <div className="h-3 w-[3px] origin-bottom animate-bar-1 bg-accent" />
                   <div className="h-3 w-[3px] origin-bottom animate-bar-2 bg-accent" />
                   <div className="h-3 w-[3px] origin-bottom animate-bar-3 bg-accent" />
                 </div>
-              )}
+              ) : null}
             </div>
             <div className="mr-2 flex min-w-0 flex-1 flex-col">
               <span className="mb-0.5 text-accent text-xs">

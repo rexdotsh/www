@@ -12,39 +12,39 @@ const TOKEN_CACHE_KEY = "spotify:token";
 
 let redis: Redis | undefined;
 
-type SpotifyToken = {
+interface SpotifyToken {
   access_token: string;
   expires_at: number;
-};
+}
 
-type SpotifyTokenResponse = {
+interface SpotifyTokenResponse {
   access_token: string;
   expires_in: number;
-};
+}
 
-type SpotifyArtist = {
+interface SpotifyArtist {
   name: string;
-};
+}
 
-type SpotifyImage = {
-  url: string;
+interface SpotifyImage {
   height: number;
-};
+  url: string;
+}
 
-type SpotifyAlbum = {
-  name: string;
+interface SpotifyAlbum {
   images: SpotifyImage[];
-};
-
-type SpotifyTrack = {
   name: string;
-  artists: SpotifyArtist[];
+}
+
+interface SpotifyTrack {
   album: SpotifyAlbum;
+  artists: SpotifyArtist[];
   external_urls: {
     spotify: string;
   };
   id: string;
-};
+  name: string;
+}
 
 function getRedis() {
   const url = process.env.KV_REST_API_URL;
