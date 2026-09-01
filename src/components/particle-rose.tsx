@@ -4,11 +4,11 @@ import { ASCII_ROSE } from "@/lib/ascii-rose";
 export type RoseMode =
   | "rest"
   | "grid"
-  | "lean"
+  | "caret"
   | "shiver"
   | "garden"
   | "art"
-  | "wave"
+  | "hi"
   | "paper";
 
 type Rgb = [number, number, number];
@@ -16,6 +16,8 @@ type Rgb = [number, number, number];
 interface Particle {
   activateAt: number;
   art?: Rgb;
+  caretX: number;
+  caretY: number;
   ch: string;
   cluster: number;
   color: string;
@@ -23,6 +25,8 @@ interface Particle {
   docY: number;
   gridX: number;
   gridY: number;
+  hiX: number;
+  hiY: number;
   homeX: number;
   homeY: number;
   rgb: Rgb;
@@ -93,6 +97,10 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
         gridY: homeY,
         docX: homeX,
         docY: homeY,
+        caretX: homeX,
+        caretY: homeY,
+        hiX: homeX,
+        hiY: homeY,
         x: scattered ? Math.random() * size : homeX,
         y: scattered ? Math.random() * size : homeY,
         vx: 0,
@@ -148,6 +156,75 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
       p.docY = y0 + pageH * rules[line];
     }
   });
+
+  // "caret": a giant i-beam text cursor
+  const stemH = inner * 0.56;
+  const stemW = inner * 0.055;
+  const barW = inner * 0.17;
+  const barH = inner * 0.05;
+  const stemCount = Math.floor(particles.length * 0.7);
+  const barCount = Math.ceil((particles.length - stemCount) / 2);
+
+  const fillRect = (
+    p: Particle,
+    i: number,
+    count: number,
+    w: number,
+    h: number,
+    cy: number
+  ) => {
+    const cols = Math.max(3, Math.round(Math.sqrt((count * w) / h)));
+    const rows = Math.ceil(count / cols);
+    p.caretX = c - w / 2 + ((i % cols) + 0.5) * (w / cols);
+    p.caretY = cy - h / 2 + (Math.floor(i / cols) + 0.5) * (h / rows);
+  };
+
+  particles.forEach((p, index) => {
+    if (index < stemCount) {
+      fillRect(p, index, stemCount, stemW, stemH, c);
+    } else if (index < stemCount + barCount) {
+      fillRect(p, index - stemCount, barCount, barW, barH, c - stemH / 2);
+    } else {
+      fillRect(
+        p,
+        index - stemCount - barCount,
+        barCount,
+        barW,
+        barH,
+        c + stemH / 2
+      );
+    }
+  });
+
+  // "hi": sample the word off a scratch canvas, like the album art trick
+  const sampler = document.createElement("canvas");
+  sampler.width = 240;
+  sampler.height = 160;
+  const sctx = sampler.getContext("2d");
+  if (sctx) {
+    sctx.font = "600 130px 'Geist Mono Variable', monospace";
+    sctx.textAlign = "center";
+    sctx.textBaseline = "middle";
+    sctx.fillText("hi", 120, 80);
+    const { data } = sctx.getImageData(0, 0, 240, 160);
+    const points: [number, number][] = [];
+    for (let y = 0; y < 160; y += 2) {
+      for (let x = 0; x < 240; x += 2) {
+        if (data[(y * 240 + x) * 4 + 3] > 128) {
+          points.push([x, y]);
+        }
+      }
+    }
+    if (points.length > 0) {
+      const k = (inner * 0.72) / 240;
+      particles.forEach((p, index) => {
+        const [sx, sy] =
+          points[Math.floor((index / particles.length) * points.length)];
+        p.hiX = c + (sx - 120 + Math.random() * 2 - 1) * k;
+        p.hiY = c + (sy - 80 + Math.random() * 2 - 1) * k;
+      });
+    }
+  }
 
   return particles;
 }
@@ -277,6 +354,10 @@ export default function ParticleRose({
       switch (modeRef.current) {
         case "grid":
           return [p.gridX, p.gridY];
+        case "caret":
+          return [p.caretX, p.caretY];
+        case "hi":
+          return [p.hiX, p.hiY];
         case "art": {
           if (hasArt) {
             return [p.gridX, p.gridY];
@@ -288,14 +369,7 @@ export default function ParticleRose({
           const [gx, gy] = GARDEN_CENTERS[p.cluster];
           return [gx * size + dx * GARDEN_SCALE, gy * size + dy * GARDEN_SCALE];
         }
-        case "lean":
-          return [p.homeX - dy * 0.3, p.homeY];
-        case "wave":
-          return [
-            p.homeX,
-            p.homeY +
-              Math.sin((p.homeX / size) * TAU * 1.4 + t * 5) * size * 0.024,
-          ];
+
         case "paper":
           return [p.docX, p.docY];
         case "shiver":
@@ -316,6 +390,10 @@ export default function ParticleRose({
       const t = now / 1000;
       const repelRadius = size * 0.16;
       const artMode = modeRef.current === "art" && hasArt;
+      const blink =
+        modeRef.current === "caret"
+          ? 0.35 + 0.65 * (0.5 + 0.5 * Math.cos((t * TAU) / 1.2))
+          : 1;
       context.font = artMode ? artFont : baseFont;
       context.clearRect(0, 0, size, size);
 
@@ -342,7 +420,8 @@ export default function ParticleRose({
         p.x += p.vx;
         p.y += p.vy;
 
-        context.globalAlpha = Math.min(1, (elapsed - p.activateAt) / 350);
+        context.globalAlpha =
+          Math.min(1, (elapsed - p.activateAt) / 350) * blink;
         if (artMode && p.art) {
           const k = artFadeRef.current ** 1.5;
           const [r, g, b] = p.art;

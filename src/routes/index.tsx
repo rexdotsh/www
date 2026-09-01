@@ -19,20 +19,20 @@ export const Route = createFileRoute("/")({
 const MODES: Record<SentenceWord, RoseMode> = {
   name: "shiver",
   builds: "grid",
-  writes: "lean",
+  writes: "caret",
   garden: "garden",
   music: "art",
-  hi: "wave",
+  hi: "hi",
   resume: "paper",
 };
 
 const CAPTIONS: Record<SentenceWord, string> = {
   name: "( flustered )",
   builds: "( ordering itself )",
-  writes: "( leaning italic )",
+  writes: "( waiting for the first word )",
   garden: "( becoming a garden )",
   music: "( keeping time )",
-  hi: "( waving hello )",
+  hi: "( saying it back )",
   resume: "( pretending to be a document )",
 };
 
