@@ -143,22 +143,28 @@ function Home() {
           className="rise flex shrink-0 flex-col items-center"
           style={{ animationDelay: "200ms" }}
         >
-          <ParticleRose
-            artUrl={albumArt}
-            className="w-[min(64vw,300px)] md:w-[min(34vw,440px)]"
-            mode={word ? MODES[word] : "rest"}
-          />
-          <p
-            aria-hidden="true"
-            className="mt-2.5 h-4 font-mono text-[#a29a89] text-[10px] italic"
+          {/* on phones the peek docks at the bottom — the rose steps
+              up out of its way while a word is armed */}
+          <div
+            className={`flex flex-col items-center transition-transform duration-300 ease-strong ${word ? "max-md:-translate-y-28" : ""}`}
           >
-            <span
-              className="inline-block transition-opacity duration-300"
-              key={caption}
+            <ParticleRose
+              artUrl={albumArt}
+              className="w-[min(64vw,300px)] md:w-[min(34vw,440px)]"
+              mode={word ? MODES[word] : "rest"}
+            />
+            <p
+              aria-hidden="true"
+              className="mt-2.5 h-4 font-mono text-[#a29a89] text-[10px] italic"
             >
-              {caption}
-            </span>
-          </p>
+              <span
+                className="inline-block transition-opacity duration-300"
+                key={caption}
+              >
+                {caption}
+              </span>
+            </p>
+          </div>
         </div>
       </div>
     </main>
