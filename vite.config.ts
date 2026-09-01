@@ -40,6 +40,7 @@ export default defineConfig({
         "/rose.avif": STATIC_ASSET_HEADERS,
         "/social-card.png": STATIC_ASSET_HEADERS,
         "/social-card-mridul.png": STATIC_ASSET_HEADERS,
+        "/og/**": STATIC_ASSET_HEADERS,
         "/twitter": {
           redirect: { to: "https://x.com/rexmkv", status: 308 },
         },

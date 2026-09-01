@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BLOG_POSTS } from "@/lib/posts";
+import { PUBLISHED_POSTS } from "@/lib/posts";
 import { resolveSiteInfo } from "@/lib/site";
 
 export const Route = createFileRoute("/sitemap.xml")({
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         const paths = [
           "/",
           "/blog",
-          ...BLOG_POSTS.map((post) => `/blog/${post.slug}`),
+          ...PUBLISHED_POSTS.map((post) => `/blog/${post.slug}`),
         ];
         const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

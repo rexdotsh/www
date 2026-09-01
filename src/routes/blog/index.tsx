@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { LINKS } from "@/lib/content";
-import { BLOG_POSTS } from "@/lib/posts";
+import { PUBLISHED_POSTS } from "@/lib/posts";
 
 export const Route = createFileRoute("/blog/")({
   component: BlogIndex,
@@ -10,6 +10,14 @@ export const Route = createFileRoute("/blog/")({
       { name: "description", content: "occasional writeups and notes." },
       { property: "og:title", content: "writing" },
       { property: "og:description", content: "occasional writeups and notes." },
+    ],
+    links: [
+      {
+        rel: "alternate",
+        type: "application/rss+xml",
+        title: "writing — rss",
+        href: "/blog/rss.xml",
+      },
     ],
   }),
   headers: () => ({
@@ -47,7 +55,7 @@ function BlogIndex() {
         </p>
 
         <ul className="mt-14">
-          {BLOG_POSTS.map((post, index) => (
+          {PUBLISHED_POSTS.map((post, index) => (
             <li
               className="rise"
               key={post.slug}
@@ -61,7 +69,10 @@ function BlogIndex() {
                 <span className="block font-mono text-[#a29a89] text-[11px] tabular-nums">
                   {post.dateLabel}
                 </span>
-                <span className="mt-1 block text-[clamp(1.4rem,4.5vw,1.8rem)] leading-tight transition-colors duration-200 group-hover:text-[#b3123a]">
+                <span
+                  className="mt-1 block text-[clamp(1.4rem,4.5vw,1.8rem)] leading-tight transition-colors duration-200 group-hover:text-[#b3123a]"
+                  style={{ viewTransitionName: `post-${post.slug}` }}
+                >
                   {post.title}
                   <span
                     aria-hidden="true"

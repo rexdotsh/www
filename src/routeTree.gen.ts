@@ -14,6 +14,7 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as BlogRssDotxmlRouteImport } from './routes/blog/rss[.]xml'
 import { Route as ApiGithubContributionsRouteImport } from './routes/api/github/contributions'
 import { Route as ApiSpotifyPlayingRouteImport } from './routes/api/spotify/playing'
 import { Route as ApiSpotifyPreviewIdRouteImport } from './routes/api/spotify/preview/$id'
@@ -43,6 +44,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogRssDotxmlRoute = BlogRssDotxmlRouteImport.update({
+  id: '/blog/rss.xml',
+  path: '/blog/rss.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGithubContributionsRoute = ApiGithubContributionsRouteImport.update({
   id: '/api/github/contributions',
   path: '/api/github/contributions',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog/': typeof BlogIndexRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog': typeof BlogIndexRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog/': typeof BlogIndexRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/blog/$slug'
+    | '/blog/rss.xml'
     | '/blog/'
     | '/api/github/contributions'
     | '/api/spotify/playing'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/blog/$slug'
+    | '/blog/rss.xml'
     | '/blog'
     | '/api/github/contributions'
     | '/api/spotify/playing'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/blog/$slug'
+    | '/blog/rss.xml'
     | '/blog/'
     | '/api/github/contributions'
     | '/api/spotify/playing'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  BlogRssDotxmlRoute: typeof BlogRssDotxmlRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ApiGithubContributionsRoute: typeof ApiGithubContributionsRoute
   ApiSpotifyPlayingRoute: typeof ApiSpotifyPlayingRoute
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/rss.xml': {
+      id: '/blog/rss.xml'
+      path: '/blog/rss.xml'
+      fullPath: '/blog/rss.xml'
+      preLoaderRoute: typeof BlogRssDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/github/contributions': {
       id: '/api/github/contributions'
       path: '/api/github/contributions'
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BlogSlugRoute: BlogSlugRoute,
+  BlogRssDotxmlRoute: BlogRssDotxmlRoute,
   BlogIndexRoute: BlogIndexRoute,
   ApiGithubContributionsRoute: ApiGithubContributionsRoute,
   ApiSpotifyPlayingRoute: ApiSpotifyPlayingRoute,

@@ -336,6 +336,14 @@ html[data-vt="theme"]::view-transition-new(root) {
   margin-top: 1.15em;
 }
 
+.prose-post > p:first-child::first-letter {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 3.1em;
+  line-height: 0.8;
+  float: left;
+  padding: 0.06em 0.12em 0 0;
+}
+
 .prose-post h2,
 .prose-post h3 {
   font-family: "Instrument Serif", Georgia, serif;
@@ -346,12 +354,12 @@ html[data-vt="theme"]::view-transition-new(root) {
 
 .prose-post h2 {
   font-size: 1.8rem;
-  margin-top: 2.4em;
+  margin-top: 1.9em;
 }
 
 .prose-post h3 {
   font-size: 1.35rem;
-  margin-top: 2em;
+  margin-top: 1.5em;
 }
 
 .prose-post h4 {
@@ -360,26 +368,34 @@ html[data-vt="theme"]::view-transition-new(root) {
   text-transform: uppercase;
   letter-spacing: 0.22em;
   color: #847c6c;
-  margin-top: 2em;
+  margin-top: 1.6em;
+}
+
+.prose-post hr + :is(h2, h3, h4) {
+  margin-top: 0.5em;
+}
+
+.prose-post :is(h2, h3, h4) {
+  scroll-margin-top: 2.5rem;
 }
 
 .heading-anchor {
   color: inherit;
   text-decoration: none;
-  position: relative;
 }
 
-.heading-anchor::before {
+.heading-anchor::after {
   content: "#";
-  position: absolute;
-  left: -1.1ch;
+  margin-left: 0.5ch;
+  font-size: 0.7em;
+  vertical-align: 0.12em;
   color: #b3123a;
   opacity: 0;
   transition: opacity 150ms;
 }
 
-.prose-post :is(h2, h3, h4):hover .heading-anchor::before {
-  opacity: 0.6;
+.prose-post :is(h2, h3, h4):hover .heading-anchor::after {
+  opacity: 0.45;
 }
 
 .prose-post :is(p, li, blockquote) a {
@@ -443,7 +459,7 @@ html[data-vt="theme"]::view-transition-new(root) {
 
 .prose-post hr {
   border: none;
-  margin: 2.6em 0;
+  margin: 1.8em 0;
 }
 
 .prose-post hr::after {
@@ -471,7 +487,45 @@ html[data-vt="theme"]::view-transition-new(root) {
 }
 
 .code-figure {
-  margin-top: 1.4em;
+  margin-top: 1.25em;
+}
+
+.code-shell {
+  position: relative;
+}
+
+.code-copy {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.65rem;
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #a29a89;
+  background: rgb(250 248 242 / 0.92);
+  border-radius: 6px;
+  padding: 3px 7px;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 150ms,
+    color 150ms;
+}
+
+.code-shell:hover .code-copy,
+.code-copy:focus-visible {
+  opacity: 1;
+}
+
+.code-copy:hover {
+  color: #b3123a;
+}
+
+@media (hover: none) {
+  .code-copy {
+    opacity: 0.75;
+  }
 }
 
 .code-title {
@@ -484,7 +538,7 @@ html[data-vt="theme"]::view-transition-new(root) {
 }
 
 .code-details {
-  margin-top: 1.4em;
+  margin-top: 1.25em;
 }
 
 .code-summary {
@@ -536,11 +590,128 @@ html[data-vt="theme"]::view-transition-new(root) {
 .post-media {
   display: block;
   width: 100%;
-  margin-top: 1.4em;
+  margin-top: 1.25em;
   border-radius: 12px;
   border: 1px solid rgb(23 20 15 / 0.08);
   background: #fff;
   box-shadow: 0 12px 32px -20px rgba(23, 20, 15, 0.3);
+}
+
+.toc {
+  display: none;
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  left: max(2rem, calc(50vw - 18rem - 14.5rem));
+  width: 12rem;
+  animation-delay: 350ms;
+}
+
+@media (min-width: 1240px) {
+  .toc {
+    display: block;
+  }
+}
+
+.toc-label {
+  display: block;
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: #a29a89;
+  padding-left: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.toc-item {
+  display: block;
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #a29a89;
+  padding: 0.22rem 0 0.22rem 1rem;
+  border-left: 1px solid rgb(23 20 15 / 0.08);
+  text-decoration: none;
+  transition:
+    color 150ms,
+    border-color 150ms;
+}
+
+.toc-sub {
+  padding-left: 1.8rem;
+}
+
+.toc-item:hover {
+  color: #17140f;
+}
+
+.toc-active {
+  color: #b3123a;
+  border-left-color: #b3123a;
+}
+
+.petal-stage {
+  position: relative;
+  display: block;
+  height: 3.2rem;
+}
+
+.petal {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  color: #ce2955;
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 15px;
+  animation: petal-fall 3s linear both;
+}
+
+.petal-glyph {
+  display: inline-block;
+  animation: petal-sway 1.5s ease-in-out 2 alternate both;
+}
+
+@keyframes petal-fall {
+  0% {
+    transform: translateY(-0.4rem);
+    opacity: 0;
+  }
+  14% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(2.1rem);
+    opacity: 0.9;
+  }
+}
+
+@keyframes petal-sway {
+  from {
+    transform: translateX(-0.55rem) rotate(-24deg);
+  }
+  to {
+    transform: translateX(0.55rem) rotate(18deg);
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
 
 @media (max-width: 767px) {

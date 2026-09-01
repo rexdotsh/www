@@ -1,3 +1,4 @@
+import { useRouter } from "@tanstack/react-router";
 import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
 import { getIdentity, LINKS, POSTS, PROJECTS } from "@/lib/content";
 import type { SpotifyTrack } from "@/lib/use-now-playing";
@@ -220,6 +221,8 @@ function Peek({
 }) {
   const [armed, setArmed] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
+  const router = useRouter();
+  const external = href.startsWith("http");
 
   const report = (word: SentenceWord | null) => {
     if (onHover && hoverKey) {
@@ -228,16 +231,20 @@ function Peek({
   };
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!hoverKey || !window.matchMedia("(hover: none)").matches) {
-      return;
-    }
-    if (armed) {
+    if (hoverKey && window.matchMedia("(hover: none)").matches) {
+      if (!armed) {
+        event.preventDefault();
+        setArmed(true);
+        report(hoverKey);
+        return;
+      }
       setArmed(false);
-      return;
     }
-    event.preventDefault();
-    setArmed(true);
-    report(hoverKey);
+    // internal links ride the router so view transitions apply
+    if (!external) {
+      event.preventDefault();
+      router.navigate({ href });
+    }
   };
 
   useEffect(() => {
@@ -254,8 +261,6 @@ function Peek({
     return () =>
       document.removeEventListener("pointerdown", onDocumentPointerDown);
   }, [armed, onHover]);
-
-  const external = href.startsWith("http");
 
   return (
     <span
@@ -462,13 +467,24 @@ function ProjectsPeek() {
 }
 
 function PostsPeek() {
+  const router = useRouter();
   return (
     <PeekCard>
       <span className="block text-faint text-[9px] uppercase tracking-[0.25em]">
         recent writing
       </span>
       {POSTS.map((post) => (
-        <a className="group mt-2 block" href={post.href} key={post.title}>
+        <a
+          className="group mt-2 block"
+          href={post.href}
+          key={post.title}
+          onClick={(event) => {
+            if (post.href.startsWith("/")) {
+              event.preventDefault();
+              router.navigate({ href: post.href });
+            }
+          }}
+        >
           <span className="block truncate text-ink text-xs group-hover:text-rose">
             {post.title}
           </span>
