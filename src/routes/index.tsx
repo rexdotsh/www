@@ -54,7 +54,7 @@ const MAGNET_MAX = 5;
  */
 const LIFTS: Record<SentenceWord, string> = {
   name: "max-md:-translate-y-[73px]",
-  builds: "max-md:-translate-y-[153px]",
+  builds: "max-md:-translate-y-[224px]",
   writes: "max-md:-translate-y-[150px]",
   garden: "max-md:-translate-y-[66px]",
   music: "max-md:-translate-y-[78px]",
