@@ -358,7 +358,12 @@ function useContributions() {
 
 function Heatmap({ total, weeks }: Contributions) {
   return (
-    <span className="mt-3 block border-[#17140f]/10 border-t pt-3">
+    <a
+      className="group mt-3 block border-[#17140f]/10 border-t pt-3"
+      href={LINKS.github}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
       <span className="flex justify-center gap-px">
         {weeks.slice(-52).map((week, weekIndex) => (
           <span className="flex flex-col gap-px" key={`w${weekIndex}`}>
@@ -375,10 +380,10 @@ function Heatmap({ total, weeks }: Contributions) {
           </span>
         ))}
       </span>
-      <span className="mt-2 block text-center text-[#a29a89] text-[9px] tracking-[0.1em]">
+      <span className="mt-2 block text-center text-[#a29a89] text-[9px] tracking-[0.1em] transition-colors duration-150 group-hover:text-[#b3123a]">
         {total.toLocaleString()} contributions, past year
       </span>
-    </span>
+    </a>
   );
 }
 
