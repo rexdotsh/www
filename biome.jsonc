@@ -15,10 +15,13 @@
         "noUnknownAtRules": "off",
         "noDocumentCookie": "off",
         "noArrayIndexKey": "off",
+        "noShadow": "off",
+        "noUnnecessaryConditions": "off",
+        "noLeakedRender": "off",
         "noConsole": {
           "level": "error",
           "options": {
-            "allow": ["error", "warn"]
+            "allow": ["error", "log", "warn"]
           }
         }
       },
@@ -26,23 +29,26 @@
         "useBlockStatements": "off",
         "noMagicNumbers": "off",
         "useCollapsedIf": "off",
-        "noNestedTernary": "off"
+        "noNestedTernary": "off",
+        "noIncrementDecrement": "off",
+        "useConsistentTypeDefinitions": "off"
       },
       "correctness": {
         "noUnknownTypeSelector": "off"
       },
       "complexity": {
         "noExcessiveCognitiveComplexity": "off",
-        "useSimplifiedLogicExpression": "off"
+        "useSimplifiedLogicExpression": "off",
+        "noUselessCatchBinding": "off"
       },
       "nursery": {
-        "useSortedClasses": "off",
-        "noShadow": "off"
+        "useSortedClasses": "off"
       },
       "performance": {
         "noNamespaceImport": "off",
         "useTopLevelRegex": "off",
-        "noImgElement": "off"
+        "noImgElement": "off",
+        "noJsxPropsBind": "off"
       },
       "a11y": {
         "useSemanticElements": "off"
@@ -71,5 +77,5 @@
       }
     }
   ],
-  "extends": ["ultracite/core", "ultracite/react"]
+  "extends": ["ultracite/biome/core", "ultracite/biome/react"]
 }
