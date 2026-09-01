@@ -53,13 +53,13 @@ const MAGNET_MAX = 5;
  * word gets its own hardcoded lift.
  */
 const LIFTS: Record<SentenceWord, string> = {
-  name: "max-md:-translate-y-[104px]",
-  builds: "max-md:-translate-y-[148px]",
-  writes: "max-md:-translate-y-[148px]",
-  garden: "max-md:-translate-y-[76px]",
-  music: "max-md:-translate-y-[88px]",
-  hi: "max-md:-translate-y-[72px]",
-  resume: "max-md:-translate-y-[108px]",
+  name: "max-md:-translate-y-[93px]",
+  builds: "max-md:-translate-y-[153px]",
+  writes: "max-md:-translate-y-[150px]",
+  garden: "max-md:-translate-y-[74px]",
+  music: "max-md:-translate-y-[78px]",
+  hi: "max-md:-translate-y-[62px]",
+  resume: "max-md:-translate-y-[94px]",
 };
 
 function Home() {
