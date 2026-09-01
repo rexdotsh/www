@@ -10,42 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as BlogRouteImport } from './routes/blog'
-import { Route as FloraRouteImport } from './routes/flora'
-import { Route as GithubRouteImport } from './routes/github'
-import { Route as TwitterRouteImport } from './routes/twitter'
-import { Route as XRouteImport } from './routes/x'
 import { Route as ApiSpotifyPlayingRouteImport } from './routes/api/spotify/playing'
 import { Route as ApiSpotifyPreviewIdRouteImport } from './routes/api/spotify/preview/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BlogRoute = BlogRouteImport.update({
-  id: '/blog',
-  path: '/blog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FloraRoute = FloraRouteImport.update({
-  id: '/flora',
-  path: '/flora',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GithubRoute = GithubRouteImport.update({
-  id: '/github',
-  path: '/github',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TwitterRoute = TwitterRouteImport.update({
-  id: '/twitter',
-  path: '/twitter',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const XRoute = XRouteImport.update({
-  id: '/x',
-  path: '/x',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSpotifyPlayingRoute = ApiSpotifyPlayingRouteImport.update({
@@ -61,75 +31,30 @@ const ApiSpotifyPreviewIdRoute = ApiSpotifyPreviewIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/blog': typeof BlogRoute
-  '/flora': typeof FloraRoute
-  '/github': typeof GithubRoute
-  '/twitter': typeof TwitterRoute
-  '/x': typeof XRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/blog': typeof BlogRoute
-  '/flora': typeof FloraRoute
-  '/github': typeof GithubRoute
-  '/twitter': typeof TwitterRoute
-  '/x': typeof XRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/blog': typeof BlogRoute
-  '/flora': typeof FloraRoute
-  '/github': typeof GithubRoute
-  '/twitter': typeof TwitterRoute
-  '/x': typeof XRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/blog'
-    | '/flora'
-    | '/github'
-    | '/twitter'
-    | '/x'
-    | '/api/spotify/playing'
-    | '/api/spotify/preview/$id'
+  fullPaths: '/' | '/api/spotify/playing' | '/api/spotify/preview/$id'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/blog'
-    | '/flora'
-    | '/github'
-    | '/twitter'
-    | '/x'
-    | '/api/spotify/playing'
-    | '/api/spotify/preview/$id'
-  id:
-    | '__root__'
-    | '/'
-    | '/blog'
-    | '/flora'
-    | '/github'
-    | '/twitter'
-    | '/x'
-    | '/api/spotify/playing'
-    | '/api/spotify/preview/$id'
+  to: '/' | '/api/spotify/playing' | '/api/spotify/preview/$id'
+  id: '__root__' | '/' | '/api/spotify/playing' | '/api/spotify/preview/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  BlogRoute: typeof BlogRoute
-  FloraRoute: typeof FloraRoute
-  GithubRoute: typeof GithubRoute
-  TwitterRoute: typeof TwitterRoute
-  XRoute: typeof XRoute
   ApiSpotifyPlayingRoute: typeof ApiSpotifyPlayingRoute
   ApiSpotifyPreviewIdRoute: typeof ApiSpotifyPreviewIdRoute
 }
@@ -141,41 +66,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog': {
-      id: '/blog'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof BlogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/flora': {
-      id: '/flora'
-      path: '/flora'
-      fullPath: '/flora'
-      preLoaderRoute: typeof FloraRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/github': {
-      id: '/github'
-      path: '/github'
-      fullPath: '/github'
-      preLoaderRoute: typeof GithubRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/twitter': {
-      id: '/twitter'
-      path: '/twitter'
-      fullPath: '/twitter'
-      preLoaderRoute: typeof TwitterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/x': {
-      id: '/x'
-      path: '/x'
-      fullPath: '/x'
-      preLoaderRoute: typeof XRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/spotify/playing': {
@@ -197,11 +87,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  BlogRoute: BlogRoute,
-  FloraRoute: FloraRoute,
-  GithubRoute: GithubRoute,
-  TwitterRoute: TwitterRoute,
-  XRoute: XRoute,
   ApiSpotifyPlayingRoute: ApiSpotifyPlayingRoute,
   ApiSpotifyPreviewIdRoute: ApiSpotifyPreviewIdRoute,
 }
