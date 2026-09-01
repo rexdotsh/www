@@ -153,7 +153,7 @@ function Home() {
       }
       return CAPTIONS.music;
     }
-    return word ? CAPTIONS[word] : "( touch it — or read to it )";
+    return word ? CAPTIONS[word] : "( alive, technically )";
   })();
 
   const liftClass = word

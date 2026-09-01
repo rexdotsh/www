@@ -134,7 +134,7 @@ export function TheSentence({
         <TextPeek
           center
           compact
-          sub="dms open, probably"
+          sub="strangers welcome"
           title={`@${identity.handle}`}
           titleClass="text-xs"
         />
