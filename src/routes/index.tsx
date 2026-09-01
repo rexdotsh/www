@@ -214,7 +214,7 @@ function Home() {
           ref={sentenceRef}
         >
           <TheSentence
-            className="text-[clamp(1.75rem,7.9vw,2.3rem)] leading-[1.18] tracking-[-0.01em] max-md:text-justify md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"
+            className="text-[clamp(1.75rem,7.9vw,2.3rem)] leading-[1.18] tracking-[-0.01em] md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"
             hostname={hostname}
             onWordHover={onWordHover}
             track={track}
