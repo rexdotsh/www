@@ -20,7 +20,8 @@ export function getIdentity(hostname: string): SiteIdentity {
 }
 
 export const LINKS = {
-  blog: "https://blog.rex.wf",
+  archive: "https://github.com/rexdotsh/ctf-writeups",
+  blog: "/blog",
   flora: "https://floraorg.github.io",
   github: "https://github.com/rexdotsh",
   twitter: "https://x.com/rexmkv",
@@ -44,21 +45,10 @@ export const PROJECTS = [
   },
 ];
 
-// placeholders — port real posts from blog.rex.wf
 export const POSTS = [
   {
-    title: "coding agents, six months in",
-    date: "2026-08",
-    href: "https://blog.rex.wf",
-  },
-  {
-    title: "notes on self-hosting everything",
-    date: "2026-05",
-    href: "https://blog.rex.wf",
-  },
-  {
-    title: "the case for tiny websites",
-    date: "2026-02",
-    href: "https://blog.rex.wf",
+    title: "gpn ctf 2024 – parabox",
+    date: "2024-11",
+    href: "/blog/parabox",
   },
 ];

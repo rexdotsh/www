@@ -255,6 +255,8 @@ function Peek({
       document.removeEventListener("pointerdown", onDocumentPointerDown);
   }, [armed, onHover]);
 
+  const external = href.startsWith("http");
+
   return (
     <span
       className="peek-trigger relative inline-block"
@@ -280,8 +282,8 @@ function Peek({
         }}
         onClick={handleClick}
         onFocus={() => report(hoverKey ?? null)}
-        rel="noopener noreferrer"
-        target="_blank"
+        rel={external ? "noopener noreferrer" : undefined}
+        target={external ? "_blank" : undefined}
       >
         {children}
       </a>
@@ -466,13 +468,7 @@ function PostsPeek() {
         recent writing
       </span>
       {POSTS.map((post) => (
-        <a
-          className="group mt-2 block"
-          href={post.href}
-          key={post.title}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
+        <a className="group mt-2 block" href={post.href} key={post.title}>
           <span className="block truncate text-ink text-xs group-hover:text-rose">
             {post.title}
           </span>
@@ -481,6 +477,14 @@ function PostsPeek() {
           </span>
         </a>
       ))}
+      <a
+        className="mt-3 block border-ink/10 border-t pt-2 text-faint text-[10px] transition-colors duration-150 hover:text-rose"
+        href={LINKS.archive}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        older writeups on github →
+      </a>
     </PeekCard>
   );
 }

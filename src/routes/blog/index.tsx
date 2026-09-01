@@ -1,0 +1,97 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { LINKS } from "@/lib/content";
+import { BLOG_POSTS } from "@/lib/posts";
+
+export const Route = createFileRoute("/blog/")({
+  component: BlogIndex,
+  head: () => ({
+    meta: [
+      { title: "writing" },
+      { name: "description", content: "occasional writeups and notes." },
+      { property: "og:title", content: "writing" },
+      { property: "og:description", content: "occasional writeups and notes." },
+    ],
+  }),
+  headers: () => ({
+    "Cache-Control": "public, max-age=0",
+    "Cloudflare-CDN-Cache-Control":
+      "public, max-age=3600, stale-while-revalidate=86400",
+  }),
+});
+
+function BlogIndex() {
+  return (
+    <main className="min-h-dvh bg-[#faf8f2] px-7 py-14 font-serif-display text-[#17140f] selection:bg-[#b3123a] selection:text-[#faf8f2] md:py-24">
+      <div className="mx-auto w-full max-w-xl">
+        <Link
+          className="back-link rise font-mono text-[#847c6c] text-xs"
+          to="/"
+        >
+          <span aria-hidden="true" className="back-arrow">
+            ←
+          </span>
+          home
+        </Link>
+
+        <h1
+          className="rise mt-10 text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
+          style={{ animationDelay: "80ms" }}
+        >
+          writing<span className="text-[#b3123a]">.</span>
+        </h1>
+        <p
+          className="rise mt-3 font-mono text-[#a29a89] text-[11px] italic"
+          style={{ animationDelay: "150ms" }}
+        >
+          ( occasionally, about things worth the words )
+        </p>
+
+        <ul className="mt-14">
+          {BLOG_POSTS.map((post, index) => (
+            <li
+              className="rise"
+              key={post.slug}
+              style={{ animationDelay: `${230 + index * 70}ms` }}
+            >
+              <Link
+                className="group block py-4"
+                params={{ slug: post.slug }}
+                to="/blog/$slug"
+              >
+                <span className="block font-mono text-[#a29a89] text-[11px] tabular-nums">
+                  {post.dateLabel}
+                </span>
+                <span className="mt-1 block text-[clamp(1.4rem,4.5vw,1.8rem)] leading-tight transition-colors duration-200 group-hover:text-[#b3123a]">
+                  {post.title}
+                  <span
+                    aria-hidden="true"
+                    className="ml-2 inline-block text-[#b3123a] transition-transform duration-200 ease-strong group-hover:translate-x-1"
+                  >
+                    →
+                  </span>
+                </span>
+                <span className="mt-1.5 block font-serif-body text-[#847c6c] text-[15px] italic">
+                  {post.description}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <footer
+          className="rise mt-16 border-[#17140f]/10 border-t pt-6"
+          style={{ animationDelay: "360ms" }}
+        >
+          <a
+            className="font-mono text-[#a29a89] text-[11px] transition-colors duration-150 hover:text-[#b3123a]"
+            href={LINKS.archive}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            older ctf writeups live on github →
+          </a>
+        </footer>
+      </div>
+    </main>
+  );
+}
