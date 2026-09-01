@@ -12,13 +12,15 @@ const DEFAULT_BASE_URL = "https://rex.wf";
 
 export const Route = createRootRoute({
   loader: () => getSiteInfo(),
+  staleTime: Number.POSITIVE_INFINITY,
   head: ({ loaderData }) => {
     const baseUrl = loaderData?.baseUrl ?? DEFAULT_BASE_URL;
     const hostname = loaderData?.hostname ?? "rex.wf";
-    const name = hostname.includes("mridul.sh") ? "mridul" : "rex";
+    const name = hostname === "mridul.sh" ? "mridul" : "rex";
     const title = `${name}'s space`;
-    const description = `${name}'s personal website`;
-    const imageUrl = new URL("/image.png", baseUrl).href;
+    const description = `${name}'s personal corner of the web: projects, writing, links, and whatever is playing.`;
+    const canonicalUrl = new URL("/", baseUrl).href;
+    const imageUrl = new URL("/social-card.png", baseUrl).href;
 
     return {
       meta: [
@@ -29,28 +31,47 @@ export const Route = createRootRoute({
         },
         { title },
         { name: "description", content: description },
+        { name: "author", content: name },
         { name: "robots", content: "index,follow" },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:url", content: baseUrl },
+        { property: "og:url", content: canonicalUrl },
         { property: "og:site_name", content: title },
         { property: "og:type", content: "website" },
         { property: "og:image", content: imageUrl },
-        { property: "og:image:width", content: "192" },
-        { property: "og:image:height", content: "192" },
-        { name: "twitter:card", content: "summary" },
+        { property: "og:image:type", content: "image/png" },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { property: "og:image:alt", content: "An ASCII rose" },
+        { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: imageUrl },
+        { name: "twitter:image:alt", content: "An ASCII rose" },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
         { rel: "icon", href: "/favicon.ico" },
+        { rel: "canonical", href: canonicalUrl },
+        {
+          rel: "preconnect",
+          href: "https://ingest.rex.wf",
+        },
       ],
       scripts: [
         {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            description,
+            name: title,
+            url: canonicalUrl,
+          }),
+        },
+        {
           src: "https://ingest.rex.wf/script.js",
-          defer: true,
+          async: true,
           "data-website-id": "de1c2b87-5ec8-4a14-b3f4-5b3b76599ba1",
         },
       ],

@@ -9,6 +9,8 @@ const SPOTIFY_API = {
 } as const;
 
 const TOKEN_CACHE_KEY = "spotify:token";
+const PLAYING_CACHE_CONTROL =
+  "public, max-age=10, s-maxage=30, stale-while-revalidate=60";
 
 let redis: Redis | undefined;
 
@@ -58,7 +60,7 @@ function getRedis() {
   return redis;
 }
 
-async function getAccessToken() {
+async function getAccessToken(signal: AbortSignal) {
   const cache = getRedis();
   const cached = await cache.get<SpotifyToken>(TOKEN_CACHE_KEY);
   if (cached && Date.now() < cached.expires_at) {
@@ -84,6 +86,7 @@ async function getAccessToken() {
       grant_type: "refresh_token",
       refresh_token: refreshToken,
     }),
+    signal,
   });
 
   if (!response.ok) {
@@ -107,13 +110,14 @@ async function getAccessToken() {
   return token.access_token;
 }
 
-async function getNowPlaying(token: string) {
+async function getNowPlaying(token: string, signal: AbortSignal) {
   const response = await fetch(SPOTIFY_API.NOW_PLAYING, {
     headers: { Authorization: `Bearer ${token}` },
+    signal,
   });
 
   if (response.status === 204) {
-    return getRecentlyPlayed(token);
+    return getRecentlyPlayed(token, signal);
   }
 
   if (!response.ok) {
@@ -128,9 +132,10 @@ async function getNowPlaying(token: string) {
   return transformTrackData(data.item as SpotifyTrack, data.is_playing);
 }
 
-async function getRecentlyPlayed(token: string) {
+async function getRecentlyPlayed(token: string, signal: AbortSignal) {
   const response = await fetch(SPOTIFY_API.RECENTLY_PLAYED, {
     headers: { Authorization: `Bearer ${token}` },
+    signal,
   });
 
   if (!response.ok) {
@@ -171,13 +176,17 @@ function transformTrackData(data: SpotifyTrack, isPlaying = false) {
 export const Route = createFileRoute("/api/spotify/playing")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
         try {
-          const token = await getAccessToken();
-          const track = await getNowPlaying(token);
-          return Response.json(track ?? null);
+          const token = await getAccessToken(request.signal);
+          const track = await getNowPlaying(token, request.signal);
+          return Response.json(track ?? null, {
+            headers: { "Cache-Control": PLAYING_CACHE_CONTROL },
+          });
         } catch {
-          return Response.json(null);
+          return Response.json(null, {
+            headers: { "Cache-Control": PLAYING_CACHE_CONTROL },
+          });
         }
       },
     },

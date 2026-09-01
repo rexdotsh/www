@@ -2,9 +2,26 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 
 const DEFAULT_ORIGIN = "https://rex.wf";
+const PUBLIC_HOSTS = new Map([
+  ["mridul.sh", "mridul.sh"],
+  ["rex.wf", "rex.wf"],
+  ["www.mridul.sh", "mridul.sh"],
+  ["www.rex.wf", "rex.wf"],
+]);
 
-export const getSiteInfo = createServerFn({ method: "GET" }).handler(() => {
-  const request = getRequest();
+function parseHostname(host: string | undefined) {
+  if (!host) {
+    return;
+  }
+
+  try {
+    return new URL(`https://${host}`).hostname.toLowerCase();
+  } catch {
+    // Ignore malformed proxy headers and fall back to the request URL.
+  }
+}
+
+export function resolveSiteInfo(request: Request) {
   const publicUrl = new URL(request.url || DEFAULT_ORIGIN);
   const forwardedHost = request.headers
     .get("x-forwarded-host")
@@ -14,12 +31,15 @@ export const getSiteInfo = createServerFn({ method: "GET" }).handler(() => {
     .get("x-forwarded-proto")
     ?.split(",")[0]
     ?.trim();
+  const canonicalHost =
+    PUBLIC_HOSTS.get(parseHostname(forwardedHost) ?? "") ??
+    PUBLIC_HOSTS.get(publicUrl.hostname.toLowerCase());
 
-  if (forwardedHost) {
+  if (canonicalHost) {
     publicUrl.port = "";
-    publicUrl.host = forwardedHost;
-  }
-  if (forwardedProtocol === "http" || forwardedProtocol === "https") {
+    publicUrl.host = canonicalHost;
+    publicUrl.protocol = "https:";
+  } else if (forwardedProtocol === "http" || forwardedProtocol === "https") {
     publicUrl.protocol = `${forwardedProtocol}:`;
   }
 
@@ -27,4 +47,8 @@ export const getSiteInfo = createServerFn({ method: "GET" }).handler(() => {
     baseUrl: publicUrl.origin,
     hostname: publicUrl.hostname.toLowerCase(),
   };
-});
+}
+
+export const getSiteInfo = createServerFn({ method: "GET" }).handler(() =>
+  resolveSiteInfo(getRequest())
+);

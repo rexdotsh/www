@@ -5,7 +5,7 @@ export default function RoseAscii({ hostname }: { hostname: string }) {
     <div className="flex h-full flex-col items-center justify-center">
       <div className="fade-in rose-container relative select-none">
         <img
-          alt="Rose"
+          alt="Pink ASCII rose"
           className="absolute inset-0 h-full w-full select-none object-contain"
           fetchPriority="high"
           height="640"

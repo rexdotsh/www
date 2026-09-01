@@ -17,6 +17,14 @@ export default defineConfig({
     viteReact(),
     nitro({
       routeRules: {
+        "/**": {
+          headers: {
+            "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
+          },
+        },
         "/blog": {
           redirect: { to: "https://blog.rex.wf", status: 308 },
         },
