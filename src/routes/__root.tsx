@@ -3,6 +3,7 @@ import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 import ThemeToggle from "@/components/theme-toggle";
 import NotFoundPage from "@/components/not-found";
+import { SITE_HEADERS } from "@/lib/headers";
 import { getSiteInfo } from "@/lib/site";
 import geistMonoWoff2 from "@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url";
 import appCss from "../styles.css?url";
@@ -10,6 +11,10 @@ import appCss from "../styles.css?url";
 const DEFAULT_BASE_URL = "https://rex.wf";
 
 export const Route = createRootRoute({
+  headers: () => ({
+    ...SITE_HEADERS,
+    "Cache-Control": "no-store",
+  }),
   loader: () => getSiteInfo(),
   staleTime: Number.POSITIVE_INFINITY,
   head: ({ loaderData }) => {

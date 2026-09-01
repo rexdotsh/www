@@ -3,6 +3,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
+import { SITE_HEADERS } from "./src/lib/headers";
 
 const STATIC_ASSET_HEADERS = {
   headers: {
@@ -32,14 +33,7 @@ export default defineConfig({
       preset: "cloudflare_module",
       routeRules: {
         "/**": {
-          headers: {
-            "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
-            "Referrer-Policy": "strict-origin-when-cross-origin",
-            "Strict-Transport-Security": "max-age=63072000",
-            Vary: "Host",
-            "X-Content-Type-Options": "nosniff",
-            "X-Frame-Options": "DENY",
-          },
+          headers: SITE_HEADERS,
         },
         "/favicon.ico": STATIC_ASSET_HEADERS,
         "/image.png": STATIC_ASSET_HEADERS,
