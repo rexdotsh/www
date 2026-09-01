@@ -58,15 +58,19 @@ function colorFor(ch: string): string {
   return "#f0a0b2";
 }
 
-/** breathing room inside the canvas so modes never clip at the edges */
-const PADDING_RATIO = 0.08;
+/**
+ * the canvas bleeds past its layout box on every side, so the rose can
+ * fill the box visually while waves/bursts overflow into invisible
+ * margin instead of clipping at the bitmap edge.
+ */
+const BLEED = 1.24;
 
 function buildParticles(size: number, scattered: boolean): Particle[] {
   const lines = ASCII_ROSE.split("\n");
   const rows = lines.length;
   const cols = Math.max(...lines.map((line) => line.length));
-  const pad = size * PADDING_RATIO;
-  const inner = size - pad * 2;
+  const inner = size / BLEED;
+  const pad = (size - inner) / 2;
   const cellW = inner / cols;
   const cellH = inner / rows;
   const particles: Particle[] = [];
@@ -99,7 +103,7 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
 
   // tidy specimen-sheet grid, precomputed for "grid" and "art" modes
   const g = Math.ceil(Math.sqrt(particles.length));
-  const gridSpan = size * 0.9;
+  const gridSpan = (size / BLEED) * 0.95;
   const gridCell = gridSpan / g;
   const gridOffset = (size - gridSpan) / 2;
   particles.forEach((p, index) => {
@@ -219,16 +223,16 @@ export default function ParticleRose({
     };
 
     const setup = (scattered: boolean) => {
-      size = container.clientWidth;
+      size = container.clientWidth * BLEED;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = size * dpr;
       canvas.height = size * dpr;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       particles = buildParticles(size, scattered && !reduceMotion);
       const rows = ASCII_ROSE.split("\n").length;
-      const inner = size * (1 - PADDING_RATIO * 2);
+      const inner = size / BLEED;
       baseFont = `600 ${(inner / rows) * 1.05}px "Geist Mono Variable", monospace`;
-      const gridCell = (size * 0.9) / Math.ceil(Math.sqrt(particles.length));
+      const gridCell = (inner * 0.95) / Math.ceil(Math.sqrt(particles.length));
       artFont = `700 ${gridCell * 1.5}px "Geist Mono Variable", monospace`;
       context.font = baseFont;
       context.textAlign = "center";
@@ -390,7 +394,7 @@ export default function ParticleRose({
     };
 
     const onResize = () => {
-      if (container.clientWidth !== size) {
+      if (container.clientWidth * BLEED !== size) {
         cancelAnimationFrame(raf);
         setup(false);
         if (reduceMotion) {
@@ -429,13 +433,26 @@ export default function ParticleRose({
     loadArtRef.current(artUrl);
   }, [artUrl]);
 
+  // the canvas is BLEED× the layout box, centered on it — overflow room
+  // for waves and bursts without reserving visible padding
+  const bleedInset = `${(((BLEED - 1) / 2) * 100).toFixed(0)}%`;
+
   return (
-    <div className={`cursor-crosshair ${className}`} ref={containerRef}>
+    <div
+      className={`relative aspect-square cursor-crosshair ${className}`}
+      ref={containerRef}
+    >
       <canvas
         aria-label="An interactive rose made of ascii characters — move your cursor through it"
-        className="block aspect-square h-auto w-full touch-none"
+        className="absolute block touch-none"
         ref={canvasRef}
         role="img"
+        style={{
+          top: `-${bleedInset}`,
+          left: `-${bleedInset}`,
+          width: `${BLEED * 100}%`,
+          height: `${BLEED * 100}%`,
+        }}
       />
     </div>
   );

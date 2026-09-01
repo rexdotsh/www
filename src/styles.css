@@ -63,6 +63,21 @@ body {
   animation: word-in 550ms var(--ease-strong) backwards;
 }
 
+/* hovering one word softens every other word in the sentence */
+@media (hover: hover) and (pointer: fine) {
+  .sentence-root .word-in {
+    transition:
+      filter 240ms var(--ease-strong),
+      opacity 240ms var(--ease-strong);
+  }
+
+  .sentence-root:has(.peek-trigger:hover)
+    .word-in:not(:has(.peek-trigger:hover)) {
+    filter: blur(3px);
+    opacity: 0.35;
+  }
+}
+
 /* media peek cards, with a springy pop */
 .peek {
   position: absolute;

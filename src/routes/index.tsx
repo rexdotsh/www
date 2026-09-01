@@ -125,7 +125,10 @@ function Home() {
     <main className="fixed inset-0 overflow-y-auto bg-[#faf8f2] font-serif-display text-[#17140f] selection:bg-[#b3123a] selection:text-[#faf8f2]">
       <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col items-center gap-10 px-6 py-16 md:flex-row md:gap-14 md:px-12">
         {/* the sentence, typesetting itself */}
-        <div className="order-2 max-w-2xl flex-1 md:order-1" ref={sentenceRef}>
+        <div
+          className="sentence-root relative z-10 order-2 max-w-2xl flex-1 md:order-1"
+          ref={sentenceRef}
+        >
           <TheSentence
             className="text-[clamp(1.9rem,4.4vw,3.5rem)] leading-[1.2] tracking-[-0.01em]"
             hostname={hostname}
@@ -143,11 +146,11 @@ function Home() {
           <ParticleRose
             artUrl={albumArt}
             className="w-[min(68vw,270px)] md:w-[min(34vw,440px)]"
-            mode={word ? MODES[word] : "breathe"}
+            mode={word ? MODES[word] : "rest"}
           />
           <p
             aria-hidden="true"
-            className="mt-1 h-4 font-mono text-[#a29a89] text-[10px] italic"
+            className="mt-2.5 h-4 font-mono text-[#a29a89] text-[10px] italic"
           >
             <span
               className="inline-block transition-opacity duration-300"
