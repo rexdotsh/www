@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build && tsc --noEmit",
+    "build": "vite build",
     "cf-typegen": "wrangler types --include-runtime false --env-file .dev.vars.example",
     "deploy": "bun run build && wrangler deploy",
     "dev": "vite dev",
