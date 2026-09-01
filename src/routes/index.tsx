@@ -70,7 +70,9 @@ function Home() {
   const onWordHover = (next: SentenceWord | null) => {
     setWord(next);
     if (next) {
-      setCover(next === "music");
+      // the sticky cover exists so the cursor can travel word -> rose;
+      // touch has no journey, and the card links out directly
+      setCover(next === "music" && window.matchMedia("(hover: hover)").matches);
     }
   };
 
