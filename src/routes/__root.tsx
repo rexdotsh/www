@@ -21,7 +21,7 @@ export const Route = createRootRoute({
     const isPublicHost = loaderData?.isPublicHost ?? false;
     const name = hostname === "mridul.sh" ? "mridul" : "rex";
     const title = `${name}'s space`;
-    const description = `${name}'s personal website.`;
+    const description = "projects, writing, and whatever's playing.";
     const canonicalUrl = new URL("/", baseUrl).href;
     const imageUrl = new URL(
       name === "mridul" ? "/social-card-mridul.png" : "/social-card.png",
@@ -45,7 +45,6 @@ export const Route = createRootRoute({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:url", content: canonicalUrl },
-        { property: "og:site_name", content: title },
         { property: "og:type", content: "website" },
         { property: "og:locale", content: "en_US" },
         { property: "og:image", content: imageUrl },
