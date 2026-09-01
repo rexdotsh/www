@@ -280,6 +280,20 @@ function Peek({
         {children}
       </a>
       {peek ? <span className="peek">{peek}</span> : null}
+      {armed ? (
+        // biome-ignore lint/a11y/noStaticElementInteractions: tap-catcher; dismissal also works via focus loss
+        // biome-ignore lint/a11y/useKeyWithClickEvents: touch-only affordance
+        // biome-ignore lint/a11y/noNoninteractiveElementInteractions: touch-only tap-catcher
+        <span
+          className="fixed inset-0 z-30 bg-gradient-to-b from-white/0 via-white/0 to-white/90 md:hidden"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setArmed(false);
+            onHover?.(null);
+          }}
+        />
+      ) : null}
     </span>
   );
 }
