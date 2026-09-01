@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
 
 const MODES: Record<SentenceWord, RoseMode> = {
   name: "shiver",
-  builds: "grid",
+  builds: "cube",
   writes: "caret",
   garden: "garden",
   music: "art",
@@ -28,7 +28,7 @@ const MODES: Record<SentenceWord, RoseMode> = {
 
 const CAPTIONS: Record<SentenceWord, string> = {
   name: "( flustered )",
-  builds: "( ordering itself )",
+  builds: "( assembling )",
   writes: "( waiting for the first word )",
   garden: "( becoming a garden )",
   music: "( keeping time )",

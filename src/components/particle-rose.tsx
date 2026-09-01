@@ -3,7 +3,7 @@ import { ASCII_ROSE } from "@/lib/ascii-rose";
 
 export type RoseMode =
   | "rest"
-  | "grid"
+  | "cube"
   | "caret"
   | "shiver"
   | "garden"
@@ -21,6 +21,9 @@ interface Particle {
   ch: string;
   cluster: number;
   color: string;
+  cubeX: number;
+  cubeY: number;
+  cubeZ: number;
   docX: number;
   docY: number;
   gridX: number;
@@ -99,6 +102,9 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
         docY: homeY,
         caretX: homeX,
         caretY: homeY,
+        cubeX: 0,
+        cubeY: 0,
+        cubeZ: 0,
         hiX: homeX,
         hiY: homeY,
         x: scattered ? Math.random() * size : homeX,
@@ -194,6 +200,39 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
         c + stemH / 2
       );
     }
+  });
+
+  // "cube": distribute along the 12 edges of a unit cube
+  const corners: [number, number, number][] = [];
+  for (const x of [-1, 1]) {
+    for (const y of [-1, 1]) {
+      for (const z of [-1, 1]) {
+        corners.push([x, y, z]);
+      }
+    }
+  }
+  const edges: [number, number][] = [];
+  corners.forEach((a, i) => {
+    corners.forEach((b, j) => {
+      if (
+        i < j &&
+        Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) ===
+          2
+      ) {
+        edges.push([i, j]);
+      }
+    });
+  });
+  particles.forEach((p, index) => {
+    const edge = index % edges.length;
+    const [ai, bi] = edges[edge];
+    const count =
+      Math.floor(particles.length / edges.length) +
+      (edge < particles.length % edges.length ? 1 : 0);
+    const s = (Math.floor(index / edges.length) + 0.5) / count;
+    p.cubeX = corners[ai][0] + (corners[bi][0] - corners[ai][0]) * s;
+    p.cubeY = corners[ai][1] + (corners[bi][1] - corners[ai][1]) * s;
+    p.cubeZ = corners[ai][2] + (corners[bi][2] - corners[ai][2]) * s;
   });
 
   // "hi": sample the word off a scratch canvas, like the album art trick
@@ -352,8 +391,17 @@ export default function ParticleRose({
       const dy = p.homeY - c;
 
       switch (modeRef.current) {
-        case "grid":
-          return [p.gridX, p.gridY];
+        case "cube": {
+          // spin around y, fixed isometric tilt, orthographic projection
+          const angle = t * 0.7;
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          const x1 = p.cubeX * cos + p.cubeZ * sin;
+          const z1 = -p.cubeX * sin + p.cubeZ * cos;
+          const y1 = p.cubeY * 0.9135 - z1 * 0.4067;
+          const scale = (size / BLEED) * 0.26;
+          return [c + x1 * scale, c + y1 * scale];
+        }
         case "caret":
           return [p.caretX, p.caretY];
         case "hi":
