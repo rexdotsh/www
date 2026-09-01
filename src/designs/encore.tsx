@@ -8,20 +8,20 @@ const MODES: Record<SentenceWord, RoseMode> = {
   name: "shiver",
   builds: "grid",
   writes: "lean",
-  garden: "bloom",
-  music: "pulse",
-  hi: "sway",
-  resume: "grid",
+  garden: "garden",
+  music: "art",
+  hi: "wave",
+  resume: "lines",
 };
 
 const CAPTIONS: Record<SentenceWord, string> = {
   name: "( flustered )",
   builds: "( ordering itself )",
   writes: "( leaning italic )",
-  garden: "( in bloom )",
+  garden: "( becoming a garden )",
   music: "( keeping time )",
-  hi: "( waving back )",
-  resume: "( looking presentable )",
+  hi: "( waving hello )",
+  resume: "( pretending to be a document )",
 };
 
 const MAGNET_RADIUS = 110;
@@ -40,6 +40,21 @@ export default function EncoreDesign({ hostname }: { hostname: string }) {
   const { track } = useNowPlaying();
   const [word, setWord] = useState<SentenceWord | null>(null);
   const sentenceRef = useRef<HTMLDivElement>(null);
+
+  const albumArt =
+    track?.image.find((image) => image.size === "large")?.["#text"] ??
+    track?.image.find((image) => image.size === "medium")?.["#text"] ??
+    null;
+
+  const caption = (() => {
+    if (!word) {
+      return "( touch it — or read to it )";
+    }
+    if (word === "music" && albumArt) {
+      return "( dressed as the album cover )";
+    }
+    return CAPTIONS[word];
+  })();
 
   // magnetic link words — they lean toward a nearby cursor
   useEffect(() => {
@@ -114,6 +129,7 @@ export default function EncoreDesign({ hostname }: { hostname: string }) {
           style={{ animationDelay: "200ms" }}
         >
           <ParticleRose
+            artUrl={albumArt}
             className="w-[min(62vw,240px)] md:w-[min(32vw,420px)]"
             mode={word ? MODES[word] : "breathe"}
           />
@@ -123,9 +139,9 @@ export default function EncoreDesign({ hostname }: { hostname: string }) {
           >
             <span
               className="inline-block transition-opacity duration-300"
-              key={word ?? "idle"}
+              key={caption}
             >
-              {word ? CAPTIONS[word] : "( touch it — or read to it )"}
+              {caption}
             </span>
           </p>
         </div>

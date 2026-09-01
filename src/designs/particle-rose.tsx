@@ -5,15 +5,18 @@ export type RoseMode =
   | "rest"
   | "breathe"
   | "grid"
-  | "bloom"
-  | "pulse"
   | "lean"
-  | "sway"
-  | "shiver";
+  | "shiver"
+  | "garden"
+  | "art"
+  | "wave"
+  | "lines";
 
 interface Particle {
   activateAt: number;
+  artColor?: string;
   ch: string;
+  cluster: number;
   color: string;
   gridX: number;
   gridY: number;
@@ -24,6 +27,15 @@ interface Particle {
   x: number;
   y: number;
 }
+
+/** four little roses, for "grows a garden with friends" */
+const GARDEN_CENTERS: [number, number][] = [
+  [0.28, 0.3],
+  [0.73, 0.26],
+  [0.3, 0.74],
+  [0.71, 0.7],
+];
+const GARDEN_SCALE = 0.34;
 
 const SPRING = 0.028;
 const DAMPING = 0.86;
@@ -66,6 +78,7 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
       const homeY = offsetY + row * cellH + cellH / 2;
       particles.push({
         ch,
+        cluster: particles.length % GARDEN_CENTERS.length,
         color: colorFor(ch),
         homeX,
         homeY,
@@ -101,15 +114,19 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
  *
  * the pointer repels particles from anywhere on the page; clicking the
  * canvas bursts them outward. `mode` conducts the whole flower — grid,
- * bloom, pulse, lean, sway, shiver — and springs morph between modes.
+ * lean, shiver, garden, wave, lines, art — and springs morph between
+ * modes. `artUrl` lets "art" mode dress the grid in an album cover's
+ * pixels (requires CORS; falls back to a pulse when unreadable).
  * respects prefers-reduced-motion with a static render.
  */
 export default function ParticleRose({
+  artUrl = null,
   className = "",
   dim = 1,
   mode = "rest",
   onTouch,
 }: {
+  artUrl?: string | null;
   className?: string;
   /** base alpha multiplier — lets the rose sit behind text as a field */
   dim?: number;
@@ -124,6 +141,7 @@ export default function ParticleRose({
   dimRef.current = dim;
   const modeRef = useRef<RoseMode>(mode);
   modeRef.current = mode;
+  const loadArtRef = useRef<(url: string | null) => void>(() => undefined);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -145,7 +163,54 @@ export default function ParticleRose({
     let dpr = 1;
     let raf = 0;
     let startedAt = 0;
+    let hasArt = false;
+    let artImage: HTMLImageElement | null = null;
     const pointer = { x: -9999, y: -9999 };
+
+    // dress the grid in an image's pixels (album covers, mostly)
+    const applyArt = () => {
+      hasArt = false;
+      if (!artImage || particles.length === 0) {
+        return;
+      }
+      const g = Math.ceil(Math.sqrt(particles.length));
+      try {
+        const sampler = document.createElement("canvas");
+        sampler.width = g;
+        sampler.height = g;
+        const samplerContext = sampler.getContext("2d");
+        if (!samplerContext) {
+          return;
+        }
+        samplerContext.drawImage(artImage, 0, 0, g, g);
+        const { data } = samplerContext.getImageData(0, 0, g, g);
+        particles.forEach((p, index) => {
+          const offset = index * 4;
+          p.artColor = `rgb(${data[offset]},${data[offset + 1]},${data[offset + 2]})`;
+        });
+        hasArt = true;
+      } catch {
+        // canvas tainted (no CORS on the image) — art mode falls back
+        for (const p of particles) {
+          p.artColor = undefined;
+        }
+      }
+    };
+
+    loadArtRef.current = (url: string | null) => {
+      artImage = null;
+      hasArt = false;
+      if (!url) {
+        return;
+      }
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+      image.onload = () => {
+        artImage = image;
+        applyArt();
+      };
+      image.src = url;
+    };
 
     const setup = (scattered: boolean) => {
       size = container.clientWidth;
@@ -158,6 +223,7 @@ export default function ParticleRose({
       context.font = `600 ${(size / rows) * 1.05}px "Geist Mono Variable", monospace`;
       context.textAlign = "center";
       context.textBaseline = "middle";
+      applyArt();
     };
 
     const drawStatic = () => {
@@ -178,19 +244,30 @@ export default function ParticleRose({
       switch (modeRef.current) {
         case "grid":
           return [p.gridX, p.gridY];
-        case "bloom":
-          return [c + dx * 1.18, c + dy * 1.18];
-        case "pulse": {
+        case "art": {
+          if (hasArt) {
+            return [p.gridX, p.gridY];
+          }
+          // no readable cover — keep time instead
           const s = 1 + 0.07 * Math.sin(t * TAU * 1.35);
           return [c + dx * s, c + dy * s];
         }
+        case "garden": {
+          const [gx, gy] = GARDEN_CENTERS[p.cluster];
+          return [gx * size + dx * GARDEN_SCALE, gy * size + dy * GARDEN_SCALE];
+        }
         case "lean":
           return [p.homeX - dy * 0.3, p.homeY];
-        case "sway": {
-          const angle = 0.13 * Math.sin(t * 1.9);
-          const cos = Math.cos(angle);
-          const sin = Math.sin(angle);
-          return [c + dx * cos - dy * sin, c + dx * sin + dy * cos];
+        case "wave": {
+          const ripple =
+            Math.sin((p.homeX / size) * TAU * 1.4 + t * 5) * size * 0.024;
+          return [p.homeX, p.homeY + ripple];
+        }
+        case "lines": {
+          const bands = 9;
+          const band =
+            ((Math.floor((p.homeY / size) * bands) + 0.5) / bands) * size;
+          return [c + dx * 1.05, band];
         }
         case "shiver":
           return [
@@ -242,7 +319,10 @@ export default function ParticleRose({
 
         const alpha = Math.min(1, (elapsed - p.activateAt) / 350);
         context.globalAlpha = alpha * dimRef.current;
-        context.fillStyle = p.color;
+        context.fillStyle =
+          modeRef.current === "art" && hasArt && p.artColor
+            ? p.artColor
+            : p.color;
         context.fillText(p.ch, p.x, p.y);
       }
       context.globalAlpha = 1;
@@ -328,6 +408,10 @@ export default function ParticleRose({
       canvas.removeEventListener("pointerleave", onPointerLeave);
     };
   }, []);
+
+  useEffect(() => {
+    loadArtRef.current(artUrl);
+  }, [artUrl]);
 
   return (
     <div className={`cursor-crosshair ${className}`} ref={containerRef}>
