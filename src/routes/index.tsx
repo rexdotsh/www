@@ -79,6 +79,16 @@ function Home() {
     }
   };
 
+  // ios safari tints its chrome from theme-color; match the docked card
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      return;
+    }
+    const cardOpen = word && window.matchMedia("(hover: none)").matches;
+    meta.setAttribute("content", cardOpen ? "#ffffff" : "#faf8f2");
+  }, [word]);
+
   useEffect(() => {
     if (previewUrl) {
       load(previewUrl, {
