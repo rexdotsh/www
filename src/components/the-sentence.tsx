@@ -166,13 +166,13 @@ export function TheSentence({
             >
               hi back
             </Peek>
-            <span className="text-[#b3123a]">.</span>
+            <span className="text-rose">.</span>
           </>
         )}
       </h1>
       {identity.isMridul ? (
         <p
-          className={`mt-6 text-[#847c6c] text-[clamp(1rem,1.7vw,1.3rem)] italic leading-snug ${wordStagger ? "word-in" : ""}`}
+          className={`mt-6 text-muted text-[clamp(1rem,1.7vw,1.3rem)] italic leading-snug ${wordStagger ? "word-in" : ""}`}
           style={
             wordStagger
               ? { animationDelay: `${nextDelay() + 120}ms` }
@@ -270,8 +270,8 @@ function Peek({
       <a
         className={`underline decoration-[0.04em] underline-offset-[0.14em] transition-[text-decoration-color] duration-150 ${
           tone === "name"
-            ? "text-[#17140f] decoration-dotted decoration-[#17140f]/30 hover:decoration-[#17140f]/70"
-            : "text-[#b3123a] italic decoration-[#b3123a]/30 hover:decoration-[#b3123a]"
+            ? "text-ink decoration-dotted decoration-ink/30 hover:decoration-ink/70"
+            : "text-rose italic decoration-rose/30 hover:decoration-rose"
         }`}
         href={href}
         onBlur={() => {
@@ -313,7 +313,7 @@ function PeekCard({
 }) {
   return (
     <span
-      className={`block rounded-xl border border-[#17140f]/10 bg-white text-left font-mono not-italic shadow-[0_16px_40px_-16px_rgba(23,20,15,0.35)] ${
+      className={`block rounded-xl border border-ink/10 bg-card text-left font-mono not-italic shadow-[0_16px_40px_-16px_rgba(23,20,15,0.35)] ${
         compact ? "w-fit max-w-60 p-3" : "w-60 p-4"
       }`}
     >
@@ -340,13 +340,13 @@ function TextPeek({
     <PeekCard compact>
       {label ? (
         <span
-          className={`block whitespace-nowrap text-[#a29a89] text-[9px] uppercase tracking-[0.25em]${align}`}
+          className={`block whitespace-nowrap text-faint text-[9px] uppercase tracking-[0.25em]${align}`}
         >
           {label}
         </span>
       ) : null}
       <a
-        className={`block whitespace-nowrap text-[#17140f] text-xs transition-colors duration-150 hover:text-[#b3123a] ${label ? "mt-1" : ""}${align}`}
+        className={`block whitespace-nowrap text-ink text-xs transition-colors duration-150 hover:text-rose ${label ? "mt-1" : ""}${align}`}
         href={href}
         rel="noopener noreferrer"
         target="_blank"
@@ -355,7 +355,7 @@ function TextPeek({
       </a>
       {sub ? (
         <span
-          className={`mt-1 block whitespace-nowrap text-[#847c6c] text-[10px]${align}`}
+          className={`mt-1 block whitespace-nowrap text-muted text-[10px]${align}`}
         >
           {sub}
         </span>
@@ -369,7 +369,13 @@ interface Contributions {
   weeks: number[][];
 }
 
-const HEAT_COLORS = ["#efe9dc", "#f0c3cd", "#e5798f", "#ce2955", "#8f1236"];
+const HEAT_COLORS = [
+  "var(--heat-0)",
+  "var(--heat-1)",
+  "var(--heat-2)",
+  "var(--heat-3)",
+  "var(--heat-4)",
+];
 
 function useContributions() {
   const [data, setData] = useState<Contributions | null>(null);
@@ -387,7 +393,7 @@ function useContributions() {
 function Heatmap({ total, weeks }: Contributions) {
   return (
     <a
-      className="group mt-3 block border-[#17140f]/10 border-t pt-3"
+      className="group mt-3 block border-ink/10 border-t pt-3"
       href={LINKS.github}
       rel="noopener noreferrer"
       target="_blank"
@@ -408,7 +414,7 @@ function Heatmap({ total, weeks }: Contributions) {
           </span>
         ))}
       </span>
-      <span className="mt-2 block text-center text-[#a29a89] text-[9px] tracking-[0.1em] transition-colors duration-150 group-hover:text-[#b3123a]">
+      <span className="mt-2 block text-center text-faint text-[9px] tracking-[0.1em] transition-colors duration-150 group-hover:text-rose">
         {total.toLocaleString()} contributions, past year
       </span>
     </a>
@@ -419,7 +425,7 @@ function ProjectsPeek() {
   const graph = useContributions();
   return (
     <PeekCard>
-      <span className="block text-[#a29a89] text-[9px] uppercase tracking-[0.25em]">
+      <span className="block text-faint text-[9px] uppercase tracking-[0.25em]">
         lately
       </span>
       {PROJECTS.map((project) => (
@@ -430,10 +436,10 @@ function ProjectsPeek() {
           rel="noopener noreferrer"
           target="_blank"
         >
-          <span className="block font-bold text-[#17140f] text-xs group-hover:text-[#b3123a]">
+          <span className="block font-bold text-ink text-xs group-hover:text-rose">
             {project.name}
           </span>
-          <span className="block truncate text-[#847c6c] text-[11px]">
+          <span className="block truncate text-muted text-[11px]">
             {project.description}
           </span>
         </a>
@@ -446,7 +452,7 @@ function ProjectsPeek() {
 function PostsPeek() {
   return (
     <PeekCard>
-      <span className="block text-[#a29a89] text-[9px] uppercase tracking-[0.25em]">
+      <span className="block text-faint text-[9px] uppercase tracking-[0.25em]">
         recent writing
       </span>
       {POSTS.map((post) => (
@@ -457,10 +463,10 @@ function PostsPeek() {
           rel="noopener noreferrer"
           target="_blank"
         >
-          <span className="block truncate text-[#17140f] text-xs group-hover:text-[#b3123a]">
+          <span className="block truncate text-ink text-xs group-hover:text-rose">
             {post.title}
           </span>
-          <span className="block text-[#847c6c] text-[10px] tabular-nums">
+          <span className="block text-muted text-[10px] tabular-nums">
             {post.date}
           </span>
         </a>
@@ -482,7 +488,7 @@ function WaveEq() {
   return (
     <span
       aria-hidden="true"
-      className="relative flex h-[1em] select-none overflow-hidden font-mono text-[#b3123a] text-[10px]"
+      className="relative flex h-[1em] select-none overflow-hidden font-mono text-rose text-[10px]"
     >
       {WAVE_CELLS.map((cell, index) => (
         <span
@@ -525,13 +531,13 @@ function MusicPeek({ track }: { track: SpotifyTrack }) {
           />
         ) : null}
         <span className={`min-w-0 ${isPlaying ? "flex-1" : ""}`}>
-          <span className="block whitespace-nowrap text-[#a29a89] text-[9px] uppercase tracking-[0.2em]">
+          <span className="block whitespace-nowrap text-faint text-[9px] uppercase tracking-[0.2em]">
             {isPlaying ? "right now" : "last played"}
           </span>
-          <span className="block truncate font-bold text-[#17140f] text-xs group-hover:text-[#b3123a]">
+          <span className="block truncate font-bold text-ink text-xs group-hover:text-rose">
             {track.name}
           </span>
-          <span className="block truncate text-[#847c6c] text-[11px]">
+          <span className="block truncate text-muted text-[11px]">
             {track.artist}
           </span>
         </span>

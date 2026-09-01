@@ -14,13 +14,32 @@
   --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
+  --color-paper: var(--background);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-rose: var(--rose);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
 }
 
+/* light: warm paper. dark: premium graphite, rose brightened for contrast */
 :root {
-  --background: #faf8f2;
-  --primary-hover: #b3123a;
-  --secondary: #847c6c;
-  --accent: #b3123a;
+  color-scheme: light dark;
+  --background: light-dark(#faf8f2, #131315);
+  --card: light-dark(#ffffff, #1c1c1f);
+  --ink: light-dark(#17140f, #e8e6e3);
+  --rose: light-dark(#b3123a, #e5476d);
+  --rose-deep: light-dark(#8f1236, #d1355c);
+  --muted: light-dark(#847c6c, #98948d);
+  --faint: light-dark(#a29a89, #6f6c66);
+  --primary-hover: var(--rose);
+  --secondary: var(--muted);
+  --accent: var(--rose);
+  --heat-0: light-dark(#efe9dc, #232326);
+  --heat-1: light-dark(#f0c3cd, #52273a);
+  --heat-2: light-dark(#e5798f, #96304f);
+  --heat-3: light-dark(#ce2955, #cf3f63);
+  --heat-4: light-dark(#8f1236, #ef7d99);
 }
 
 body {

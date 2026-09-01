@@ -114,7 +114,16 @@ function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta content="#faf8f2" name="theme-color" />
+        <meta
+          content="#faf8f2"
+          media="(prefers-color-scheme: light)"
+          name="theme-color"
+        />
+        <meta
+          content="#131315"
+          media="(prefers-color-scheme: dark)"
+          name="theme-color"
+        />
         <HeadContent />
       </head>
       <body className="antialiased">
