@@ -8,8 +8,7 @@ export interface SiteIdentity {
 }
 
 export function getIdentity(hostname: string): SiteIdentity {
-  // const isMridul = hostname === "mridul.sh";
-  const isMridul = true;
+  const isMridul = hostname === "mridul.sh";
   return {
     name: isMridul ? "mridul" : "rex",
     otherName: isMridul ? "rex" : "mridul",
