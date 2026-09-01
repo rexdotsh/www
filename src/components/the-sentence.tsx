@@ -274,7 +274,10 @@ function Peek({
       className={`peek-trigger relative inline-block underline decoration-[0.04em] underline-offset-[0.14em] transition-[text-decoration-color] duration-150 ${toneClass}`}
       data-peek-open={armed ? "" : undefined}
       href={href}
-      onBlur={() => report(null)}
+      onBlur={() => {
+        setArmed(false);
+        report(null);
+      }}
       onClick={handleClick}
       onFocus={() => report(hoverKey ?? null)}
       onPointerEnter={() => report(hoverKey ?? null)}

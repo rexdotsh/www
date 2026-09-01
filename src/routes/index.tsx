@@ -47,6 +47,21 @@ const MAGNET_MAX = 5;
  * "garden", dresses as the album cover for "music", waves for "say hi",
  * and gets flustered when you hover the name.
  */
+/**
+ * on phones the peek docks at the bottom, where the rose lives — lift
+ * the rose out of the card's way. cards have different heights, so each
+ * word gets its own hardcoded lift.
+ */
+const LIFTS: Record<SentenceWord, string> = {
+  name: "max-md:-translate-y-[104px]",
+  builds: "max-md:-translate-y-[148px]",
+  writes: "max-md:-translate-y-[148px]",
+  garden: "max-md:-translate-y-[76px]",
+  music: "max-md:-translate-y-[88px]",
+  hi: "max-md:-translate-y-[72px]",
+  resume: "max-md:-translate-y-[108px]",
+};
+
 function Home() {
   const { hostname } = rootRoute.useLoaderData();
   const { track } = useNowPlaying();
@@ -143,10 +158,8 @@ function Home() {
           className="rise flex shrink-0 flex-col items-center"
           style={{ animationDelay: "200ms" }}
         >
-          {/* on phones the peek docks at the bottom — the rose steps
-              up out of its way while a word is armed */}
           <div
-            className={`flex flex-col items-center transition-transform duration-300 ease-strong ${word ? "max-md:-translate-y-16" : ""}`}
+            className={`flex flex-col items-center transition-transform duration-300 ease-strong ${word ? LIFTS[word] : ""}`}
           >
             <ParticleRose
               artUrl={albumArt}
