@@ -47,10 +47,6 @@ const LIFTS: Record<SentenceWord, string> = {
 };
 const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[64px]";
 
-const MAGNET_RADIUS = 110;
-const MAGNET_PULL = 0.22;
-const MAGNET_MAX = 5;
-
 const VOLUME = 0.5;
 
 function Home() {
@@ -69,7 +65,6 @@ function Home() {
   const [word, setWord] = useState<SentenceWord | null>(null);
   const [cover, setCover] = useState(false);
   const [artFade, setArtFade] = useState(0);
-  const sentenceRef = useRef<HTMLDivElement>(null);
   const fadedOutRef = useRef(false);
 
   const onWordHover = (next: SentenceWord | null) => {
@@ -162,57 +157,10 @@ function Home() {
       : LIFTS[word]
     : "";
 
-  useEffect(() => {
-    const container = sentenceRef.current;
-    if (
-      !container ||
-      !window.matchMedia("(hover: hover) and (pointer: fine)").matches ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
-      return;
-    }
-
-    const anchors = Array.from(
-      container.querySelectorAll<HTMLElement>(".peek-trigger")
-    );
-    for (const anchor of anchors) {
-      anchor.style.transition = "translate 200ms cubic-bezier(0.23,1,0.32,1)";
-    }
-
-    const onPointerMove = (event: PointerEvent) => {
-      for (const anchor of anchors) {
-        const rect = anchor.getBoundingClientRect();
-        const dx = event.clientX - rect.left - rect.width / 2;
-        const dy = event.clientY - rect.top - rect.height / 2;
-        const dist = Math.hypot(dx, dy);
-        if (dist < MAGNET_RADIUS) {
-          const pull = (1 - dist / MAGNET_RADIUS) * MAGNET_PULL;
-          const clamp = (n: number) =>
-            Math.max(-MAGNET_MAX, Math.min(MAGNET_MAX, n)).toFixed(1);
-          anchor.style.translate = `${clamp(dx * pull)}px ${clamp(dy * pull)}px`;
-        } else if (anchor.style.translate !== "0px 0px") {
-          anchor.style.translate = "0px 0px";
-        }
-      }
-    };
-
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    return () => {
-      window.removeEventListener("pointermove", onPointerMove);
-      for (const anchor of anchors) {
-        anchor.style.translate = "";
-        anchor.style.transition = "";
-      }
-    };
-  }, []);
-
   return (
     <main className="fixed inset-0 overflow-y-auto bg-[#faf8f2] font-serif-display text-[#17140f] selection:bg-[#b3123a] selection:text-[#faf8f2]">
       <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-12 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:px-12 md:py-16">
-        <div
-          className="sentence-root relative z-10 max-w-2xl md:flex-1"
-          ref={sentenceRef}
-        >
+        <div className="sentence-root relative z-10 max-w-2xl md:flex-1">
           <TheSentence
             className="text-[clamp(1.9rem,8.6vw,2.5rem)] leading-[1.22] tracking-[-0.01em] md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"
             hostname={hostname}
