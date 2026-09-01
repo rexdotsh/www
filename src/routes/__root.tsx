@@ -18,9 +18,12 @@ export const Route = createRootRoute({
     const hostname = loaderData?.hostname ?? "rex.wf";
     const name = hostname === "mridul.sh" ? "mridul" : "rex";
     const title = `${name}'s space`;
-    const description = `${name}'s personal corner of the web: projects, writing, links, and whatever is playing.`;
+    const description = `${name}'s personal website.`;
     const canonicalUrl = new URL("/", baseUrl).href;
-    const imageUrl = new URL("/social-card.png", baseUrl).href;
+    const imageUrl = new URL(
+      name === "mridul" ? "/social-card-mridul.png" : "/social-card.png",
+      baseUrl
+    ).href;
 
     return {
       meta: [
@@ -42,12 +45,12 @@ export const Route = createRootRoute({
         { property: "og:image:type", content: "image/png" },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
-        { property: "og:image:alt", content: "An ASCII rose" },
+        { property: "og:image:alt", content: title },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: imageUrl },
-        { name: "twitter:image:alt", content: "An ASCII rose" },
+        { name: "twitter:image:alt", content: title },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
