@@ -61,7 +61,9 @@ body {
   animation: word-in 550ms var(--ease-strong) backwards;
 }
 
-.sentence-root .word-in {
+/* the focus blur lives on an inner layer so it composes with the
+   entrance animation instead of fighting it for the same element */
+.word-body {
   transition:
     filter 240ms var(--ease-strong),
     opacity 240ms var(--ease-strong);
@@ -69,13 +71,16 @@ body {
 
 @media (hover: hover) and (pointer: fine) {
   .sentence-root:has(.peek-trigger:hover)
-    .word-in:not(:has(.peek-trigger:hover)) {
+    .word-in:not(:has(.peek-trigger:hover))
+    .word-body {
     filter: blur(3px);
     opacity: 0.35;
   }
 }
 
-.sentence-root:has([data-peek-open]) .word-in:not(:has([data-peek-open])) {
+.sentence-root:has([data-peek-open])
+  .word-in:not(:has([data-peek-open]))
+  .word-body {
   filter: blur(3px);
   opacity: 0.35;
 }

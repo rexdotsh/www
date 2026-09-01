@@ -45,7 +45,7 @@ export function TheSentence({
           key={`${token}-${index}`}
           style={{ animationDelay: `${nextDelay()}ms` }}
         >
-          {token}
+          <span className="word-body inline-block">{token}</span>
         </span>
       )
     );
@@ -57,7 +57,7 @@ export function TheSentence({
         className="word-in inline-block"
         style={{ animationDelay: `${nextDelay()}ms` }}
       >
-        {node}
+        <span className="word-body inline-block">{node}</span>
       </span>
     ) : (
       node
@@ -179,18 +179,24 @@ export function TheSentence({
               : undefined
           }
         >
-          ( i also keep a{" "}
-          <Peek
-            hoverKey="resume"
-            href="/resume"
-            onHover={onWordHover}
-            peek={
-              <TextPeek href="/resume" label="on paper" line="open the pdf →" />
-            }
-          >
-            resume
-          </Peek>{" "}
-          — for the professionally curious. )
+          <span className="word-body inline-block">
+            ( i also keep a{" "}
+            <Peek
+              hoverKey="resume"
+              href="/resume"
+              onHover={onWordHover}
+              peek={
+                <TextPeek
+                  href="/resume"
+                  label="on paper"
+                  line="open the pdf →"
+                />
+              }
+            >
+              resume
+            </Peek>{" "}
+            — for the professionally curious. )
+          </span>
         </p>
       ) : null}
     </>
