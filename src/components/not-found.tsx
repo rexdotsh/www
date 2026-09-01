@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 const GRID = [
@@ -48,7 +46,7 @@ function forEachCell(
 const GLYPHS =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
 
-function ScrambleLink({ text, href }: { text: string; href: string }) {
+function ScrambleLink({ text, to }: { text: string; to: "/" }) {
   const [display, setDisplay] = useState(text);
   const ref = useRef<ReturnType<typeof setInterval>>(null);
 
@@ -76,7 +74,7 @@ function ScrambleLink({ text, href }: { text: string; href: string }) {
   return (
     <Link
       className="mt-1.5 text-lg text-secondary transition-colors duration-200 hover:text-primary-hover dark:hover:text-white"
-      href={href}
+      to={to}
       onMouseEnter={start}
       onMouseLeave={stop}
     >
@@ -218,7 +216,7 @@ export default function NotFoundPage() {
           )}
         </div>
         <p className="mt-12 text-lg text-accent">page not found</p>
-        <ScrambleLink text="return home" href="/" />
+        <ScrambleLink text="return home" to="/" />
       </div>
     </main>
   );

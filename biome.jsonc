@@ -1,7 +1,13 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "includes": ["**/*", "!bun.lock", "!app/globals.css"]
+    "includes": [
+      "**/*",
+      "!bun.lock",
+      "!src/routeTree.gen.ts",
+      "!src/styles.css",
+      "!.output"
+    ]
   },
   "linter": {
     "rules": {
@@ -53,5 +59,17 @@
       }
     }
   },
-  "extends": ["ultracite/core", "ultracite/next"]
+  "overrides": [
+    {
+      "includes": ["src/routes/**/*"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    }
+  ],
+  "extends": ["ultracite/core", "ultracite/react"]
 }

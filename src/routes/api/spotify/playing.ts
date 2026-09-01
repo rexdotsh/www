@@ -1,14 +1,5 @@
 import { Redis } from "@upstash/redis";
-import { NextResponse } from "next/server";
-
-if (!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)) {
-  throw new Error("Missing Redis environment variables");
-}
-
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL,
-  token: process.env.KV_REST_API_TOKEN,
-});
+import { createFileRoute } from "@tanstack/react-router";
 
 const SPOTIFY_API = {
   NOW_PLAYING: "https://api.spotify.com/v1/me/player/currently-playing",
@@ -18,11 +9,17 @@ const SPOTIFY_API = {
 } as const;
 
 const TOKEN_CACHE_KEY = "spotify:token";
-const TOKEN_CACHE_TTL = 3600; // 1 hour
+
+let redis: Redis | undefined;
 
 type SpotifyToken = {
   access_token: string;
   expires_at: number;
+};
+
+type SpotifyTokenResponse = {
+  access_token: string;
+  expires_in: number;
 };
 
 type SpotifyArtist = {
@@ -49,8 +46,21 @@ type SpotifyTrack = {
   id: string;
 };
 
+function getRedis() {
+  const url = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
+
+  if (!(url && token)) {
+    throw new Error("Missing Redis environment variables");
+  }
+
+  redis ??= new Redis({ url, token });
+  return redis;
+}
+
 async function getAccessToken() {
-  const cached = await redis.get<SpotifyToken>(TOKEN_CACHE_KEY);
+  const cache = getRedis();
+  const cached = await cache.get<SpotifyToken>(TOKEN_CACHE_KEY);
   if (cached && Date.now() < cached.expires_at) {
     return cached.access_token;
   }
@@ -76,17 +86,23 @@ async function getAccessToken() {
     }),
   });
 
-  const data = await response.json();
   if (!response.ok) {
     throw new Error("Failed to get access token");
   }
 
+  const data = (await response.json()) as SpotifyTokenResponse;
+  if (!(data.access_token && Number.isFinite(data.expires_in))) {
+    throw new Error("Spotify returned an invalid access token");
+  }
+
+  const expiresIn = Math.max(data.expires_in - 60, 1);
+
   const token: SpotifyToken = {
     access_token: data.access_token,
-    expires_at: Date.now() + (data.expires_in - 60) * 1000, // subtract 60s for safety
+    expires_at: Date.now() + expiresIn * 1000,
   };
 
-  await redis.set(TOKEN_CACHE_KEY, token, { ex: TOKEN_CACHE_TTL });
+  await cache.set(TOKEN_CACHE_KEY, token, { ex: expiresIn });
 
   return token.access_token;
 }
@@ -152,12 +168,18 @@ function transformTrackData(data: SpotifyTrack, isPlaying = false) {
   };
 }
 
-export async function GET() {
-  try {
-    const token = await getAccessToken();
-    const track = await getNowPlaying(token);
-    return NextResponse.json(track || null);
-  } catch (_error) {
-    return NextResponse.json(null);
-  }
-}
+export const Route = createFileRoute("/api/spotify/playing")({
+  server: {
+    handlers: {
+      GET: async () => {
+        try {
+          const token = await getAccessToken();
+          const track = await getNowPlaying(token);
+          return Response.json(track ?? null);
+        } catch {
+          return Response.json(null);
+        }
+      },
+    },
+  },
+});
