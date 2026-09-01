@@ -51,7 +51,7 @@ export default function SpotifyPlayer({
       <div className="mx-auto max-w-sm">
         <div className="relative">
           <a
-            className="fade-in group flex items-center gap-4 rounded-lg border border-border bg-surface p-4 pr-16 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-border-hover hover:bg-surface-hover hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="group flex animate-fade-in items-center gap-4 rounded-lg border border-border bg-surface p-4 pr-16 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-border-hover hover:bg-surface-hover hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             href={track.url}
             rel="noopener noreferrer"
             target="_blank"
@@ -92,7 +92,7 @@ export default function SpotifyPlayer({
           </a>
           <button
             aria-label={previewLabel}
-            className="-translate-y-1/2 fade-in absolute top-1/2 right-4 cursor-pointer rounded-full bg-accent/10 p-2.5 text-accent transition-colors duration-300 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-40"
+            className="-translate-y-1/2 absolute top-1/2 right-4 animate-fade-in cursor-pointer rounded-full bg-accent/10 p-2.5 text-accent transition-colors duration-300 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-40"
             disabled={!previewUrl}
             onClick={handlePlayPreview}
             title={previewLabel}

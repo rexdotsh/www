@@ -3,6 +3,7 @@
 @variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
+  --animate-fade-in: fade-in 300ms ease-in forwards;
   --font-mono: "Geist Mono Variable", monospace;
   --color-background: var(--background);
   --color-primary: var(--primary);
@@ -98,10 +99,6 @@ body {
   50% {
     transform: scaleY(var(--scale-max));
   }
-}
-
-.fade-in {
-  animation: fade-in 300ms ease-in forwards;
 }
 
 .animate-bar-1 {
