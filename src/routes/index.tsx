@@ -23,7 +23,7 @@ const MODES: Record<SentenceWord, RoseMode> = {
   garden: "garden",
   music: "art",
   hi: "wave",
-  resume: "lines",
+  resume: "paper",
 };
 
 const CAPTIONS: Record<SentenceWord, string> = {
@@ -37,13 +37,13 @@ const CAPTIONS: Record<SentenceWord, string> = {
 };
 
 const LIFTS: Record<SentenceWord, string> = {
-  name: "max-md:-translate-y-[73px]",
+  name: "max-md:-translate-y-[53px]",
   builds: "max-md:-translate-y-[224px]",
   writes: "max-md:-translate-y-[150px]",
   garden: "max-md:-translate-y-[66px]",
   music: "max-md:-translate-y-[78px]",
   hi: "max-md:-translate-y-[54px]",
-  resume: "max-md:-translate-y-[94px]",
+  resume: "max-md:-translate-y-[54px]",
 };
 const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[64px]";
 
@@ -113,7 +113,7 @@ function Home() {
       return;
     }
     const previous = document.title;
-    document.title = `♫ ${track.name} — ${track.artist}`;
+    document.title = `♫ ${track.name} · ${track.artist}`;
     return () => {
       document.title = previous;
     };
@@ -148,7 +148,7 @@ function Home() {
       }
       if (albumArt) {
         return previewUrl
-          ? "( dressed as the cover — tap to listen )"
+          ? "( dressed as the cover, tap to listen )"
           : "( dressed as the album cover )";
       }
       return CAPTIONS.music;

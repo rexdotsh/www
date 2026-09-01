@@ -9,7 +9,7 @@ export type RoseMode =
   | "garden"
   | "art"
   | "wave"
-  | "lines";
+  | "paper";
 
 type Rgb = [number, number, number];
 
@@ -19,6 +19,8 @@ interface Particle {
   ch: string;
   cluster: number;
   color: string;
+  docX: number;
+  docY: number;
   gridX: number;
   gridY: number;
   homeX: number;
@@ -89,6 +91,8 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
         homeY,
         gridX: homeX,
         gridY: homeY,
+        docX: homeX,
+        docY: homeY,
         x: scattered ? Math.random() * size : homeX,
         y: scattered ? Math.random() * size : homeY,
         vx: 0,
@@ -104,6 +108,45 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
   particles.forEach((p, index) => {
     p.gridX = gridOffset + ((index % g) + 0.5) * gridCell;
     p.gridY = gridOffset + (Math.floor(index / g) + 0.5) * gridCell;
+  });
+
+  // "paper": a page outline with ruled lines inside
+  const c = size / 2;
+  const pageW = inner * 0.58;
+  const pageH = inner * 0.8;
+  const x0 = c - pageW / 2;
+  const y0 = c - pageH / 2;
+  const outlineCount = Math.floor(particles.length * 0.55);
+  const rules = [0.2, 0.36, 0.52, 0.68, 0.84];
+  const perLine = Math.ceil((particles.length - outlineCount) / rules.length);
+
+  particles.forEach((p, index) => {
+    if (index < outlineCount) {
+      const t = index / outlineCount;
+      const perimeter = 2 * (pageW + pageH);
+      const d = t * perimeter;
+      if (d < pageW) {
+        p.docX = x0 + d;
+        p.docY = y0;
+      } else if (d < pageW + pageH) {
+        p.docX = x0 + pageW;
+        p.docY = y0 + (d - pageW);
+      } else if (d < pageW * 2 + pageH) {
+        p.docX = x0 + pageW - (d - pageW - pageH);
+        p.docY = y0 + pageH;
+      } else {
+        p.docX = x0;
+        p.docY = y0 + pageH - (d - pageW * 2 - pageH);
+      }
+    } else {
+      const i = index - outlineCount;
+      const line = Math.min(Math.floor(i / perLine), rules.length - 1);
+      const pos = (i % perLine) / perLine;
+      // the last line ends short, like a paragraph
+      const width = pageW * (line === rules.length - 1 ? 0.5 : 0.8);
+      p.docX = x0 + pageW * 0.1 + pos * width;
+      p.docY = y0 + pageH * rules[line];
+    }
   });
 
   return particles;
@@ -253,11 +296,8 @@ export default function ParticleRose({
             p.homeY +
               Math.sin((p.homeX / size) * TAU * 1.4 + t * 5) * size * 0.024,
           ];
-        case "lines":
-          return [
-            c + dx * 1.05,
-            ((Math.floor((p.homeY / size) * 9) + 0.5) / 9) * size,
-          ];
+        case "paper":
+          return [p.docX, p.docY];
         case "shiver":
           return [
             p.homeX + (Math.random() - 0.5) * 4,
@@ -400,7 +440,7 @@ export default function ParticleRose({
       ref={containerRef}
     >
       <canvas
-        aria-label="An interactive rose made of ascii characters — move your cursor through it"
+        aria-label="An interactive rose made of ascii characters, move your cursor through it"
         className="absolute block touch-none"
         ref={canvasRef}
         role="img"

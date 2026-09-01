@@ -80,11 +80,9 @@ export function TheSentence({
       tone: "name",
       peek: (
         <TextPeek
-          compact
+          href={identity.otherDomain}
           label={identity.isMridul ? "internet name" : "government name"}
-          sub={`→ ${identity.otherDomain.replace("https://", "")}`}
-          title={identity.otherName}
-          titleClass="font-bold text-sm"
+          line={`${identity.otherName} → ${identity.otherDomain.replace("https://", "")}`}
         />
       ),
     },
@@ -105,7 +103,8 @@ export function TheSentence({
       peek: (
         <TextPeek
           center
-          compact
+          href={LINKS.flora}
+          line="flora"
           sub={
             <>
               random things for the web,
@@ -113,8 +112,6 @@ export function TheSentence({
               grown with friends
             </>
           }
-          title="flora"
-          titleClass="text-xs"
         />
       ),
     },
@@ -133,10 +130,9 @@ export function TheSentence({
       peek: (
         <TextPeek
           center
-          compact
+          href={LINKS.twitter}
+          line={`@${identity.handle}`}
           sub="strangers welcome"
-          title={`@${identity.handle}`}
-          titleClass="text-xs"
         />
       ),
     },
@@ -181,12 +177,7 @@ export function TheSentence({
             href="/resume"
             onHover={onWordHover}
             peek={
-              <TextPeek
-                label="the formal bit"
-                sub="kept current. this is the version that gets sent out."
-                title="resume — one page"
-                titleClass="font-bold text-xs"
-              />
+              <TextPeek href="/resume" label="on paper" line="open the pdf →" />
             }
           >
             resume
@@ -305,23 +296,20 @@ function PeekCard({
 
 function TextPeek({
   center = false,
-  compact = false,
+  href,
   label,
+  line,
   sub,
-  title,
-  titleClass,
 }: {
   center?: boolean;
-  compact?: boolean;
+  href: string;
   label?: string;
-  sub: ReactNode;
-  title: string;
-  titleClass: string;
+  line: string;
+  sub?: ReactNode;
 }) {
   const align = center ? " text-center" : "";
-  const nowrap = compact ? " whitespace-nowrap" : "";
   return (
-    <PeekCard compact={compact}>
+    <PeekCard compact>
       {label ? (
         <span
           className={`block whitespace-nowrap text-[#a29a89] text-[9px] uppercase tracking-[0.25em]${align}`}
@@ -329,16 +317,21 @@ function TextPeek({
           {label}
         </span>
       ) : null}
-      <span
-        className={`block text-[#17140f] ${titleClass}${label ? " mt-1" : ""}${nowrap}${align}`}
+      <a
+        className={`block whitespace-nowrap text-[#17140f] text-xs transition-colors duration-150 hover:text-[#b3123a] ${label ? "mt-1" : ""}${align}`}
+        href={href}
+        rel="noopener noreferrer"
+        target="_blank"
       >
-        {title}
-      </span>
-      <span
-        className={`mt-1 block text-[#847c6c] text-[10px]${nowrap}${align}`}
-      >
-        {sub}
-      </span>
+        {line}
+      </a>
+      {sub ? (
+        <span
+          className={`mt-1 block whitespace-nowrap text-[#847c6c] text-[10px]${align}`}
+        >
+          {sub}
+        </span>
+      ) : null}
     </PeekCard>
   );
 }
