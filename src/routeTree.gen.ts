@@ -14,6 +14,7 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiGithubContributionsRouteImport } from './routes/api/github/contributions'
 import { Route as ApiSpotifyPlayingRouteImport } from './routes/api/spotify/playing'
+import { Route as ApiSpotifyPreviewIdRouteImport } from './routes/api/spotify/preview/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const ApiSpotifyPlayingRoute = ApiSpotifyPlayingRouteImport.update({
   path: '/api/spotify/playing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSpotifyPreviewIdRoute = ApiSpotifyPreviewIdRouteImport.update({
+  id: '/api/spotify/preview/$id',
+  path: '/api/spotify/preview/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
+  '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
+  '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,6 +70,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
+  '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -71,6 +80,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/api/github/contributions'
     | '/api/spotify/playing'
+    | '/api/spotify/preview/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -78,6 +88,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/api/github/contributions'
     | '/api/spotify/playing'
+    | '/api/spotify/preview/$id'
   id:
     | '__root__'
     | '/'
@@ -85,6 +96,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/api/github/contributions'
     | '/api/spotify/playing'
+    | '/api/spotify/preview/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,6 +105,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiGithubContributionsRoute: typeof ApiGithubContributionsRoute
   ApiSpotifyPlayingRoute: typeof ApiSpotifyPlayingRoute
+  ApiSpotifyPreviewIdRoute: typeof ApiSpotifyPreviewIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -132,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSpotifyPlayingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/spotify/preview/$id': {
+      id: '/api/spotify/preview/$id'
+      path: '/api/spotify/preview/$id'
+      fullPath: '/api/spotify/preview/$id'
+      preLoaderRoute: typeof ApiSpotifyPreviewIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -141,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiGithubContributionsRoute: ApiGithubContributionsRoute,
   ApiSpotifyPlayingRoute: ApiSpotifyPlayingRoute,
+  ApiSpotifyPreviewIdRoute: ApiSpotifyPreviewIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
