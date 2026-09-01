@@ -73,6 +73,7 @@ export function TheSentence({
         tone?: "name";
       }
   )[] = [
+    "i'm ",
     {
       key: "name",
       href: identity.otherDomain,
@@ -86,20 +87,20 @@ export function TheSentence({
         />
       ),
     },
-    " ",
+    ". mostly i ",
     {
       key: "builds",
       href: LINKS.github,
-      text: "builds things",
+      text: "build things",
       peek: <ProjectsPeek />,
     },
-    " on the internet, ",
-    { key: "writes", href: LINKS.blog, text: "writes", peek: <PostsPeek /> },
-    " sometimes, grows a ",
+    ". sometimes i ",
+    { key: "writes", href: LINKS.blog, text: "write", peek: <PostsPeek /> },
+    ". i share a ",
     {
       key: "garden",
       href: LINKS.flora,
-      text: "garden",
+      text: "workshop",
       peek: (
         <TextPeek
           center
@@ -109,20 +110,20 @@ export function TheSentence({
             <>
               random things for the web,
               <br />
-              grown with friends
+              two people, several flowers
             </>
           }
         />
       ),
     },
-    " with friends, listens to ",
+    " with a friend, and there's always ",
     {
       key: "music",
       href: track?.url ?? LINKS.blog,
       text: "music",
       peek: track ? <MusicPeek track={track} /> : null,
     },
-    " constantly, and thinks you should ",
+    ". ",
     {
       key: "hi",
       href: LINKS.twitter,
@@ -171,7 +172,7 @@ export function TheSentence({
               : undefined
           }
         >
-          ( he also keeps a{" "}
+          ( i also keep a{" "}
           <Peek
             hoverKey="resume"
             href="/resume"

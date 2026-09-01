@@ -216,7 +216,9 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
     corners.forEach((b, j) => {
       if (
         i < j &&
-        Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) ===
+        Math.abs(a[0] - b[0]) +
+          Math.abs(a[1] - b[1]) +
+          Math.abs(a[2] - b[2]) ===
           2
       ) {
         edges.push([i, j]);
