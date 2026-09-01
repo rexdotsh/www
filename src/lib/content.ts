@@ -1,14 +1,26 @@
 export interface SiteIdentity {
+  domain: string;
   handle: string;
+  isMridul: boolean;
   name: string;
+  otherDomain: string;
+  otherName: string;
   tagline: string;
 }
 
+/**
+ * one site, two faces: mridul.sh is the real name (resume goes out under
+ * it), rex.wf is the online alias. each side knows about the other.
+ */
 export function getIdentity(hostname: string): SiteIdentity {
   const isMridul = hostname === "mridul.sh";
   return {
     name: isMridul ? "mridul" : "rex",
-    handle: isMridul ? "mridul" : "rexmkv",
+    otherName: isMridul ? "rex" : "mridul",
+    domain: isMridul ? "mridul.sh" : "rex.wf",
+    otherDomain: isMridul ? "https://rex.wf" : "https://mridul.sh",
+    handle: "rexmkv",
+    isMridul,
     tagline: "building things on the internet",
   };
 }
