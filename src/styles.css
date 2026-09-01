@@ -94,6 +94,7 @@ body {
   position: absolute;
   bottom: calc(100% + 0.5em);
   left: 50%;
+  width: max-content;
   translate: -50% 0;
   transform: scale(0.92);
   opacity: 0;

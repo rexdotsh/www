@@ -481,7 +481,7 @@ function MusicPeek({ track }: { track: SpotifyTrack }) {
             width={isPlaying ? 48 : 36}
           />
         ) : null}
-        <span className="min-w-0 flex-1">
+        <span className={`min-w-0 ${isPlaying ? "flex-1" : ""}`}>
           <span className="block whitespace-nowrap text-[#a29a89] text-[9px] uppercase tracking-[0.2em]">
             {isPlaying ? "right now" : "last played"}
           </span>
