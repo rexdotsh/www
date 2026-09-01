@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
 The game provides 3 intro levels, to get the player familiarized with the game. The objective of the game was pretty simple, you had to fulfil the level goals, usually by putting the golden coloured blocks in the correct positions, after which you could take the player to the winning tile. Below is a showcase of the solutions for the intro levels.
 
-![video](https://github.com/rex69420/ctf-writeups/assets/65942753/1fe49c68-e18d-4208-88e5-ee456ebb3778)
+![video](https://r2.rex.wf/blog/parabox/intro-levels.mp4)
 
 ---
 
@@ -135,7 +135,7 @@ The game provides 3 intro levels, to get the player familiarized with the game. 
 
 The first main level, `Parabox`, was another simple one, simply demonstrating the use of the blue teleporters. The player had to use the teleporter to get to the winning tile. Below is a showcase of the solution.
 
-![video](https://github.com/rex69420/ctf-writeups/assets/65942753/caab131e-39af-4062-990b-1c5aeda89f51)
+![video](https://r2.rex.wf/blog/parabox/parabox.mp4)
 
 ---
 
@@ -156,11 +156,11 @@ We can find out the values for the moves are -
 
 The number of moves is stored at `C200`, and the moves themselves are stored after that. Here is a video showcasing that behavior.
 
-![video](https://github.com/rex69420/ctf-writeups/assets/65942753/6551e87a-a2f6-431e-be8d-cef622d25036)
+![video](https://r2.rex.wf/blog/parabox/impossible-overflow.mp4)
 
 So, we just need the last move to be one that we can reach. Below is a showcase of the level, along with the debugger.
 
-![video](https://github.com/rex69420/ctf-writeups/assets/65942753/c25fdc39-f249-47a1-8868-28c38358f8bc)
+![video](https://r2.rex.wf/blog/parabox/impossible-solve.mp4)
 
 ---
 
@@ -170,7 +170,7 @@ The third main level, `Small`, was another simple one, with the player having to
 
 > You might notice `# Extra moves to store optimal snapshot (stall more if necessary)` show up in the console along with the moves, and there are some extra moves at the end of the solution. These moves were used to initialize a bug which will be used and explained in the next level.
 
-![video](https://github.com/rex69420/ctf-writeups/assets/65942753/6cc0cdb1-f36c-43e5-87f0-542e1257e3f2)
+![video](https://r2.rex.wf/blog/parabox/small.mp4)
 
 ---
 
@@ -180,13 +180,13 @@ The third main level, `Small`, was another simple one, with the player having to
 
 The fourth, and the most difficult level, `Missing`, was where we got stuck. We couldn't figure out how to solve the level, and ultimately couldn't. Our first approach is shown in this video, without abusing any bugs, and just trying to solve the level. Even after we put the gold blocks in the correct positions, we couldn't win the level.
 
-![video](https://github.com/rex69420/ctf-writeups/assets/65942753/ee8745a1-88a5-4708-b5a7-b1bbbfe7da12)
+![video](https://r2.rex.wf/blog/parabox/missing-attempt.mp4)
 
 As you can see, the gold blocks are in the correct positions, but the player can't win the level. We tried to debug the level, but couldn't figure out what was wrong. We ultimately tried opening a ticket with the challenge author, and were told this is expected behaviour. We thought we had to replicate the bug used to solve `Impossible`, but that didn't work either.
 
 A few hours later of trying to wrap our heads around the Ghidra decompiled code, using [GhidraBoy](https://github.com/Gekkio/GhidraBoy) and the output from the BGB Debugger, my teammate discovered this.
 
-![figure](https://github.com/rex69420/ctf-writeups/assets/65942753/0de37980-debc-4c08-ab2b-248dc1b18e73)
+![figure](https://r2.rex.wf/blog/parabox/ghidra-third-map.png)
 
 He discovered that there was a **3rd map** in the level (1st one was the main map, 2nd one was the teleporter map), and our theory was that the player had to push some blocks into the third map as well to win the level. Taking a look at the win conditions for this level, confirmed that theory.
 
@@ -211,7 +211,7 @@ struct Block {
 
 We thought at this point that we had to abuse the `UNDO` and `REDO` commands to solve the level, but we couldn't figure out how to do that. This is also the point where we ran into a bug which was unintended behavior, causing the game to reset when interacting with the 2nd teleporter block.
 
-![video](https://github.com/rex69420/ctf-writeups/assets/65942753/66691d18-aa5d-4add-8374-141f6d989880)
+![video](https://r2.rex.wf/blog/parabox/missing-reset-bug.mp4)
 
 #### The Intended Solution
 
@@ -219,7 +219,7 @@ After the CTF ended, the challenge author disclosed the intended solution to the
 
 The player can access the third map/stage from the **level before** by loading a snapshot (thus the need for the extra levels from the previous level). The last problem is that the player needs one more box, which can also be solved by loading a snapshot from the level before. So, we can set up our snapshot by doing some extra moves in the `Small`, to fulfil the conditions of this level. Below is a showcase of the solution.
 
-![video](https://github.com/rex69420/ctf-writeups/assets/65942753/d00910bb-232b-458e-8529-691dfdf49073)
+![video](https://r2.rex.wf/blog/parabox/missing-solve.mp4)
 
 ---
 
@@ -229,7 +229,7 @@ The player can access the third map/stage from the **level before** by loading a
 
 The fifth, and last level, was another one that we **thought** we solved without using any bugs in the code. I discovered the fact that you could access the green room, by glitching through the blue room pretty fast accidentally (which apparently was the bug), but couldn't figure out how to leave it. After a while, I realised that I could simply move the green box to an area where I could easily exit it, then glitch into it after entering the blue teleporter. Below is a showcase of the solution.
 
-![video](https://github.com/rex69420/ctf-writeups/assets/65942753/8ccfb420-b5d7-4b92-a93e-82094400adfc)
+![video](https://r2.rex.wf/blog/parabox/last-hurdle.mp4)
 
 ---
 
@@ -256,6 +256,6 @@ GPNCTF{p41n_70_d3v3l0p_h0p3fully_l355_p41n_70_50lv3_fd29a4b2833}
 
 Below is the full showcase of the solutions for all the levels.
 
-![video](https://github.com/rex69420/ctf-writeups/assets/65942753/f5677c77-4681-4f7d-a434-401f05d6c5e6)
+![video](https://r2.rex.wf/blog/parabox/full-showcase.mp4)
 
 If you've made it this far, thank you for reading the writeup! I hope you enjoyed it as much as I did attempting to solve this challenge. If you have any questions, suggestions, or improvements, feel free to contact me at `@rex.wf` on Discord.

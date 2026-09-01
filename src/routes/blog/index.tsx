@@ -29,12 +29,9 @@ export const Route = createFileRoute("/blog/")({
 
 function BlogIndex() {
   return (
-    <main className="min-h-dvh bg-[#faf8f2] px-7 py-14 font-serif-display text-[#17140f] selection:bg-[#b3123a] selection:text-[#faf8f2] md:py-24">
+    <main className="min-h-dvh bg-paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
       <div className="mx-auto w-full max-w-xl">
-        <Link
-          className="back-link rise font-mono text-[#847c6c] text-xs"
-          to="/"
-        >
+        <Link className="back-link rise font-mono text-muted text-xs" to="/">
           <span aria-hidden="true" className="back-arrow">
             ←
           </span>
@@ -45,10 +42,10 @@ function BlogIndex() {
           className="rise mt-10 text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
           style={{ animationDelay: "80ms" }}
         >
-          writing<span className="text-[#b3123a]">.</span>
+          writing<span className="text-rose">.</span>
         </h1>
         <p
-          className="rise mt-3 font-mono text-[#a29a89] text-[11px] italic"
+          className="rise mt-3 font-mono text-faint text-[11px] italic"
           style={{ animationDelay: "150ms" }}
         >
           ( occasionally, about things worth the words )
@@ -66,22 +63,22 @@ function BlogIndex() {
                 params={{ slug: post.slug }}
                 to="/blog/$slug"
               >
-                <span className="block font-mono text-[#a29a89] text-[11px] tabular-nums">
+                <span className="block font-mono text-faint text-[11px] tabular-nums">
                   {post.dateLabel}
                 </span>
                 <span
-                  className="mt-1 block text-[clamp(1.4rem,4.5vw,1.8rem)] leading-tight transition-colors duration-200 group-hover:text-[#b3123a]"
+                  className="mt-1 block text-[clamp(1.4rem,4.5vw,1.8rem)] leading-tight transition-colors duration-200 group-hover:text-rose"
                   style={{ viewTransitionName: `post-${post.slug}` }}
                 >
                   {post.title}
                   <span
                     aria-hidden="true"
-                    className="ml-2 inline-block text-[#b3123a] transition-transform duration-200 ease-strong group-hover:translate-x-1"
+                    className="ml-2 inline-block text-rose transition-transform duration-200 ease-strong group-hover:translate-x-1"
                   >
                     →
                   </span>
                 </span>
-                <span className="mt-1.5 block font-serif-body text-[#847c6c] text-[15px] italic">
+                <span className="mt-1.5 block font-serif-body text-muted text-[15px] italic">
                   {post.description}
                 </span>
               </Link>
@@ -90,11 +87,11 @@ function BlogIndex() {
         </ul>
 
         <footer
-          className="rise mt-16 border-[#17140f]/10 border-t pt-6"
+          className="rise mt-16 border-ink/10 border-t pt-6"
           style={{ animationDelay: "360ms" }}
         >
           <a
-            className="font-mono text-[#a29a89] text-[11px] transition-colors duration-150 hover:text-[#b3123a]"
+            className="font-mono text-faint text-[11px] transition-colors duration-150 hover:text-rose"
             href={LINKS.archive}
             rel="noopener noreferrer"
             target="_blank"

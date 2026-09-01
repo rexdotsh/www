@@ -7,38 +7,65 @@ import langPython from "@shikijs/langs/python";
 import { createHighlighterCoreSync } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 
-const PAPER_THEME = {
-  name: "paper",
+const paperTheme = (
+  name: string,
+  colors: {
+    body: string;
+    comment: string;
+    constant: string;
+    entity: string;
+    keyword: string;
+    string: string;
+  }
+) => ({
+  name,
   type: "light" as const,
   settings: [
-    { settings: { foreground: "#2b2620" } },
+    { settings: { foreground: colors.body } },
     {
       scope: ["keyword", "storage", "keyword.control", "keyword.operator"],
-      settings: { foreground: "#b3123a" },
+      settings: { foreground: colors.keyword },
     },
     {
       scope: ["string", "punctuation.definition.string"],
-      settings: { foreground: "#7d6840" },
+      settings: { foreground: colors.string },
     },
     {
       scope: ["comment", "punctuation.definition.comment"],
-      settings: { foreground: "#a29a89", fontStyle: "italic" },
+      settings: { foreground: colors.comment, fontStyle: "italic" },
     },
     {
       scope: ["constant.numeric", "constant.language", "constant.character"],
-      settings: { foreground: "#8f1236" },
+      settings: { foreground: colors.constant },
     },
     {
       scope: ["entity.name.function", "support.function", "entity.name.type"],
-      settings: { foreground: "#17140f" },
+      settings: { foreground: colors.entity },
     },
   ],
-};
+});
 
 const highlighter = createHighlighterCoreSync({
   engine: createJavaScriptRegexEngine(),
   langs: [langPython, langC],
-  themes: [PAPER_THEME],
+  themes: [
+    paperTheme("paper", {
+      body: "#2b2620",
+      comment: "#a29a89",
+      constant: "#8f1236",
+      entity: "#17140f",
+      keyword: "#b3123a",
+      string: "#7d6840",
+    }),
+    paperTheme("paper-dark", {
+      body: "#cfcdc9",
+      comment: "#75716a",
+      constant: "#ef7d99",
+      entity: "#e8e6e3",
+      keyword: "#e5476d",
+      string: "#c9a769",
+    }),
+  ],
 });
 
 const LANGS: Record<string, string> = {
@@ -55,25 +82,36 @@ function HighlightedCode({ code, lang }: { code: string; lang?: string }) {
   if (!lang) {
     return <code>{code}</code>;
   }
+  // same tokenization either way; only the colors differ between themes
   const lines = highlighter.codeToTokensBase(code, {
     lang: lang as "python" | "c",
     theme: "paper",
+  });
+  const darkLines = highlighter.codeToTokensBase(code, {
+    lang: lang as "python" | "c",
+    theme: "paper-dark",
   });
   return (
     <code>
       {lines.map((line, lineIndex) => (
         <span key={`l${lineIndex}`}>
-          {line.map((token) => (
-            <span
-              key={token.offset}
-              style={{
-                color: token.color,
-                fontStyle: isItalic(token.fontStyle) ? "italic" : undefined,
-              }}
-            >
-              {token.content}
-            </span>
-          ))}
+          {line.map((token, tokenIndex) => {
+            const dark = darkLines[lineIndex]?.[tokenIndex]?.color;
+            return (
+              <span
+                key={token.offset}
+                style={{
+                  color:
+                    token.color && dark
+                      ? `light-dark(${token.color}, ${dark})`
+                      : token.color,
+                  fontStyle: isItalic(token.fontStyle) ? "italic" : undefined,
+                }}
+              >
+                {token.content}
+              </span>
+            );
+          })}
           {"\n"}
         </span>
       ))}

@@ -40,6 +40,7 @@
   --heat-2: light-dark(#e5798f, #96304f);
   --heat-3: light-dark(#ce2955, #cf3f63);
   --heat-4: light-dark(#8f1236, #ef7d99);
+  --body: light-dark(#2b2620, #cfcdc9);
 }
 
 /* a pinned choice overrides the system; light-dark() follows color-scheme */
@@ -313,7 +314,7 @@ html[data-vt="theme"]::view-transition-new(root) {
 }
 
 .back-link:hover {
-  color: #b3123a;
+  color: var(--rose);
 }
 
 .back-arrow {
@@ -329,7 +330,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   font-family: "Newsreader Variable", Georgia, serif;
   font-size: 1.0625rem;
   line-height: 1.78;
-  color: #2b2620;
+  color: var(--body);
 }
 
 .prose-post > * + * {
@@ -348,7 +349,7 @@ html[data-vt="theme"]::view-transition-new(root) {
 .prose-post h3 {
   font-family: "Instrument Serif", Georgia, serif;
   font-weight: 400;
-  color: #17140f;
+  color: var(--ink);
   line-height: 1.15;
 }
 
@@ -367,7 +368,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.22em;
-  color: #847c6c;
+  color: var(--muted);
   margin-top: 1.6em;
 }
 
@@ -389,7 +390,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   margin-left: 0.5ch;
   font-size: 0.7em;
   vertical-align: 0.12em;
-  color: #b3123a;
+  color: var(--rose);
   opacity: 0;
   transition: opacity 150ms;
 }
@@ -399,38 +400,38 @@ html[data-vt="theme"]::view-transition-new(root) {
 }
 
 .prose-post :is(p, li, blockquote) a {
-  color: #b3123a;
+  color: var(--rose);
   text-decoration: underline;
   text-decoration-thickness: 0.05em;
-  text-decoration-color: rgb(179 18 58 / 0.3);
+  text-decoration-color: color-mix(in oklab, var(--rose) 30%, transparent);
   text-underline-offset: 0.14em;
   transition: text-decoration-color 150ms;
 }
 
 .prose-post :is(p, li, blockquote) a:hover {
-  text-decoration-color: #b3123a;
+  text-decoration-color: var(--rose);
 }
 
 .prose-post :not(pre) > code {
   font-family: "Geist Mono Variable", monospace;
   font-size: 0.8em;
-  background: rgb(23 20 15 / 0.05);
-  border: 1px solid rgb(23 20 15 / 0.07);
+  background: color-mix(in oklab, var(--ink) 6%, transparent);
+  border: 1px solid color-mix(in oklab, var(--ink) 8%, transparent);
   border-radius: 5px;
   padding: 0.1em 0.35em;
   white-space: nowrap;
 }
 
 .prose-post strong {
-  color: #17140f;
+  color: var(--ink);
   font-weight: 650;
 }
 
 .prose-post blockquote {
-  border-left: 2px solid rgb(179 18 58 / 0.3);
+  border-left: 2px solid color-mix(in oklab, var(--rose) 30%, transparent);
   padding-left: 1.1rem;
   font-style: italic;
-  color: #6a6254;
+  color: var(--muted);
   font-size: 0.97em;
 }
 
@@ -453,7 +454,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   content: "–";
   position: absolute;
   left: 0;
-  color: #b3123a;
+  color: var(--rose);
   opacity: 0.55;
 }
 
@@ -469,13 +470,13 @@ html[data-vt="theme"]::view-transition-new(root) {
   font-family: "Geist Mono Variable", monospace;
   font-size: 11px;
   letter-spacing: 0.4em;
-  color: #a29a89;
+  color: var(--faint);
 }
 
 .code-card {
   display: block;
-  background: #fff;
-  border: 1px solid rgb(23 20 15 / 0.08);
+  background: var(--card);
+  border: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
   border-radius: 12px;
   padding: 1rem 1.15rem;
   overflow-x: auto;
@@ -483,7 +484,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   font-family: "Geist Mono Variable", monospace;
   font-size: 0.78rem;
   line-height: 1.65;
-  color: #2b2620;
+  color: var(--body);
 }
 
 .code-figure {
@@ -502,8 +503,8 @@ html[data-vt="theme"]::view-transition-new(root) {
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: #a29a89;
-  background: rgb(250 248 242 / 0.92);
+  color: var(--faint);
+  background: color-mix(in oklab, var(--card) 92%, transparent);
   border-radius: 6px;
   padding: 3px 7px;
   cursor: pointer;
@@ -519,7 +520,7 @@ html[data-vt="theme"]::view-transition-new(root) {
 }
 
 .code-copy:hover {
-  color: #b3123a;
+  color: var(--rose);
 }
 
 @media (hover: none) {
@@ -533,7 +534,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.22em;
-  color: #a29a89;
+  color: var(--faint);
   margin-bottom: 0.5rem;
 }
 
@@ -549,8 +550,8 @@ html[data-vt="theme"]::view-transition-new(root) {
   list-style: none;
   font-family: "Geist Mono Variable", monospace;
   font-size: 11px;
-  color: #847c6c;
-  border: 1px dashed rgb(23 20 15 / 0.2);
+  color: var(--muted);
+  border: 1px dashed color-mix(in oklab, var(--ink) 22%, transparent);
   border-radius: 10px;
   padding: 0.55rem 0.9rem;
   transition:
@@ -563,8 +564,8 @@ html[data-vt="theme"]::view-transition-new(root) {
 }
 
 .code-summary:hover {
-  color: #b3123a;
-  border-color: rgb(179 18 58 / 0.4);
+  color: var(--rose);
+  border-color: color-mix(in oklab, var(--rose) 40%, transparent);
 }
 
 .code-summary::after {
@@ -572,7 +573,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-size: 9px;
-  color: #a29a89;
+  color: var(--faint);
 }
 
 .code-details[open] .code-summary {
@@ -592,8 +593,8 @@ html[data-vt="theme"]::view-transition-new(root) {
   width: 100%;
   margin-top: 1.25em;
   border-radius: 12px;
-  border: 1px solid rgb(23 20 15 / 0.08);
-  background: #fff;
+  border: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
+  background: var(--card);
   box-shadow: 0 12px 32px -20px rgba(23, 20, 15, 0.3);
 }
 
@@ -619,7 +620,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.25em;
-  color: #a29a89;
+  color: var(--faint);
   padding-left: 1rem;
   margin-bottom: 0.6rem;
 }
@@ -629,9 +630,9 @@ html[data-vt="theme"]::view-transition-new(root) {
   font-family: "Geist Mono Variable", monospace;
   font-size: 10px;
   line-height: 1.5;
-  color: #a29a89;
+  color: var(--faint);
   padding: 0.22rem 0 0.22rem 1rem;
-  border-left: 1px solid rgb(23 20 15 / 0.08);
+  border-left: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
   text-decoration: none;
   transition:
     color 150ms,
@@ -643,12 +644,12 @@ html[data-vt="theme"]::view-transition-new(root) {
 }
 
 .toc-item:hover {
-  color: #17140f;
+  color: var(--ink);
 }
 
 .toc-active {
-  color: #b3123a;
-  border-left-color: #b3123a;
+  color: var(--rose);
+  border-left-color: var(--rose);
 }
 
 .petal-stage {
@@ -661,7 +662,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   position: absolute;
   left: 50%;
   top: 0;
-  color: #ce2955;
+  color: var(--heat-3);
   font-family: "Geist Mono Variable", monospace;
   font-size: 15px;
   animation: petal-fall 3s linear both;

@@ -81,12 +81,12 @@ export const Route = createFileRoute("/blog/$slug")({
 
 function BlogNotFound() {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-[#faf8f2] px-7 text-center font-serif-display text-[#17140f] selection:bg-[#b3123a] selection:text-[#faf8f2]">
-      <p className="rise font-mono text-[#a29a89] text-xs italic">
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-paper px-7 text-center font-serif-display text-ink selection:bg-rose selection:text-paper">
+      <p className="rise font-mono text-faint text-xs italic">
         ( no such page. the rose checked. )
       </p>
       <Link
-        className="back-link rise mt-8 font-mono text-[#847c6c] text-xs"
+        className="back-link rise mt-8 font-mono text-muted text-xs"
         style={{ animationDelay: "120ms" }}
         to="/blog"
       >
@@ -125,7 +125,7 @@ function ReadingProgress() {
   return (
     <div
       aria-hidden="true"
-      className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-[#b3123a]"
+      className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-rose"
       style={{ transform: `scaleX(${progress})` }}
     />
   );
@@ -211,13 +211,13 @@ function PostPage() {
   }
 
   return (
-    <main className="min-h-dvh bg-[#faf8f2] px-7 py-14 font-serif-display text-[#17140f] selection:bg-[#b3123a] selection:text-[#faf8f2] md:py-24">
+    <main className="min-h-dvh bg-paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
       <ReadingProgress />
       <Toc entries={getToc(post.body)} />
       <div className="mx-auto w-full max-w-xl">
-        <header className="border-[#17140f]/10 border-b pb-8">
+        <header className="border-ink/10 border-b pb-8">
           <Link
-            className="back-link rise font-mono text-[#847c6c] text-xs"
+            className="back-link rise font-mono text-muted text-xs"
             to="/blog"
           >
             <span aria-hidden="true" className="back-arrow">
@@ -230,10 +230,10 @@ function PostPage() {
             style={{ viewTransitionName: `post-${post.slug}` }}
           >
             {post.title}
-            <span className="text-[#b3123a]">.</span>
+            <span className="text-rose">.</span>
           </h1>
           <p
-            className="rise mt-4 font-mono text-[#a29a89] text-[11px]"
+            className="rise mt-4 font-mono text-faint text-[11px]"
             style={{ animationDelay: "120ms" }}
           >
             {[
@@ -252,12 +252,12 @@ function PostPage() {
           <FallingPetal />
           <p
             aria-hidden="true"
-            className="font-mono text-[#a29a89] text-[11px] italic"
+            className="font-mono text-faint text-[11px] italic"
           >
             ( fin )
           </p>
           <Link
-            className="back-link mt-6 font-mono text-[#847c6c] text-xs"
+            className="back-link mt-6 font-mono text-muted text-xs"
             to="/blog"
           >
             <span aria-hidden="true" className="back-arrow">
