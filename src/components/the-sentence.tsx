@@ -73,7 +73,7 @@ export function TheSentence({
         tone?: "name";
       }
   )[] = [
-    "i'm ",
+    "hi, i'm ",
     {
       key: "name",
       href: identity.otherDomain,
@@ -87,16 +87,16 @@ export function TheSentence({
         />
       ),
     },
-    ". mostly i ",
+    ". i ",
     {
       key: "builds",
       href: LINKS.github,
       text: "build things",
       peek: <ProjectsPeek />,
     },
-    ". sometimes i ",
+    ", i ",
     { key: "writes", href: LINKS.blog, text: "write", peek: <PostsPeek /> },
-    ". i share a ",
+    " about some of them, share a ",
     {
       key: "garden",
       href: LINKS.flora,
@@ -116,27 +116,14 @@ export function TheSentence({
         />
       ),
     },
-    " with a friend, and there's always ",
+    " with friends, and usually have ",
     {
       key: "music",
       href: track?.url ?? LINKS.blog,
-      text: "music",
+      text: "something",
       peek: track ? <MusicPeek track={track} /> : null,
     },
-    ". ",
-    {
-      key: "hi",
-      href: LINKS.twitter,
-      text: "say hi",
-      peek: (
-        <TextPeek
-          center
-          href={LINKS.twitter}
-          line={`@${identity.handle}`}
-          sub="strangers welcome"
-        />
-      ),
-    },
+    " on. ",
   ];
 
   return (
@@ -161,7 +148,27 @@ export function TheSentence({
             </Fragment>
           )
         )}
-        {wrap(<span className="text-[#b3123a]">.</span>)}
+        {wrap(
+          <>
+            {"say "}
+            <Peek
+              hoverKey="hi"
+              href={LINKS.twitter}
+              onHover={onWordHover}
+              peek={
+                <TextPeek
+                  center
+                  href={LINKS.twitter}
+                  line={`@${identity.handle}`}
+                  sub="strangers welcome"
+                />
+              }
+            >
+              hi back
+            </Peek>
+            <span className="text-[#b3123a]">.</span>
+          </>
+        )}
       </h1>
       {identity.isMridul ? (
         <p
