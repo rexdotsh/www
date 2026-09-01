@@ -3,7 +3,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
-import { SITE_HEADERS } from "./src/lib/headers";
+import { SITE_HEADERS } from "./src/lib/headers.ts";
 
 const STATIC_ASSET_HEADERS = {
   headers: {
