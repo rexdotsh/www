@@ -1,7 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import type { SpotifyTrack } from "@/components/spotify";
 
 const POLL_INTERVAL = 60_000;
+
+export interface SpotifyTrack {
+  album: string;
+  artist: string;
+  id: string;
+  image: Array<{
+    "#text": string;
+    size: "small" | "medium" | "large";
+  }>;
+  isPlaying: boolean;
+  name: string;
+  url: string;
+}
 
 export interface NowPlayingState {
   previewUrl: string | null;

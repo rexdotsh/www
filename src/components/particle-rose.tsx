@@ -58,13 +58,17 @@ function colorFor(ch: string): string {
   return "#f0a0b2";
 }
 
+/** breathing room inside the canvas so modes never clip at the edges */
+const PADDING_RATIO = 0.08;
+
 function buildParticles(size: number, scattered: boolean): Particle[] {
   const lines = ASCII_ROSE.split("\n");
   const rows = lines.length;
   const cols = Math.max(...lines.map((line) => line.length));
-  const cellW = size / cols;
-  const cellH = size / rows;
-  const offsetY = (size - rows * cellH) / 2;
+  const pad = size * PADDING_RATIO;
+  const inner = size - pad * 2;
+  const cellW = inner / cols;
+  const cellH = inner / rows;
   const particles: Particle[] = [];
 
   for (let row = 0; row < rows; row += 1) {
@@ -74,8 +78,8 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
       if (ch === " ") {
         continue;
       }
-      const homeX = col * cellW + cellW / 2;
-      const homeY = offsetY + row * cellH + cellH / 2;
+      const homeX = pad + col * cellW + cellW / 2;
+      const homeY = pad + row * cellH + cellH / 2;
       particles.push({
         ch,
         cluster: particles.length % GARDEN_CENTERS.length,
@@ -93,9 +97,9 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
     }
   }
 
-  // tidy specimen-sheet grid, precomputed for "grid" mode
+  // tidy specimen-sheet grid, precomputed for "grid" and "art" modes
   const g = Math.ceil(Math.sqrt(particles.length));
-  const gridSpan = size * 0.8;
+  const gridSpan = size * 0.9;
   const gridCell = gridSpan / g;
   const gridOffset = (size - gridSpan) / 2;
   particles.forEach((p, index) => {
@@ -165,6 +169,8 @@ export default function ParticleRose({
     let startedAt = 0;
     let hasArt = false;
     let artImage: HTMLImageElement | null = null;
+    let baseFont = "";
+    let artFont = "";
     const pointer = { x: -9999, y: -9999 };
 
     // dress the grid in an image's pixels (album covers, mostly)
@@ -220,7 +226,11 @@ export default function ParticleRose({
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       particles = buildParticles(size, scattered && !reduceMotion);
       const rows = ASCII_ROSE.split("\n").length;
-      context.font = `600 ${(size / rows) * 1.05}px "Geist Mono Variable", monospace`;
+      const inner = size * (1 - PADDING_RATIO * 2);
+      baseFont = `600 ${(inner / rows) * 1.05}px "Geist Mono Variable", monospace`;
+      const gridCell = (size * 0.9) / Math.ceil(Math.sqrt(particles.length));
+      artFont = `700 ${gridCell * 1.5}px "Geist Mono Variable", monospace`;
+      context.font = baseFont;
       context.textAlign = "center";
       context.textBaseline = "middle";
       applyArt();
@@ -290,6 +300,8 @@ export default function ParticleRose({
       const elapsed = now - startedAt;
       const t = now / 1000;
       const repelRadius = size * 0.16;
+      const artMode = modeRef.current === "art" && hasArt;
+      context.font = artMode ? artFont : baseFont;
       context.clearRect(0, 0, size, size);
 
       for (const p of particles) {
@@ -319,11 +331,15 @@ export default function ParticleRose({
 
         const alpha = Math.min(1, (elapsed - p.activateAt) / 350);
         context.globalAlpha = alpha * dimRef.current;
-        context.fillStyle =
-          modeRef.current === "art" && hasArt && p.artColor
-            ? p.artColor
-            : p.color;
-        context.fillText(p.ch, p.x, p.y);
+        // in art mode every particle becomes a dense uniform glyph so the
+        // cover reads as a proper mosaic instead of thin punctuation
+        if (artMode && p.artColor) {
+          context.fillStyle = p.artColor;
+          context.fillText("#", p.x, p.y);
+        } else {
+          context.fillStyle = p.color;
+          context.fillText(p.ch, p.x, p.y);
+        }
       }
       context.globalAlpha = 1;
       raf = requestAnimationFrame(tick);

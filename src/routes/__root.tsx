@@ -1,5 +1,4 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
 import NotFoundPage from "@/components/not-found";
 import { SITE_HEADERS } from "@/lib/headers";
@@ -116,26 +115,11 @@ function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta
-          content="#f2ecdf"
-          media="(prefers-color-scheme: light)"
-          name="theme-color"
-        />
-        <meta
-          content="#030303"
-          media="(prefers-color-scheme: dark)"
-          name="theme-color"
-        />
+        <meta content="#faf8f2" name="theme-color" />
         <HeadContent />
       </head>
       <body className="antialiased">
-        <ThemeProvider
-          attribute="data-theme"
-          defaultTheme="system"
-          enableSystem
-        >
-          {children}
-        </ThemeProvider>
+        {children}
         <Scripts />
       </body>
     </html>

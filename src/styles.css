@@ -4,79 +4,23 @@
 @import "@fontsource/instrument-serif/400-italic.css";
 @import "@fontsource-variable/newsreader";
 @import "@fontsource-variable/newsreader/wght-italic.css";
-@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
-  --animate-fade-in: fade-in 300ms ease-in forwards;
   --font-mono: "Geist Mono Variable", monospace;
   --font-serif-display: "Instrument Serif", Georgia, serif;
   --font-serif-body: "Newsreader Variable", Georgia, serif;
   --ease-strong: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-inout-strong: cubic-bezier(0.77, 0, 0.175, 1);
   --color-background: var(--background);
-  --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
-  --color-surface: var(--surface);
-  --color-surface-hover: var(--surface-hover);
-  --color-border: var(--border);
-  --color-border-hover: var(--border-hover);
-}
-
-/* animation for switching themes */
-::view-transition-group(root) {
-  animation-timing-function: var(--expo-out);
-}
-
-::view-transition-new(root) {
-  mask:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3Cfilter id='blur'%3E%3CfeGaussianBlur stdDeviation='2'/%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='40' cy='0' r='18' fill='white' filter='url(%23blur)'/%3E%3C/svg%3E")
-    top right / 0 no-repeat;
-  mask-origin: content-box;
-  animation: scale 1s;
-  /* for chrome 140 compatibility, else `both` is default 
-  https://github.com/rudrodip/theme-toggle-effect/issues/1 
-  haven't tested, but better to be safe. same effect visually. */
-  animation-fill-mode: forwards;
-  transform-origin: top right;
-}
-
-::view-transition-old(root),
-[data-theme="dark"]::view-transition-old(root) {
-  animation: scale 1s;
-  /* see comment above */
-  animation-fill-mode: forwards;
-  transform-origin: top right;
-  z-index: -1;
 }
 
 :root {
-  --bar-timing: ease-in-out infinite;
-  --expo-out: cubic-bezier(0.16, 1, 0.3, 1);
-
-  /* light mode */
-  --background: #f2ecdf;
-  --primary: #be123c;
-  --primary-hover: #f43f5e;
-  --secondary: #92400eb3;
-  --accent: #be123c;
-  --surface: #fffbeb99;
-  --surface-hover: #fffbebe6;
-  --border: #fde68a99;
-  --border-hover: #fcd34dcc;
-}
-
-[data-theme="dark"] {
-  --background: #030303;
-  --primary: #ffffff;
-  --primary-hover: #f43f5ecc;
-  --secondary: #737373;
-  --accent: #fb7185cc;
-  --surface: #17171780;
-  --surface-hover: #262626cc;
-  --border: #262626;
-  --border-hover: #404040;
+  --background: #faf8f2;
+  --primary-hover: #b3123a;
+  --secondary: #847c6c;
+  --accent: #b3123a;
 }
 
 body {
@@ -84,81 +28,7 @@ body {
   font-family: "Geist Mono Variable", monospace;
 }
 
-@keyframes scale {
-  to {
-    mask-size: 350vmax;
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes scale-y {
-  0%,
-  100% {
-    transform: scaleY(var(--scale-min));
-  }
-  50% {
-    transform: scaleY(var(--scale-max));
-  }
-}
-
-.animate-bar-1 {
-  --scale-min: 0.8;
-  --scale-max: 1;
-  animation: scale-y 1.4s var(--bar-timing);
-}
-
-.animate-bar-2 {
-  --scale-min: 0.9;
-  --scale-max: 0.7;
-  animation: scale-y 1.6s var(--bar-timing);
-}
-
-.animate-bar-3 {
-  --scale-min: 0.85;
-  --scale-max: 0.75;
-  animation: scale-y 1.2s var(--bar-timing);
-}
-
-.rose-container {
-  width: clamp(150px, 70vw, 270px);
-  margin-left: 1.5rem;
-  aspect-ratio: 1;
-  position: relative;
-}
-
-@media (min-width: 768px) {
-  .rose-container {
-    width: clamp(240px, 30vw, 320px);
-    margin-left: 0;
-    margin-inline: auto;
-  }
-}
-
-@media (min-width: 1024px) {
-  .rose-container {
-    width: clamp(270px, 18vw, 310px);
-  }
-}
-
-@media (min-width: 1440px) {
-  .rose-container {
-    width: clamp(310px, 16vw, 360px);
-  }
-}
-
-/* ---------------------------------------------------------------------------
-   redesign candidates — shared motion + per-design atmosphere
-   (delete unused blocks once a winner is picked)
---------------------------------------------------------------------------- */
-
+/* entrances */
 @keyframes rise-in {
   from {
     opacity: 0;
@@ -175,7 +45,7 @@ body {
   animation: rise-in 600ms var(--ease-strong) forwards;
 }
 
-/* the sentence — words typeset themselves on load (encore) */
+/* the sentence typesets itself word by word on load */
 @keyframes word-in {
   from {
     opacity: 0;
@@ -193,7 +63,7 @@ body {
   animation: word-in 550ms var(--ease-strong) backwards;
 }
 
-/* the sentence — media peek cards, with a springy pop */
+/* media peek cards, with a springy pop */
 .peek {
   position: absolute;
   bottom: calc(100% + 0.5em);
@@ -225,11 +95,5 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-
-  ::view-transition-group(root),
-  ::view-transition-new(root),
-  ::view-transition-old(root) {
-    animation: none;
   }
 }

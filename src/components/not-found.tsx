@@ -73,7 +73,7 @@ function ScrambleLink({ text, to }: { text: string; to: "/" }) {
 
   return (
     <Link
-      className="mt-1.5 text-lg text-secondary transition-colors duration-200 hover:text-primary-hover dark:hover:text-white"
+      className="mt-1.5 text-lg text-secondary transition-colors duration-200 hover:text-primary-hover"
       to={to}
       onMouseEnter={start}
       onMouseLeave={stop}

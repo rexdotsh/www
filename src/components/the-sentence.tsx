@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import type { SpotifyTrack } from "@/components/spotify";
 import {
   getIdentity,
   getNavLinks,
@@ -7,6 +6,7 @@ import {
   PROJECTS,
   type SiteIdentity,
 } from "@/lib/content";
+import type { SpotifyTrack } from "@/lib/use-now-playing";
 
 /** the words that can conduct something (see encore's rose modes) */
 export type SentenceWord =
