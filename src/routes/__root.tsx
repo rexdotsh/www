@@ -1,7 +1,6 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
-import ThemeToggle from "@/components/theme-toggle";
 import NotFoundPage from "@/components/not-found";
 import { SITE_HEADERS } from "@/lib/headers";
 import { getSiteInfo } from "@/lib/site";
@@ -136,7 +135,6 @@ function RootDocument({ children }: { children: ReactNode }) {
           enableSystem
         >
           {children}
-          <ThemeToggle />
         </ThemeProvider>
         <Scripts />
       </body>

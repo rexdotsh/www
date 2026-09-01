@@ -1,10 +1,26 @@
 @import "tailwindcss";
 @import "@fontsource-variable/geist-mono";
+@import "@fontsource/instrument-serif";
+@import "@fontsource/instrument-serif/400-italic.css";
+@import "@fontsource-variable/newsreader";
+@import "@fontsource-variable/newsreader/wght-italic.css";
+@import "@fontsource/archivo-black";
+@import "@fontsource-variable/archivo";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/hanken-grotesk";
 @variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
   --animate-fade-in: fade-in 300ms ease-in forwards;
   --font-mono: "Geist Mono Variable", monospace;
+  --font-serif-display: "Instrument Serif", Georgia, serif;
+  --font-serif-body: "Newsreader Variable", Georgia, serif;
+  --font-grotesk-black: "Archivo Black", "Arial Black", sans-serif;
+  --font-grotesk: "Archivo Variable", sans-serif;
+  --font-round: "Bricolage Grotesque Variable", sans-serif;
+  --font-soft: "Hanken Grotesk Variable", sans-serif;
+  --ease-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-inout-strong: cubic-bezier(0.77, 0, 0.175, 1);
   --color-background: var(--background);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
@@ -144,6 +160,147 @@ body {
   .rose-container {
     width: clamp(310px, 16vw, 360px);
   }
+}
+
+/* ---------------------------------------------------------------------------
+   redesign candidates — shared motion + per-design atmosphere
+   (delete unused blocks once a winner is picked)
+--------------------------------------------------------------------------- */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise {
+  opacity: 0;
+  animation: rise-in 600ms var(--ease-strong) forwards;
+}
+
+@keyframes blink-cursor {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.cursor-blink {
+  animation: blink-cursor 1.1s step-end infinite;
+}
+
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee-x 24s linear infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+.breathe {
+  animation: breathe 7s var(--ease-inout-strong) infinite;
+}
+
+@keyframes drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(6%, -8%);
+  }
+}
+
+@keyframes drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-8%, 6%);
+  }
+}
+
+.drift-a {
+  animation: drift-a 26s var(--ease-inout-strong) infinite;
+}
+
+.drift-b {
+  animation: drift-b 32s var(--ease-inout-strong) infinite;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-slow {
+  animation: spin-slow 9s linear infinite;
+}
+
+/* terminal — faint scanlines */
+.scanlines::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(255, 255, 255, 0.022) 2px,
+    rgba(255, 255, 255, 0.022) 4px
+  );
+}
+
+/* ambient — film grain */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* editorial — dotted leaders in the table of contents */
+.toc-leader {
+  flex: 1;
+  margin-inline: 0.6em;
+  border-bottom: 2px dotted currentColor;
+  opacity: 0.35;
+  transform: translateY(-0.3em);
+}
+
+/* playful — polka dot paper */
+.dotted-paper {
+  background-image: radial-gradient(rgba(214, 66, 102, 0.13) 1.2px, transparent 1.2px);
+  background-size: 22px 22px;
 }
 
 @media (prefers-reduced-motion: reduce) {
