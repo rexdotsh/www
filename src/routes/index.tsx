@@ -146,7 +146,7 @@ function Home() {
           {/* on phones the peek docks at the bottom — the rose steps
               up out of its way while a word is armed */}
           <div
-            className={`flex flex-col items-center transition-transform duration-300 ease-strong ${word ? "max-md:-translate-y-28" : ""}`}
+            className={`flex flex-col items-center transition-transform duration-300 ease-strong ${word ? "max-md:-translate-y-16" : ""}`}
           >
             <ParticleRose
               artUrl={albumArt}
