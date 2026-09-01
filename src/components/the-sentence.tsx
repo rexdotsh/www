@@ -214,7 +214,7 @@ function Peek({
   tone?: "link" | "name";
 }) {
   const [armed, setArmed] = useState(false);
-  const anchorRef = useRef<HTMLAnchorElement>(null);
+  const wrapperRef = useRef<HTMLSpanElement>(null);
 
   const report = (word: SentenceWord | null) => {
     if (onHover && hoverKey) {
@@ -240,7 +240,7 @@ function Peek({
       return;
     }
     const onDocumentPointerDown = (event: PointerEvent) => {
-      if (!anchorRef.current?.contains(event.target as Node)) {
+      if (!wrapperRef.current?.contains(event.target as Node)) {
         setArmed(false);
         onHover?.(null);
       }
@@ -251,37 +251,37 @@ function Peek({
   }, [armed, onHover]);
 
   return (
-    <a
-      className={`peek-trigger relative inline-block underline decoration-[0.04em] underline-offset-[0.14em] transition-[text-decoration-color] duration-150 ${
-        tone === "name"
-          ? "text-[#17140f] decoration-dotted decoration-[#17140f]/30 hover:decoration-[#17140f]/70"
-          : "text-[#b3123a] italic decoration-[#b3123a]/30 hover:decoration-[#b3123a]"
-      }`}
+    <span
+      className="peek-trigger relative inline-block"
       data-peek-open={armed ? "" : undefined}
-      href={href}
-      onBlur={() => {
-        setArmed(false);
-        report(null);
-      }}
-      onClick={handleClick}
-      onFocus={() => report(hoverKey ?? null)}
       onPointerEnter={() => report(hoverKey ?? null)}
       onPointerLeave={() => {
         if (!armed) {
           report(null);
         }
       }}
-      ref={anchorRef}
-      rel="noopener noreferrer"
-      target="_blank"
+      ref={wrapperRef}
     >
-      {children}
-      {peek ? (
-        <span aria-hidden="true" className="peek">
-          {peek}
-        </span>
-      ) : null}
-    </a>
+      <a
+        className={`underline decoration-[0.04em] underline-offset-[0.14em] transition-[text-decoration-color] duration-150 ${
+          tone === "name"
+            ? "text-[#17140f] decoration-dotted decoration-[#17140f]/30 hover:decoration-[#17140f]/70"
+            : "text-[#b3123a] italic decoration-[#b3123a]/30 hover:decoration-[#b3123a]"
+        }`}
+        href={href}
+        onBlur={() => {
+          setArmed(false);
+          report(null);
+        }}
+        onClick={handleClick}
+        onFocus={() => report(hoverKey ?? null)}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        {children}
+      </a>
+      {peek ? <span className="peek">{peek}</span> : null}
+    </span>
   );
 }
 
@@ -397,14 +397,20 @@ function ProjectsPeek() {
         lately
       </span>
       {PROJECTS.map((project) => (
-        <span className="mt-2 block" key={project.name}>
-          <span className="block font-bold text-[#17140f] text-xs">
+        <a
+          className="group mt-2 block"
+          href={project.href}
+          key={project.name}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <span className="block font-bold text-[#17140f] text-xs group-hover:text-[#b3123a]">
             {project.name}
           </span>
           <span className="block truncate text-[#847c6c] text-[11px]">
             {project.description}
           </span>
-        </span>
+        </a>
       ))}
       {graph && graph.weeks.length > 0 ? <Heatmap {...graph} /> : null}
     </PeekCard>
@@ -418,14 +424,20 @@ function PostsPeek() {
         recent writing
       </span>
       {POSTS.map((post) => (
-        <span className="mt-2 block" key={post.title}>
-          <span className="block truncate text-[#17140f] text-xs">
+        <a
+          className="group mt-2 block"
+          href={post.href}
+          key={post.title}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <span className="block truncate text-[#17140f] text-xs group-hover:text-[#b3123a]">
             {post.title}
           </span>
           <span className="block text-[#847c6c] text-[10px] tabular-nums">
             {post.date}
           </span>
-        </span>
+        </a>
       ))}
     </PeekCard>
   );
@@ -469,7 +481,12 @@ function MusicPeek({ track }: { track: SpotifyTrack }) {
     track.image.find((image) => image.size === "medium")?.["#text"] ?? "";
   return (
     <PeekCard compact={!isPlaying}>
-      <span className={`flex items-center ${isPlaying ? "gap-3" : "gap-2.5"}`}>
+      <a
+        className={`group flex items-center ${isPlaying ? "gap-3" : "gap-2.5"}`}
+        href={track.url}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
         {albumArt ? (
           <img
             alt=""
@@ -485,7 +502,7 @@ function MusicPeek({ track }: { track: SpotifyTrack }) {
           <span className="block whitespace-nowrap text-[#a29a89] text-[9px] uppercase tracking-[0.2em]">
             {isPlaying ? "right now" : "last played"}
           </span>
-          <span className="block truncate font-bold text-[#17140f] text-xs">
+          <span className="block truncate font-bold text-[#17140f] text-xs group-hover:text-[#b3123a]">
             {track.name}
           </span>
           <span className="block truncate text-[#847c6c] text-[11px]">
@@ -493,7 +510,7 @@ function MusicPeek({ track }: { track: SpotifyTrack }) {
           </span>
         </span>
         {isPlaying ? <WaveEq /> : null}
-      </span>
+      </a>
     </PeekCard>
   );
 }

@@ -11,9 +11,11 @@ export type RoseMode =
   | "wave"
   | "lines";
 
+type Rgb = [number, number, number];
+
 interface Particle {
   activateAt: number;
-  artColor?: string;
+  art?: Rgb;
   ch: string;
   cluster: number;
   color: string;
@@ -21,6 +23,7 @@ interface Particle {
   gridY: number;
   homeX: number;
   homeY: number;
+  rgb: Rgb;
   vx: number;
   vy: number;
   x: number;
@@ -49,6 +52,11 @@ const RAMP: [string, string][] = [
   ["*+", "#ce2955"],
   [";:", "#e35c7c"],
 ];
+const toRgb = (hex: string): Rgb => [
+  Number.parseInt(hex.slice(1, 3), 16),
+  Number.parseInt(hex.slice(3, 5), 16),
+  Number.parseInt(hex.slice(5, 7), 16),
+];
 const colorFor = (ch: string) =>
   RAMP.find(([glyphs]) => glyphs.includes(ch))?.[1] ?? "#f0a0b2";
 
@@ -71,10 +79,12 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
       }
       const homeX = pad + col * cellW + cellW / 2;
       const homeY = pad + row * cellH + cellH / 2;
+      const color = colorFor(ch);
       particles.push({
         ch,
         cluster: particles.length % GARDEN_CENTERS.length,
-        color: colorFor(ch),
+        color,
+        rgb: toRgb(color),
         homeX,
         homeY,
         gridX: homeX,
@@ -100,18 +110,28 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
 }
 
 export default function ParticleRose({
+  artFade = 0,
   artUrl = null,
   className = "",
   mode = "rest",
+  onTap,
+  tappable = false,
 }: {
+  artFade?: number;
   artUrl?: string | null;
   className?: string;
   mode?: RoseMode;
+  onTap?: () => void;
+  tappable?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const modeRef = useRef<RoseMode>(mode);
   modeRef.current = mode;
+  const artFadeRef = useRef(artFade);
+  artFadeRef.current = artFade;
+  const onTapRef = useRef(onTap);
+  onTapRef.current = onTap;
   const loadArtRef = useRef<(url: string | null) => void>(() => undefined);
 
   useEffect(() => {
@@ -154,13 +174,13 @@ export default function ParticleRose({
         const { data } = samplerContext.getImageData(0, 0, g, g);
         particles.forEach((p, index) => {
           const o = index * 4;
-          p.artColor = `rgb(${data[o]},${data[o + 1]},${data[o + 2]})`;
+          p.art = [data[o], data[o + 1], data[o + 2]];
         });
         hasArt = true;
       } catch {
         // canvas tainted — art mode falls back to a pulse
         for (const p of particles) {
-          p.artColor = undefined;
+          p.art = undefined;
         }
       }
     };
@@ -283,8 +303,16 @@ export default function ParticleRose({
         p.y += p.vy;
 
         context.globalAlpha = Math.min(1, (elapsed - p.activateAt) / 350);
-        context.fillStyle = artMode && p.artColor ? p.artColor : p.color;
-        context.fillText(artMode && p.artColor ? "#" : p.ch, p.x, p.y);
+        if (artMode && p.art) {
+          const k = artFadeRef.current ** 1.5;
+          const [r, g, b] = p.art;
+          const [rr, rg, rb] = p.rgb;
+          context.fillStyle = `rgb(${r + (rr - r) * k},${g + (rg - g) * k},${b + (rb - b) * k})`;
+          context.fillText("#", p.x, p.y);
+        } else {
+          context.fillStyle = p.color;
+          context.fillText(p.ch, p.x, p.y);
+        }
       }
       context.globalAlpha = 1;
       raf = requestAnimationFrame(tick);
@@ -330,6 +358,7 @@ export default function ParticleRose({
           p.vy += (dy / dist) * force;
         }
       }
+      onTapRef.current?.();
     };
 
     let cancelled = false;
@@ -367,7 +396,7 @@ export default function ParticleRose({
 
   return (
     <div
-      className={`relative aspect-square cursor-crosshair ${className}`}
+      className={`relative aspect-square ${tappable ? "cursor-pointer" : "cursor-crosshair"} ${className}`}
       ref={containerRef}
     >
       <canvas

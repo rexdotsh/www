@@ -21,7 +21,8 @@
     "@tanstack/react-router": "^1.170.32",
     "@tanstack/react-start": "^1.168.49",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "react-use-audio-player": "^4.0.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.11",

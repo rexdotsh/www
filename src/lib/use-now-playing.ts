@@ -17,9 +17,11 @@ export interface SpotifyTrack {
 
 export function useNowPlaying() {
   const [track, setTrack] = useState<SpotifyTrack | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout> | undefined;
+    let previewId: string | undefined;
     const abortController = new AbortController();
 
     const poll = async () => {
@@ -28,7 +30,19 @@ export function useNowPlaying() {
           signal: abortController.signal,
         });
         if (response.ok) {
-          setTrack((await response.json()) as SpotifyTrack | null);
+          const data = (await response.json()) as SpotifyTrack | null;
+          setTrack(data);
+          if (data && data.id !== previewId) {
+            previewId = data.id;
+            setPreviewUrl(null);
+            const preview = await fetch(`/api/spotify/preview/${data.id}`, {
+              signal: abortController.signal,
+            });
+            if (preview.ok) {
+              const { url } = (await preview.json()) as { url?: string };
+              setPreviewUrl(url ?? null);
+            }
+          }
         }
       } catch {
         // ignore aborts and network hiccups; next poll retries
@@ -45,5 +59,5 @@ export function useNowPlaying() {
     };
   }, []);
 
-  return { track };
+  return { track, previewUrl };
 }
