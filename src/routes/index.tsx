@@ -53,14 +53,17 @@ const MAGNET_MAX = 5;
  * word gets its own hardcoded lift.
  */
 const LIFTS: Record<SentenceWord, string> = {
-  name: "max-md:-translate-y-[93px]",
+  name: "max-md:-translate-y-[73px]",
   builds: "max-md:-translate-y-[153px]",
   writes: "max-md:-translate-y-[150px]",
-  garden: "max-md:-translate-y-[74px]",
+  garden: "max-md:-translate-y-[66px]",
   music: "max-md:-translate-y-[78px]",
-  hi: "max-md:-translate-y-[62px]",
+  hi: "max-md:-translate-y-[54px]",
   resume: "max-md:-translate-y-[94px]",
 };
+
+/** the last-played music card is the compact one — less card, less lift */
+const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[64px]";
 
 function Home() {
   const { hostname } = rootRoute.useLoaderData();
@@ -82,6 +85,13 @@ function Home() {
     }
     return CAPTIONS[word];
   })();
+
+  const liftClass =
+    word === "music" && !track?.isPlaying
+      ? MUSIC_COMPACT_LIFT
+      : word
+        ? LIFTS[word]
+        : "";
 
   // magnetic link words — they lean toward a nearby cursor
   useEffect(() => {
@@ -159,7 +169,7 @@ function Home() {
           style={{ animationDelay: "200ms" }}
         >
           <div
-            className={`flex flex-col items-center transition-transform duration-300 ease-strong ${word ? LIFTS[word] : ""}`}
+            className={`flex flex-col items-center transition-transform duration-300 ease-strong ${liftClass}`}
           >
             <ParticleRose
               artUrl={albumArt}

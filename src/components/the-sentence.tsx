@@ -300,9 +300,19 @@ function Peek({
   );
 }
 
-function PeekCard({ children }: { children: ReactNode }) {
+function PeekCard({
+  children,
+  compact = false,
+}: {
+  children: ReactNode;
+  compact?: boolean;
+}) {
   return (
-    <span className="block w-60 rounded-xl border border-[#17140f]/10 bg-white p-4 text-left font-mono not-italic shadow-[0_16px_40px_-16px_rgba(23,20,15,0.35)]">
+    <span
+      className={`block rounded-xl border border-[#17140f]/10 bg-white text-left font-mono not-italic shadow-[0_16px_40px_-16px_rgba(23,20,15,0.35)] ${
+        compact ? "w-fit max-w-60 p-3" : "w-60 p-4"
+      }`}
+    >
       {children}
     </span>
   );
@@ -310,16 +320,15 @@ function PeekCard({ children }: { children: ReactNode }) {
 
 function IdentityPeek({ identity }: { identity: SiteIdentity }) {
   return (
-    <PeekCard>
-      <span className="block text-[#a29a89] text-[9px] uppercase tracking-[0.25em]">
-        {identity.isMridul ? "online, goes by" : "offline, answers to"}
+    <PeekCard compact>
+      <span className="block whitespace-nowrap text-[#a29a89] text-[9px] uppercase tracking-[0.25em]">
+        {identity.isMridul ? "internet name" : "government name"}
       </span>
       <span className="mt-1 block font-bold text-[#17140f] text-sm">
         {identity.otherName}
       </span>
-      <span className="mt-1 block text-[#847c6c] text-[10px]">
-        same person, different font of self →{" "}
-        {identity.otherDomain.replace("https://", "")}
+      <span className="mt-1 block whitespace-nowrap text-[#847c6c] text-[10px]">
+        → {identity.otherDomain.replace("https://", "")}
       </span>
     </PeekCard>
   );
@@ -383,12 +392,49 @@ function PostsPeek() {
 
 function FloraPeek() {
   return (
-    <PeekCard>
-      <span className="block text-center text-[#17140f] text-xs">flora</span>
-      <span className="mt-1 block text-center text-[#847c6c] text-[10px]">
-        an open canvas for images, built with friends
+    <PeekCard compact>
+      <span className="block whitespace-nowrap text-center text-[#17140f] text-xs">
+        flora
+      </span>
+      <span className="mt-1 block whitespace-nowrap text-center text-[#847c6c] text-[10px]">
+        random things for the web,
+        <br />
+        grown with friends
       </span>
     </PeekCard>
+  );
+}
+
+const WAVE_CELLS = [
+  "wave-p1",
+  "wave-p3",
+  "wave-p5",
+  "wave-p5",
+  "wave-p3",
+  "wave-p1",
+];
+
+/** compact symmetric dot-matrix wave — the row's "this is playing" meter */
+function WaveEq() {
+  return (
+    <span
+      aria-hidden="true"
+      className="relative flex h-[1em] select-none overflow-hidden font-mono text-[#b3123a] text-[10px]"
+    >
+      {WAVE_CELLS.map((cell, index) => (
+        <span
+          className="relative flex h-full w-[1ch] items-center justify-center"
+          key={`${cell}-${index}`}
+        >
+          <span className="opacity-30">░</span>
+          <span
+            className={`absolute inset-0 flex items-center justify-center ${cell}`}
+          >
+            █
+          </span>
+        </span>
+      ))}
+    </span>
   );
 }
 
@@ -404,21 +450,21 @@ function MusicPeek({
   name: string;
 }) {
   return (
-    <PeekCard>
-      <span className="flex items-center gap-3">
+    <PeekCard compact={!isPlaying}>
+      <span className={`flex items-center ${isPlaying ? "gap-3" : "gap-2.5"}`}>
         {albumArt ? (
           <img
             alt=""
-            className="h-12 w-12 rounded-md object-cover"
-            height={48}
+            className={`rounded-md object-cover ${isPlaying ? "h-12 w-12" : "h-9 w-9"}`}
+            height={isPlaying ? 48 : 36}
             loading="lazy"
             referrerPolicy="no-referrer"
             src={albumArt}
-            width={48}
+            width={isPlaying ? 48 : 36}
           />
         ) : null}
-        <span className="min-w-0">
-          <span className="block text-[#a29a89] text-[9px] uppercase tracking-[0.2em]">
+        <span className="min-w-0 flex-1">
+          <span className="block whitespace-nowrap text-[#a29a89] text-[9px] uppercase tracking-[0.2em]">
             {isPlaying ? "right now" : "last played"}
           </span>
           <span className="block truncate font-bold text-[#17140f] text-xs">
@@ -428,6 +474,7 @@ function MusicPeek({
             {artist}
           </span>
         </span>
+        {isPlaying ? <WaveEq /> : null}
       </span>
     </PeekCard>
   );
@@ -435,11 +482,11 @@ function MusicPeek({
 
 function HiPeek({ handle }: { handle: string }) {
   return (
-    <PeekCard>
-      <span className="block text-center text-[#17140f] text-xs">
+    <PeekCard compact>
+      <span className="block whitespace-nowrap text-center text-[#17140f] text-xs">
         @{handle}
       </span>
-      <span className="mt-1 block text-center text-[#847c6c] text-[10px]">
+      <span className="mt-1 block whitespace-nowrap text-center text-[#847c6c] text-[10px]">
         dms open, probably
       </span>
     </PeekCard>

@@ -113,6 +113,128 @@ body {
   }
 }
 
+/* music peek — symmetric dot-matrix wave, shown while a track is playing.
+   ten cells, five phases mirrored, peaks colliding at the center */
+@keyframes wave-p1 {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  12.5%,
+  87.5% {
+    opacity: 0.6;
+  }
+  25%,
+  75% {
+    opacity: 0.3;
+  }
+  37.5%,
+  50%,
+  62.5% {
+    opacity: 0;
+  }
+}
+
+@keyframes wave-p2 {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  12.5%,
+  87.5% {
+    opacity: 1;
+  }
+  25%,
+  75% {
+    opacity: 0.6;
+  }
+  37.5%,
+  62.5% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes wave-p3 {
+  0%,
+  50%,
+  100% {
+    opacity: 0.3;
+  }
+  12.5%,
+  87.5% {
+    opacity: 0.6;
+  }
+  25%,
+  75% {
+    opacity: 1;
+  }
+  37.5%,
+  62.5% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes wave-p4 {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  12.5%,
+  87.5% {
+    opacity: 0.3;
+  }
+  25%,
+  75% {
+    opacity: 0.6;
+  }
+  37.5%,
+  62.5% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes wave-p5 {
+  0%,
+  12.5%,
+  87.5%,
+  100% {
+    opacity: 0;
+  }
+  25%,
+  75% {
+    opacity: 0.3;
+  }
+  37.5%,
+  62.5% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.wave-p1 {
+  animation: wave-p1 2s linear infinite;
+}
+.wave-p2 {
+  animation: wave-p2 2s linear infinite;
+}
+.wave-p3 {
+  animation: wave-p3 2s linear infinite;
+}
+.wave-p4 {
+  animation: wave-p4 2s linear infinite;
+}
+.wave-p5 {
+  animation: wave-p5 2s linear infinite;
+}
+
 /* on phones the peek detaches from the word and docks near the thumb —
    a small card floating above the bottom edge */
 @media (max-width: 767px) {

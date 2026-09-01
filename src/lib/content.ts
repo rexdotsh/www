@@ -60,7 +60,7 @@ export const PROJECTS: Project[] = [
   },
   {
     name: "flora",
-    description: "an open canvas for images, built with friends",
+    description: "random utilities for the web, with friends",
     href: "https://floraorg.github.io",
     language: "typescript",
     year: "2025",
