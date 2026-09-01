@@ -1,28 +1,20 @@
 import { useState } from "react";
 import ParticleRose from "@/designs/particle-rose";
 import { TheSentence } from "@/designs/sentence-core";
-import { getIdentity } from "@/lib/content";
 import { useNowPlaying } from "@/lib/use-now-playing";
 
 /**
- * design 3 — "duet"
- * bloom + one sentence, sharing the stage: the giant sentence carries
- * the words, the particle rose carries the play. two instruments, one
- * quiet room.
+ * design 1 — "duet"
+ * the giant sentence carries the words, the particle rose carries the
+ * play. two instruments, one quiet room.
  */
 export default function DuetDesign({ hostname }: { hostname: string }) {
-  const identity = getIdentity(hostname);
   const { track } = useNowPlaying();
   const [touched, setTouched] = useState(false);
 
   return (
     <main className="fixed inset-0 overflow-y-auto bg-[#faf8f2] font-serif-display text-[#17140f] selection:bg-[#b3123a] selection:text-[#faf8f2]">
-      {/* wordmark */}
-      <span className="absolute top-5 left-6 font-mono text-[#a29a89] text-[10px] uppercase tracking-[0.3em]">
-        {identity.domain}
-      </span>
-
-      <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col items-center gap-10 px-6 py-24 md:flex-row md:gap-14 md:px-12">
+      <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col items-center gap-10 px-6 py-16 md:flex-row md:gap-14 md:px-12">
         {/* the sentence */}
         <div className="rise order-2 max-w-2xl flex-1 md:order-1">
           <TheSentence
@@ -49,11 +41,6 @@ export default function DuetDesign({ hostname }: { hostname: string }) {
           </p>
         </div>
       </div>
-
-      {/* footnote */}
-      <p className="absolute bottom-5 left-6 font-mono text-[#a29a89] text-[10px] uppercase tracking-[0.25em]">
-        © {new Date().getFullYear()} — that's the whole site
-      </p>
     </main>
   );
 }

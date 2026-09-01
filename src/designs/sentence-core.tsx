@@ -9,11 +9,12 @@ import {
 } from "@/lib/content";
 
 /**
- * the sentence itself — shared by "one sentence" and "duet".
+ * the sentence itself — shared by every design on the duet scheme.
  *
  * persona-aware: the subject of the sentence is whoever the domain says
- * it is. hovering the name reveals the other identity; on mridul.sh the
- * sentence also keeps a resume for the professionally curious.
+ * it is. hovering the name reveals the other identity; on mridul.sh a
+ * quiet aside below the sentence keeps the resume, so the sentence
+ * itself never gets crowded.
  */
 export function TheSentence({
   className = "",
@@ -40,58 +41,58 @@ export function TheSentence({
     track?.image.find((image) => image.size === "medium")?.["#text"] ?? "";
 
   return (
-    <h1 className={className}>
-      <Peek
-        href={identity.otherDomain}
-        peek={<IdentityPeek identity={identity} />}
-        tone="name"
-      >
-        {identity.name}
-      </Peek>{" "}
-      <Peek href={github} peek={<ProjectsPeek />}>
-        builds things
-      </Peek>{" "}
-      on the internet,{" "}
-      <Peek href={blog} peek={<PostsPeek />}>
-        writes
-      </Peek>{" "}
-      sometimes, grows a{" "}
-      <Peek href={flora} peek={<FloraPeek />}>
-        garden
-      </Peek>{" "}
-      with friends, listens to{" "}
-      <Peek
-        href={track?.url ?? blog}
-        peek={
-          track ? (
-            <MusicPeek
-              albumArt={albumArt}
-              artist={track.artist}
-              isPlaying={track.isPlaying}
-              name={track.name}
-            />
-          ) : null
-        }
-      >
-        music
-      </Peek>{" "}
-      constantly,
+    <>
+      <h1 className={className}>
+        <Peek
+          href={identity.otherDomain}
+          peek={<IdentityPeek identity={identity} />}
+          tone="name"
+        >
+          {identity.name}
+        </Peek>{" "}
+        <Peek href={github} peek={<ProjectsPeek />}>
+          builds things
+        </Peek>{" "}
+        on the internet,{" "}
+        <Peek href={blog} peek={<PostsPeek />}>
+          writes
+        </Peek>{" "}
+        sometimes, grows a{" "}
+        <Peek href={flora} peek={<FloraPeek />}>
+          garden
+        </Peek>{" "}
+        with friends, listens to{" "}
+        <Peek
+          href={track?.url ?? blog}
+          peek={
+            track ? (
+              <MusicPeek
+                albumArt={albumArt}
+                artist={track.artist}
+                isPlaying={track.isPlaying}
+                name={track.name}
+              />
+            ) : null
+          }
+        >
+          music
+        </Peek>{" "}
+        constantly, and thinks you should{" "}
+        <Peek href={social} peek={<HiPeek handle={identity.handle} />}>
+          say hi
+        </Peek>
+        <span className="text-[#b3123a]">.</span>
+      </h1>
       {identity.isMridul ? (
-        <>
-          {" "}
-          keeps a{" "}
+        <p className="mt-6 text-[#847c6c] text-[clamp(1rem,1.7vw,1.3rem)] italic leading-snug">
+          ( he also keeps a{" "}
           <Peek href="/resume" peek={<ResumePeek />}>
             resume
           </Peek>{" "}
-          for the professionally curious,
-        </>
-      ) : null}{" "}
-      and thinks you should{" "}
-      <Peek href={social} peek={<HiPeek handle={identity.handle} />}>
-        say hi
-      </Peek>
-      <span className="text-[#b3123a]">.</span>
-    </h1>
+          — for the professionally curious. )
+        </p>
+      ) : null}
+    </>
   );
 }
 

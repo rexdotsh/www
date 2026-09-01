@@ -75,15 +75,20 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
  */
 export default function ParticleRose({
   className = "",
+  dim = 1,
   onTouch,
 }: {
   className?: string;
+  /** base alpha multiplier — lets the rose sit behind text as a field */
+  dim?: number;
   onTouch?: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const onTouchRef = useRef(onTouch);
   onTouchRef.current = onTouch;
+  const dimRef = useRef(dim);
+  dimRef.current = dim;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -122,10 +127,12 @@ export default function ParticleRose({
 
     const drawStatic = () => {
       context.clearRect(0, 0, size, size);
+      context.globalAlpha = dimRef.current;
       for (const p of particles) {
         context.fillStyle = p.color;
         context.fillText(p.ch, p.homeX, p.homeY);
       }
+      context.globalAlpha = 1;
     };
 
     const tick = (now: number) => {
@@ -161,7 +168,7 @@ export default function ParticleRose({
         p.y += p.vy;
 
         const alpha = Math.min(1, (elapsed - p.activateAt) / 350);
-        context.globalAlpha = alpha;
+        context.globalAlpha = alpha * dimRef.current;
         context.fillStyle = p.color;
         context.fillText(p.ch, p.x, p.y);
       }
