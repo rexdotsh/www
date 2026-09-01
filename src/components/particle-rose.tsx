@@ -3,7 +3,6 @@ import { ASCII_ROSE } from "@/lib/ascii-rose";
 
 export type RoseMode =
   | "rest"
-  | "breathe"
   | "grid"
   | "lean"
   | "shiver"
@@ -28,7 +27,14 @@ interface Particle {
   y: number;
 }
 
-/** four little roses, for "grows a garden with friends" */
+const SPRING = 0.028;
+const DAMPING = 0.86;
+const REPEL_FORCE = 3.4;
+const TAU = Math.PI * 2;
+
+// canvas is BLEED× its layout box so waves/bursts overflow instead of clip
+const BLEED = 1.24;
+
 const GARDEN_CENTERS: [number, number][] = [
   [0.28, 0.3],
   [0.73, 0.26],
@@ -37,33 +43,14 @@ const GARDEN_CENTERS: [number, number][] = [
 ];
 const GARDEN_SCALE = 0.34;
 
-const SPRING = 0.028;
-const DAMPING = 0.86;
-const REPEL_FORCE = 3.4;
-const TAU = Math.PI * 2;
-
-function colorFor(ch: string): string {
-  if ("@#S".includes(ch)) {
-    return "#7c1030";
-  }
-  if ("%?".includes(ch)) {
-    return "#a3123c";
-  }
-  if ("*+".includes(ch)) {
-    return "#ce2955";
-  }
-  if (";:".includes(ch)) {
-    return "#e35c7c";
-  }
-  return "#f0a0b2";
-}
-
-/**
- * the canvas bleeds past its layout box on every side, so the rose can
- * fill the box visually while waves/bursts overflow into invisible
- * margin instead of clipping at the bitmap edge.
- */
-const BLEED = 1.24;
+const RAMP: [string, string][] = [
+  ["@#S", "#7c1030"],
+  ["%?", "#a3123c"],
+  ["*+", "#ce2955"],
+  [";:", "#e35c7c"],
+];
+const colorFor = (ch: string) =>
+  RAMP.find(([glyphs]) => glyphs.includes(ch))?.[1] ?? "#f0a0b2";
 
 function buildParticles(size: number, scattered: boolean): Particle[] {
   const lines = ASCII_ROSE.split("\n");
@@ -101,52 +88,28 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
     }
   }
 
-  // tidy specimen-sheet grid, precomputed for "grid" and "art" modes
   const g = Math.ceil(Math.sqrt(particles.length));
-  const gridSpan = (size / BLEED) * 0.95;
-  const gridCell = gridSpan / g;
-  const gridOffset = (size - gridSpan) / 2;
+  const gridCell = (inner * 0.95) / g;
+  const gridOffset = (size - inner * 0.95) / 2;
   particles.forEach((p, index) => {
-    const row = Math.floor(index / g);
-    const col = index % g;
-    p.gridX = gridOffset + (col + 0.5) * gridCell;
-    p.gridY = gridOffset + (row + 0.5) * gridCell;
+    p.gridX = gridOffset + ((index % g) + 0.5) * gridCell;
+    p.gridY = gridOffset + (Math.floor(index / g) + 0.5) * gridCell;
   });
 
   return particles;
 }
 
-/**
- * the rose, rebuilt from ~700 glyph particles with spring physics.
- * size follows the parent container (keep it square via aspect-square).
- *
- * the pointer repels particles from anywhere on the page; clicking the
- * canvas bursts them outward. `mode` conducts the whole flower — grid,
- * lean, shiver, garden, wave, lines, art — and springs morph between
- * modes. `artUrl` lets "art" mode dress the grid in an album cover's
- * pixels (requires CORS; falls back to a pulse when unreadable).
- * respects prefers-reduced-motion with a static render.
- */
 export default function ParticleRose({
   artUrl = null,
   className = "",
-  dim = 1,
   mode = "rest",
-  onTouch,
 }: {
   artUrl?: string | null;
   className?: string;
-  /** base alpha multiplier — lets the rose sit behind text as a field */
-  dim?: number;
   mode?: RoseMode;
-  onTouch?: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const onTouchRef = useRef(onTouch);
-  onTouchRef.current = onTouch;
-  const dimRef = useRef(dim);
-  dimRef.current = dim;
   const modeRef = useRef<RoseMode>(mode);
   modeRef.current = mode;
   const loadArtRef = useRef<(url: string | null) => void>(() => undefined);
@@ -154,11 +117,8 @@ export default function ParticleRose({
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
-    if (!(canvas && container)) {
-      return;
-    }
-    const context = canvas.getContext("2d");
-    if (!context) {
+    const context = canvas?.getContext("2d");
+    if (!(canvas && container && context)) {
       return;
     }
 
@@ -168,7 +128,6 @@ export default function ParticleRose({
 
     let particles: Particle[] = [];
     let size = 0;
-    let dpr = 1;
     let raf = 0;
     let startedAt = 0;
     let hasArt = false;
@@ -177,7 +136,6 @@ export default function ParticleRose({
     let artFont = "";
     const pointer = { x: -9999, y: -9999 };
 
-    // dress the grid in an image's pixels (album covers, mostly)
     const applyArt = () => {
       hasArt = false;
       if (!artImage || particles.length === 0) {
@@ -195,19 +153,19 @@ export default function ParticleRose({
         samplerContext.drawImage(artImage, 0, 0, g, g);
         const { data } = samplerContext.getImageData(0, 0, g, g);
         particles.forEach((p, index) => {
-          const offset = index * 4;
-          p.artColor = `rgb(${data[offset]},${data[offset + 1]},${data[offset + 2]})`;
+          const o = index * 4;
+          p.artColor = `rgb(${data[o]},${data[o + 1]},${data[o + 2]})`;
         });
         hasArt = true;
       } catch {
-        // canvas tainted (no CORS on the image) — art mode falls back
+        // canvas tainted — art mode falls back to a pulse
         for (const p of particles) {
           p.artColor = undefined;
         }
       }
     };
 
-    loadArtRef.current = (url: string | null) => {
+    loadArtRef.current = (url) => {
       artImage = null;
       hasArt = false;
       if (!url) {
@@ -224,15 +182,15 @@ export default function ParticleRose({
 
     const setup = (scattered: boolean) => {
       size = container.clientWidth * BLEED;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = size * dpr;
       canvas.height = size * dpr;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       particles = buildParticles(size, scattered && !reduceMotion);
       const rows = ASCII_ROSE.split("\n").length;
       const inner = size / BLEED;
-      baseFont = `600 ${(inner / rows) * 1.05}px "Geist Mono Variable", monospace`;
       const gridCell = (inner * 0.95) / Math.ceil(Math.sqrt(particles.length));
+      baseFont = `600 ${(inner / rows) * 1.05}px "Geist Mono Variable", monospace`;
       artFont = `700 ${gridCell * 1.5}px "Geist Mono Variable", monospace`;
       context.font = baseFont;
       context.textAlign = "center";
@@ -242,12 +200,10 @@ export default function ParticleRose({
 
     const drawStatic = () => {
       context.clearRect(0, 0, size, size);
-      context.globalAlpha = dimRef.current;
       for (const p of particles) {
         context.fillStyle = p.color;
         context.fillText(p.ch, p.homeX, p.homeY);
       }
-      context.globalAlpha = 1;
     };
 
     const targetFor = (p: Particle, t: number): [number, number] => {
@@ -262,7 +218,6 @@ export default function ParticleRose({
           if (hasArt) {
             return [p.gridX, p.gridY];
           }
-          // no readable cover — keep time instead
           const s = 1 + 0.07 * Math.sin(t * TAU * 1.35);
           return [c + dx * s, c + dy * s];
         }
@@ -272,26 +227,22 @@ export default function ParticleRose({
         }
         case "lean":
           return [p.homeX - dy * 0.3, p.homeY];
-        case "wave": {
-          const ripple =
-            Math.sin((p.homeX / size) * TAU * 1.4 + t * 5) * size * 0.024;
-          return [p.homeX, p.homeY + ripple];
-        }
-        case "lines": {
-          const bands = 9;
-          const band =
-            ((Math.floor((p.homeY / size) * bands) + 0.5) / bands) * size;
-          return [c + dx * 1.05, band];
-        }
+        case "wave":
+          return [
+            p.homeX,
+            p.homeY +
+              Math.sin((p.homeX / size) * TAU * 1.4 + t * 5) * size * 0.024,
+          ];
+        case "lines":
+          return [
+            c + dx * 1.05,
+            ((Math.floor((p.homeY / size) * 9) + 0.5) / 9) * size,
+          ];
         case "shiver":
           return [
             p.homeX + (Math.random() - 0.5) * 4,
             p.homeY + (Math.random() - 0.5) * 4,
           ];
-        case "breathe": {
-          const s = 1 + 0.014 * Math.sin(t * 1.1);
-          return [c + dx * s, c + dy * s];
-        }
         default:
           return [p.homeX, p.homeY];
       }
@@ -313,12 +264,10 @@ export default function ParticleRose({
           continue;
         }
 
-        // spring toward the conducted target
         const [targetX, targetY] = targetFor(p, t);
         p.vx += (targetX - p.x) * SPRING;
         p.vy += (targetY - p.y) * SPRING;
 
-        // repel from pointer
         const dx = p.x - pointer.x;
         const dy = p.y - pointer.y;
         const dist = Math.hypot(dx, dy);
@@ -333,29 +282,23 @@ export default function ParticleRose({
         p.x += p.vx;
         p.y += p.vy;
 
-        const alpha = Math.min(1, (elapsed - p.activateAt) / 350);
-        context.globalAlpha = alpha * dimRef.current;
-        // in art mode every particle becomes a dense uniform glyph so the
-        // cover reads as a proper mosaic instead of thin punctuation
-        if (artMode && p.artColor) {
-          context.fillStyle = p.artColor;
-          context.fillText("#", p.x, p.y);
-        } else {
-          context.fillStyle = p.color;
-          context.fillText(p.ch, p.x, p.y);
-        }
+        context.globalAlpha = Math.min(1, (elapsed - p.activateAt) / 350);
+        context.fillStyle = artMode && p.artColor ? p.artColor : p.color;
+        context.fillText(artMode && p.artColor ? "#" : p.ch, p.x, p.y);
       }
       context.globalAlpha = 1;
       raf = requestAnimationFrame(tick);
     };
 
-    const start = () => {
-      setup(true);
+    const restart = (scattered: boolean) => {
+      cancelAnimationFrame(raf);
+      setup(scattered);
       if (reduceMotion) {
         drawStatic();
-        return;
+      } else {
+        startedAt = 0;
+        raf = requestAnimationFrame(tick);
       }
-      raf = requestAnimationFrame(tick);
     };
 
     const toLocal = (event: PointerEvent) => {
@@ -367,9 +310,6 @@ export default function ParticleRose({
       const local = toLocal(event);
       pointer.x = local.x;
       pointer.y = local.y;
-      if (local.x > 0 && local.y > 0 && local.x < size && local.y < size) {
-        onTouchRef.current?.();
-      }
     };
 
     const onPointerLeave = () => {
@@ -390,30 +330,20 @@ export default function ParticleRose({
           p.vy += (dy / dist) * force;
         }
       }
-      onTouchRef.current?.();
-    };
-
-    const onResize = () => {
-      if (container.clientWidth * BLEED !== size) {
-        cancelAnimationFrame(raf);
-        setup(false);
-        if (reduceMotion) {
-          drawStatic();
-        } else {
-          startedAt = 0;
-          raf = requestAnimationFrame(tick);
-        }
-      }
     };
 
     let cancelled = false;
     document.fonts.ready.then(() => {
       if (!cancelled) {
-        start();
+        restart(true);
       }
     });
 
-    const resizeObserver = new ResizeObserver(onResize);
+    const resizeObserver = new ResizeObserver(() => {
+      if (container.clientWidth * BLEED !== size) {
+        restart(false);
+      }
+    });
     resizeObserver.observe(container);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     canvas.addEventListener("pointerdown", onPointerDown);
@@ -433,9 +363,7 @@ export default function ParticleRose({
     loadArtRef.current(artUrl);
   }, [artUrl]);
 
-  // the canvas is BLEED× the layout box, centered on it — overflow room
-  // for waves and bursts without reserving visible padding
-  const bleedInset = `${(((BLEED - 1) / 2) * 100).toFixed(0)}%`;
+  const inset = `${(((BLEED - 1) / 2) * 100).toFixed(0)}%`;
 
   return (
     <div
@@ -448,8 +376,8 @@ export default function ParticleRose({
         ref={canvasRef}
         role="img"
         style={{
-          top: `-${bleedInset}`,
-          left: `-${bleedInset}`,
+          top: `-${inset}`,
+          left: `-${inset}`,
           width: `${BLEED * 100}%`,
           height: `${BLEED * 100}%`,
         }}

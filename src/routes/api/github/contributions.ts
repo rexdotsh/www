@@ -14,7 +14,6 @@ const CACHE_HEADERS = {
     "public, max-age=21600, stale-while-revalidate=86400",
 };
 
-/** parses github's public contributions fragment into a 7-row week grid */
 function parse(html: string) {
   const days = new Map<string, number>();
   for (const [tag] of html.matchAll(DAY_TAG_RE)) {

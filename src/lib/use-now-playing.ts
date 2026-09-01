@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const POLL_INTERVAL = 60_000;
 
@@ -15,66 +15,24 @@ export interface SpotifyTrack {
   url: string;
 }
 
-export interface NowPlayingState {
-  previewUrl: string | null;
-  track: SpotifyTrack | null;
-}
-
-/**
- * Polls /api/spotify/playing and resolves a preview url for the active track.
- * Shared by every design so each can render its own player.
- */
-export function useNowPlaying(enabled = true): NowPlayingState {
+export function useNowPlaying() {
   const [track, setTrack] = useState<SpotifyTrack | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const trackIdRef = useRef<string>(undefined);
 
   useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-
     let timeout: ReturnType<typeof setTimeout> | undefined;
     const abortController = new AbortController();
 
-    const fetchTrack = async () => {
+    const poll = async () => {
       try {
-        const trackResponse = await fetch("/api/spotify/playing", {
+        const response = await fetch("/api/spotify/playing", {
           signal: abortController.signal,
         });
-        if (!trackResponse.ok) {
-          return;
+        if (response.ok) {
+          setTrack((await response.json()) as SpotifyTrack | null);
         }
-
-        const trackData: SpotifyTrack | null = await trackResponse.json();
-        setTrack(trackData);
-
-        if (!trackData || trackData.id === trackIdRef.current) {
-          return;
-        }
-
-        trackIdRef.current = trackData.id;
-        setPreviewUrl(null);
-
-        const previewResponse = await fetch(
-          `/api/spotify/preview/${trackData.id}`,
-          { signal: abortController.signal }
-        );
-        if (!previewResponse.ok) {
-          return;
-        }
-
-        const preview = (await previewResponse.json()) as { url?: string };
-        setPreviewUrl(preview.url ?? null);
-      } catch (error) {
-        if (!(error instanceof DOMException && error.name === "AbortError")) {
-          setPreviewUrl(null);
-        }
+      } catch {
+        // ignore aborts and network hiccups; next poll retries
       }
-    };
-
-    const poll = async () => {
-      await fetchTrack();
       if (!abortController.signal.aborted) {
         timeout = setTimeout(poll, POLL_INTERVAL);
       }
@@ -85,7 +43,7 @@ export function useNowPlaying(enabled = true): NowPlayingState {
       abortController.abort();
       clearTimeout(timeout);
     };
-  }, [enabled]);
+  }, []);
 
-  return { track, previewUrl };
+  return { track };
 }

@@ -1,14 +1,7 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
-import {
-  getIdentity,
-  getNavLinks,
-  POSTS,
-  PROJECTS,
-  type SiteIdentity,
-} from "@/lib/content";
+import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
+import { getIdentity, LINKS, POSTS, PROJECTS } from "@/lib/content";
 import type { SpotifyTrack } from "@/lib/use-now-playing";
 
-/** the words that can conduct something (see encore's rose modes) */
 export type SentenceWord =
   | "name"
   | "builds"
@@ -18,18 +11,6 @@ export type SentenceWord =
   | "hi"
   | "resume";
 
-/**
- * the sentence itself — shared by every design on the duet scheme.
- *
- * persona-aware: the subject of the sentence is whoever the domain says
- * it is. hovering the name reveals the other identity; on mridul.sh a
- * quiet aside below the sentence keeps the resume, so the sentence
- * itself never gets crowded.
- *
- * `wordStagger` typesets the sentence word by word on load;
- * `onWordHover` reports which linked word the pointer is on, so a
- * design can react (encore conducts the rose with it).
- */
 export function TheSentence({
   className = "",
   hostname,
@@ -44,26 +25,11 @@ export function TheSentence({
   wordStagger?: boolean;
 }) {
   const identity = getIdentity(hostname);
-  const links = getNavLinks(hostname);
 
-  const github =
-    links.find((l) => l.label === "github")?.href ??
-    "https://github.com/rexdotsh";
-  const blog =
-    links.find((l) => l.label === "blog")?.href ?? "https://blog.rex.wf";
-  const flora =
-    links.find((l) => l.label === "flora")?.href ??
-    "https://floraorg.github.io";
-  const social = "https://x.com/rexmkv";
-  const albumArt =
-    track?.image.find((image) => image.size === "medium")?.["#text"] ?? "";
-
-  // word-by-word typesetting: delays accumulate in reading order
   let wordCount = 0;
   const nextDelay = () => {
-    const delay = 150 + wordCount * 38;
     wordCount += 1;
-    return delay;
+    return 150 + (wordCount - 1) * 38;
   };
 
   const w = (text: string): ReactNode => {
@@ -71,12 +37,12 @@ export function TheSentence({
       return text;
     }
     return text.split(/(\s+)/).map((token, index) =>
-      token === "" || /^\s+$/.test(token) ? (
+      /^\s*$/.test(token) ? (
         token
       ) : (
         <span
           className="word-in inline-block"
-          key={`${token}-${index}-${wordCount}`}
+          key={`${token}-${index}`}
           style={{ animationDelay: `${nextDelay()}ms` }}
         >
           {token}
@@ -85,96 +51,118 @@ export function TheSentence({
     );
   };
 
-  const wrap = (node: ReactNode): ReactNode => {
-    if (!wordStagger) {
-      return node;
-    }
-    return (
+  const wrap = (node: ReactNode): ReactNode =>
+    wordStagger ? (
       <span
         className="word-in inline-block"
         style={{ animationDelay: `${nextDelay()}ms` }}
       >
         {node}
       </span>
+    ) : (
+      node
     );
-  };
+
+  const parts: (
+    | string
+    | {
+        href: string;
+        key: SentenceWord;
+        peek: ReactNode;
+        text: string;
+        tone?: "name";
+      }
+  )[] = [
+    {
+      key: "name",
+      href: identity.otherDomain,
+      text: identity.name,
+      tone: "name",
+      peek: (
+        <TextPeek
+          compact
+          label={identity.isMridul ? "internet name" : "government name"}
+          sub={`→ ${identity.otherDomain.replace("https://", "")}`}
+          title={identity.otherName}
+          titleClass="font-bold text-sm"
+        />
+      ),
+    },
+    " ",
+    {
+      key: "builds",
+      href: LINKS.github,
+      text: "builds things",
+      peek: <ProjectsPeek />,
+    },
+    " on the internet, ",
+    { key: "writes", href: LINKS.blog, text: "writes", peek: <PostsPeek /> },
+    " sometimes, grows a ",
+    {
+      key: "garden",
+      href: LINKS.flora,
+      text: "garden",
+      peek: (
+        <TextPeek
+          center
+          compact
+          sub={
+            <>
+              random things for the web,
+              <br />
+              grown with friends
+            </>
+          }
+          title="flora"
+          titleClass="text-xs"
+        />
+      ),
+    },
+    " with friends, listens to ",
+    {
+      key: "music",
+      href: track?.url ?? LINKS.blog,
+      text: "music",
+      peek: track ? <MusicPeek track={track} /> : null,
+    },
+    " constantly, and thinks you should ",
+    {
+      key: "hi",
+      href: LINKS.twitter,
+      text: "say hi",
+      peek: (
+        <TextPeek
+          center
+          compact
+          sub="dms open, probably"
+          title={`@${identity.handle}`}
+          titleClass="text-xs"
+        />
+      ),
+    },
+  ];
 
   return (
     <>
       <h1 className={className}>
-        {wrap(
-          <Peek
-            hoverKey="name"
-            href={identity.otherDomain}
-            onHover={onWordHover}
-            peek={<IdentityPeek identity={identity} />}
-            tone="name"
-          >
-            {identity.name}
-          </Peek>
-        )}{" "}
-        {wrap(
-          <Peek
-            hoverKey="builds"
-            href={github}
-            onHover={onWordHover}
-            peek={<ProjectsPeek />}
-          >
-            builds things
-          </Peek>
-        )}
-        {w(" on the internet, ")}
-        {wrap(
-          <Peek
-            hoverKey="writes"
-            href={blog}
-            onHover={onWordHover}
-            peek={<PostsPeek />}
-          >
-            writes
-          </Peek>
-        )}
-        {w(" sometimes, grows a ")}
-        {wrap(
-          <Peek
-            hoverKey="garden"
-            href={flora}
-            onHover={onWordHover}
-            peek={<FloraPeek />}
-          >
-            garden
-          </Peek>
-        )}
-        {w(" with friends, listens to ")}
-        {wrap(
-          <Peek
-            hoverKey="music"
-            href={track?.url ?? blog}
-            onHover={onWordHover}
-            peek={
-              track ? (
-                <MusicPeek
-                  albumArt={albumArt}
-                  artist={track.artist}
-                  isPlaying={track.isPlaying}
-                  name={track.name}
-                />
-              ) : null
-            }
-          >
-            music
-          </Peek>
-        )}
-        {w(" constantly, and thinks you should ")}
-        {wrap(
-          <Peek
-            hoverKey="hi"
-            href={social}
-            onHover={onWordHover}
-            peek={<HiPeek handle={identity.handle} />}
-          >
-            say hi
-          </Peek>
+        {parts.map((part) =>
+          typeof part === "string" ? (
+            <Fragment key={part}>{w(part)}</Fragment>
+          ) : (
+            <Fragment key={part.key}>
+              {wrap(
+                <Peek
+                  hoverKey={part.key}
+                  href={part.href}
+                  onHover={onWordHover}
+                  peek={part.peek}
+                  tone={part.tone}
+                >
+                  {part.text}
+                </Peek>
+              )}
+            </Fragment>
+          )
         )}
         {wrap(<span className="text-[#b3123a]">.</span>)}
       </h1>
@@ -192,7 +180,14 @@ export function TheSentence({
             hoverKey="resume"
             href="/resume"
             onHover={onWordHover}
-            peek={<ResumePeek />}
+            peek={
+              <TextPeek
+                label="the formal bit"
+                sub="kept current. this is the version that gets sent out."
+                title="resume — one page"
+                titleClass="font-bold text-xs"
+              />
+            }
           >
             resume
           </Peek>{" "}
@@ -218,15 +213,8 @@ function Peek({
   peek: ReactNode;
   tone?: "link" | "name";
 }) {
-  // touch devices: first tap arms the word (conducts the rose, shows
-  // the peek), second tap navigates. tapping elsewhere disarms.
   const [armed, setArmed] = useState(false);
   const anchorRef = useRef<HTMLAnchorElement>(null);
-
-  const toneClass =
-    tone === "name"
-      ? "text-[#17140f] decoration-dotted decoration-[#17140f]/30 hover:decoration-[#17140f]/70"
-      : "text-[#b3123a] italic decoration-[#b3123a]/30 hover:decoration-[#b3123a]";
 
   const report = (word: SentenceWord | null) => {
     if (onHover && hoverKey) {
@@ -235,14 +223,10 @@ function Peek({
   };
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!hoverKey) {
-      return;
-    }
-    if (!window.matchMedia("(hover: none)").matches) {
+    if (!hoverKey || !window.matchMedia("(hover: none)").matches) {
       return;
     }
     if (armed) {
-      // second tap — navigate, and stand down
       setArmed(false);
       return;
     }
@@ -256,22 +240,23 @@ function Peek({
       return;
     }
     const onDocumentPointerDown = (event: PointerEvent) => {
-      if (anchorRef.current?.contains(event.target as Node)) {
-        return;
-      }
-      setArmed(false);
-      if (onHover && hoverKey) {
-        onHover(null);
+      if (!anchorRef.current?.contains(event.target as Node)) {
+        setArmed(false);
+        onHover?.(null);
       }
     };
     document.addEventListener("pointerdown", onDocumentPointerDown);
     return () =>
       document.removeEventListener("pointerdown", onDocumentPointerDown);
-  }, [armed, onHover, hoverKey]);
+  }, [armed, onHover]);
 
   return (
     <a
-      className={`peek-trigger relative inline-block underline decoration-[0.04em] underline-offset-[0.14em] transition-[text-decoration-color] duration-150 ${toneClass}`}
+      className={`peek-trigger relative inline-block underline decoration-[0.04em] underline-offset-[0.14em] transition-[text-decoration-color] duration-150 ${
+        tone === "name"
+          ? "text-[#17140f] decoration-dotted decoration-[#17140f]/30 hover:decoration-[#17140f]/70"
+          : "text-[#b3123a] italic decoration-[#b3123a]/30 hover:decoration-[#b3123a]"
+      }`}
       data-peek-open={armed ? "" : undefined}
       href={href}
       onBlur={() => {
@@ -318,33 +303,41 @@ function PeekCard({
   );
 }
 
-function IdentityPeek({ identity }: { identity: SiteIdentity }) {
+function TextPeek({
+  center = false,
+  compact = false,
+  label,
+  sub,
+  title,
+  titleClass,
+}: {
+  center?: boolean;
+  compact?: boolean;
+  label?: string;
+  sub: ReactNode;
+  title: string;
+  titleClass: string;
+}) {
+  const align = center ? " text-center" : "";
+  const nowrap = compact ? " whitespace-nowrap" : "";
   return (
-    <PeekCard compact>
-      <span className="block whitespace-nowrap text-[#a29a89] text-[9px] uppercase tracking-[0.25em]">
-        {identity.isMridul ? "internet name" : "government name"}
+    <PeekCard compact={compact}>
+      {label ? (
+        <span
+          className={`block whitespace-nowrap text-[#a29a89] text-[9px] uppercase tracking-[0.25em]${align}`}
+        >
+          {label}
+        </span>
+      ) : null}
+      <span
+        className={`block text-[#17140f] ${titleClass}${label ? " mt-1" : ""}${nowrap}${align}`}
+      >
+        {title}
       </span>
-      <span className="mt-1 block font-bold text-[#17140f] text-sm">
-        {identity.otherName}
-      </span>
-      <span className="mt-1 block whitespace-nowrap text-[#847c6c] text-[10px]">
-        → {identity.otherDomain.replace("https://", "")}
-      </span>
-    </PeekCard>
-  );
-}
-
-function ResumePeek() {
-  return (
-    <PeekCard>
-      <span className="block text-[#a29a89] text-[9px] uppercase tracking-[0.25em]">
-        the formal bit
-      </span>
-      <span className="mt-1 block font-bold text-[#17140f] text-xs">
-        resume — one page
-      </span>
-      <span className="mt-1 block text-[#847c6c] text-[10px]">
-        kept current. this is the version that gets sent out.
+      <span
+        className={`mt-1 block text-[#847c6c] text-[10px]${nowrap}${align}`}
+      >
+        {sub}
       </span>
     </PeekCard>
   );
@@ -355,7 +348,6 @@ interface Contributions {
   weeks: number[][];
 }
 
-/** github's green ramp, re-dyed in the rose's reds. -1 = padding day */
 const HEAT_COLORS = ["#efe9dc", "#f0c3cd", "#e5798f", "#ce2955", "#8f1236"];
 
 function useContributions() {
@@ -404,7 +396,7 @@ function ProjectsPeek() {
       <span className="block text-[#a29a89] text-[9px] uppercase tracking-[0.25em]">
         lately
       </span>
-      {PROJECTS.slice(0, 3).map((project) => (
+      {PROJECTS.map((project) => (
         <span className="mt-2 block" key={project.name}>
           <span className="block font-bold text-[#17140f] text-xs">
             {project.name}
@@ -425,7 +417,7 @@ function PostsPeek() {
       <span className="block text-[#a29a89] text-[9px] uppercase tracking-[0.25em]">
         recent writing
       </span>
-      {POSTS.slice(0, 3).map((post) => (
+      {POSTS.map((post) => (
         <span className="mt-2 block" key={post.title}>
           <span className="block truncate text-[#17140f] text-xs">
             {post.title}
@@ -439,21 +431,6 @@ function PostsPeek() {
   );
 }
 
-function FloraPeek() {
-  return (
-    <PeekCard compact>
-      <span className="block whitespace-nowrap text-center text-[#17140f] text-xs">
-        flora
-      </span>
-      <span className="mt-1 block whitespace-nowrap text-center text-[#847c6c] text-[10px]">
-        random things for the web,
-        <br />
-        grown with friends
-      </span>
-    </PeekCard>
-  );
-}
-
 const WAVE_CELLS = [
   "wave-p1",
   "wave-p3",
@@ -463,7 +440,6 @@ const WAVE_CELLS = [
   "wave-p1",
 ];
 
-/** compact symmetric dot-matrix wave — the row's "this is playing" meter */
 function WaveEq() {
   return (
     <span
@@ -487,17 +463,10 @@ function WaveEq() {
   );
 }
 
-function MusicPeek({
-  albumArt,
-  artist,
-  isPlaying,
-  name,
-}: {
-  albumArt: string;
-  artist: string;
-  isPlaying: boolean;
-  name: string;
-}) {
+function MusicPeek({ track }: { track: SpotifyTrack }) {
+  const { isPlaying } = track;
+  const albumArt =
+    track.image.find((image) => image.size === "medium")?.["#text"] ?? "";
   return (
     <PeekCard compact={!isPlaying}>
       <span className={`flex items-center ${isPlaying ? "gap-3" : "gap-2.5"}`}>
@@ -517,26 +486,13 @@ function MusicPeek({
             {isPlaying ? "right now" : "last played"}
           </span>
           <span className="block truncate font-bold text-[#17140f] text-xs">
-            {name}
+            {track.name}
           </span>
           <span className="block truncate text-[#847c6c] text-[11px]">
-            {artist}
+            {track.artist}
           </span>
         </span>
         {isPlaying ? <WaveEq /> : null}
-      </span>
-    </PeekCard>
-  );
-}
-
-function HiPeek({ handle }: { handle: string }) {
-  return (
-    <PeekCard compact>
-      <span className="block whitespace-nowrap text-center text-[#17140f] text-xs">
-        @{handle}
-      </span>
-      <span className="mt-1 block whitespace-nowrap text-center text-[#847c6c] text-[10px]">
-        dms open, probably
       </span>
     </PeekCard>
   );

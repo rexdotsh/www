@@ -15,7 +15,6 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-/** which word conducts which movement */
 const MODES: Record<SentenceWord, RoseMode> = {
   name: "shiver",
   builds: "grid",
@@ -36,22 +35,6 @@ const CAPTIONS: Record<SentenceWord, string> = {
   resume: "( pretending to be a document )",
 };
 
-const MAGNET_RADIUS = 110;
-const MAGNET_PULL = 0.22;
-const MAGNET_MAX = 5;
-
-/**
- * the site: one persona-aware sentence and a rose made of ~700 glyph
- * particles. every word you hover conducts the rose — it orders itself
- * for "builds", leans italic for "writes", becomes a garden for
- * "garden", dresses as the album cover for "music", waves for "say hi",
- * and gets flustered when you hover the name.
- */
-/**
- * on phones the peek docks at the bottom, where the rose lives — lift
- * the rose out of the card's way. cards have different heights, so each
- * word gets its own hardcoded lift.
- */
 const LIFTS: Record<SentenceWord, string> = {
   name: "max-md:-translate-y-[73px]",
   builds: "max-md:-translate-y-[224px]",
@@ -61,9 +44,11 @@ const LIFTS: Record<SentenceWord, string> = {
   hi: "max-md:-translate-y-[54px]",
   resume: "max-md:-translate-y-[94px]",
 };
-
-/** the last-played music card is the compact one — less card, less lift */
 const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[64px]";
+
+const MAGNET_RADIUS = 110;
+const MAGNET_PULL = 0.22;
+const MAGNET_MAX = 5;
 
 function Home() {
   const { hostname } = rootRoute.useLoaderData();
@@ -76,36 +61,25 @@ function Home() {
     track?.image.find((image) => image.size === "medium")?.["#text"] ??
     null;
 
-  const caption = (() => {
-    if (!word) {
-      return "( touch it — or read to it )";
-    }
-    if (word === "music" && albumArt) {
-      return "( dressed as the album cover )";
-    }
-    return CAPTIONS[word];
-  })();
+  const caption = word
+    ? word === "music" && albumArt
+      ? "( dressed as the album cover )"
+      : CAPTIONS[word]
+    : "( touch it — or read to it )";
 
-  const liftClass =
-    word === "music" && !track?.isPlaying
+  const liftClass = word
+    ? word === "music" && !track?.isPlaying
       ? MUSIC_COMPACT_LIFT
-      : word
-        ? LIFTS[word]
-        : "";
+      : LIFTS[word]
+    : "";
 
-  // magnetic link words — they lean toward a nearby cursor
   useEffect(() => {
-    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      return;
-    }
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    if (reduceMotion) {
-      return;
-    }
     const container = sentenceRef.current;
-    if (!container) {
+    if (
+      !container ||
+      !window.matchMedia("(hover: hover) and (pointer: fine)").matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       return;
     }
 
@@ -113,23 +87,20 @@ function Home() {
       container.querySelectorAll<HTMLAnchorElement>("a.peek-trigger")
     );
     for (const anchor of anchors) {
-      anchor.style.transition =
-        "translate 200ms cubic-bezier(0.23, 1, 0.32, 1)";
+      anchor.style.transition = "translate 200ms cubic-bezier(0.23,1,0.32,1)";
     }
 
     const onPointerMove = (event: PointerEvent) => {
       for (const anchor of anchors) {
         const rect = anchor.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const dx = event.clientX - cx;
-        const dy = event.clientY - cy;
+        const dx = event.clientX - rect.left - rect.width / 2;
+        const dy = event.clientY - rect.top - rect.height / 2;
         const dist = Math.hypot(dx, dy);
         if (dist < MAGNET_RADIUS) {
-          const strength = (1 - dist / MAGNET_RADIUS) * MAGNET_PULL;
-          const tx = Math.max(-MAGNET_MAX, Math.min(MAGNET_MAX, dx * strength));
-          const ty = Math.max(-MAGNET_MAX, Math.min(MAGNET_MAX, dy * strength));
-          anchor.style.translate = `${tx.toFixed(1)}px ${ty.toFixed(1)}px`;
+          const pull = (1 - dist / MAGNET_RADIUS) * MAGNET_PULL;
+          const clamp = (n: number) =>
+            Math.max(-MAGNET_MAX, Math.min(MAGNET_MAX, n)).toFixed(1);
+          anchor.style.translate = `${clamp(dx * pull)}px ${clamp(dy * pull)}px`;
         } else if (anchor.style.translate !== "0px 0px") {
           anchor.style.translate = "0px 0px";
         }
@@ -149,7 +120,6 @@ function Home() {
   return (
     <main className="fixed inset-0 overflow-y-auto bg-[#faf8f2] font-serif-display text-[#17140f] selection:bg-[#b3123a] selection:text-[#faf8f2]">
       <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-16 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:px-12 md:py-16">
-        {/* the sentence, typesetting itself */}
         <div
           className="sentence-root relative z-10 max-w-2xl md:flex-1"
           ref={sentenceRef}
@@ -163,7 +133,6 @@ function Home() {
           />
         </div>
 
-        {/* the rose, conducted by the words */}
         <div
           className="rise flex shrink-0 flex-col items-center"
           style={{ animationDelay: "200ms" }}
