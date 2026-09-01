@@ -37,8 +37,9 @@ export const Route = createFileRoute("/api/spotify/preview/$id")({
             { url: previewUrl },
             {
               headers: {
-                "Cache-Control":
-                  "public, s-maxage=86400, stale-while-revalidate=604800",
+                "Cache-Control": "public, max-age=3600",
+                "Cloudflare-CDN-Cache-Control":
+                  "public, max-age=86400, stale-while-revalidate=604800",
               },
             }
           );

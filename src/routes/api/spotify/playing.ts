@@ -1,5 +1,5 @@
-import { Redis } from "@upstash/redis";
 import { createFileRoute } from "@tanstack/react-router";
+import { env, waitUntil } from "cloudflare:workers";
 
 const SPOTIFY_API = {
   NOW_PLAYING: "https://api.spotify.com/v1/me/player/currently-playing",
@@ -9,10 +9,9 @@ const SPOTIFY_API = {
 } as const;
 
 const TOKEN_CACHE_KEY = "spotify:token";
-const PLAYING_CACHE_CONTROL =
-  "public, max-age=10, s-maxage=30, stale-while-revalidate=60";
-
-let redis: Redis | undefined;
+const PLAYING_CACHE_CONTROL = "public, max-age=10";
+const PLAYING_CLOUDFLARE_CACHE_CONTROL =
+  "public, max-age=30, stale-while-revalidate=86400";
 
 interface SpotifyToken {
   access_token: string;
@@ -48,28 +47,27 @@ interface SpotifyTrack {
   name: string;
 }
 
-function getRedis() {
-  const url = process.env.KV_REST_API_URL;
-  const token = process.env.KV_REST_API_TOKEN;
+interface SpotifyCurrentlyPlayingResponse {
+  is_playing?: boolean;
+  item?: SpotifyTrack;
+}
 
-  if (!(url && token)) {
-    throw new Error("Missing Redis environment variables");
-  }
-
-  redis ??= new Redis({ url, token });
-  return redis;
+interface SpotifyRecentlyPlayedResponse {
+  items?: Array<{ track: SpotifyTrack }>;
 }
 
 async function getAccessToken(signal: AbortSignal) {
-  const cache = getRedis();
-  const cached = await cache.get<SpotifyToken>(TOKEN_CACHE_KEY);
+  const cached = await env.SPOTIFY_TOKENS.get<SpotifyToken>(
+    TOKEN_CACHE_KEY,
+    "json"
+  ).catch(() => null);
   if (cached && Date.now() < cached.expires_at) {
     return cached.access_token;
   }
 
-  const clientId = process.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-  const refreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
+  const clientId = env.SPOTIFY_CLIENT_ID;
+  const clientSecret = env.SPOTIFY_CLIENT_SECRET;
+  const refreshToken = env.SPOTIFY_REFRESH_TOKEN;
 
   if (!(clientId && clientSecret && refreshToken)) {
     throw new Error("Missing Spotify credentials");
@@ -105,7 +103,11 @@ async function getAccessToken(signal: AbortSignal) {
     expires_at: Date.now() + expiresIn * 1000,
   };
 
-  await cache.set(TOKEN_CACHE_KEY, token, { ex: expiresIn });
+  waitUntil(
+    env.SPOTIFY_TOKENS.put(TOKEN_CACHE_KEY, JSON.stringify(token), {
+      expirationTtl: expiresIn,
+    }).catch(() => undefined)
+  );
 
   return token.access_token;
 }
@@ -124,7 +126,7 @@ async function getNowPlaying(token: string, signal: AbortSignal) {
     throw new Error("Failed to fetch now playing");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as SpotifyCurrentlyPlayingResponse;
   if (!data.item) {
     return null;
   }
@@ -142,7 +144,7 @@ async function getRecentlyPlayed(token: string, signal: AbortSignal) {
     throw new Error("Failed to fetch recently played");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as SpotifyRecentlyPlayedResponse;
   return data.items?.[0]
     ? transformTrackData(data.items[0].track as SpotifyTrack)
     : null;
@@ -181,11 +183,14 @@ export const Route = createFileRoute("/api/spotify/playing")({
           const token = await getAccessToken(request.signal);
           const track = await getNowPlaying(token, request.signal);
           return Response.json(track ?? null, {
-            headers: { "Cache-Control": PLAYING_CACHE_CONTROL },
+            headers: {
+              "Cache-Control": PLAYING_CACHE_CONTROL,
+              "Cloudflare-CDN-Cache-Control": PLAYING_CLOUDFLARE_CACHE_CONTROL,
+            },
           });
         } catch {
           return Response.json(null, {
-            headers: { "Cache-Control": PLAYING_CACHE_CONTROL },
+            headers: { "Cache-Control": "no-store" },
           });
         }
       },

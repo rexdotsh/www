@@ -8,8 +8,9 @@ const rootRoute = getRouteApi("__root__");
 export const Route = createFileRoute("/")({
   component: Home,
   headers: () => ({
-    "Cache-Control":
-      "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
+    "Cache-Control": "public, max-age=0",
+    "Cloudflare-CDN-Cache-Control":
+      "public, max-age=3600, stale-while-revalidate=86400",
   }),
 });
 

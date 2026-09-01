@@ -46,6 +46,7 @@ export function resolveSiteInfo(request: Request) {
   return {
     baseUrl: publicUrl.origin,
     hostname: publicUrl.hostname.toLowerCase(),
+    isPublicHost: Boolean(canonicalHost),
   };
 }
 

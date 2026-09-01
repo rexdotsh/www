@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rex-wf",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "cache": {
+    "enabled": true
+  },
+  "observability": {
+    "enabled": true
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SPOTIFY_TOKENS",
+      "id": "03d58d1db51b477085e75f3d5aa7c977"
+    }
+  ]
+}

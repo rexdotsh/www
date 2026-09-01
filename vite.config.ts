@@ -6,12 +6,18 @@ import { defineConfig } from "vite";
 
 const STATIC_ASSET_HEADERS = {
   headers: {
-    "cache-control":
-      "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=604800",
+    "cache-control": "public, max-age=86400",
+    "cloudflare-cdn-cache-control":
+      "public, max-age=31536000, stale-while-revalidate=604800",
   },
 };
 
 export default defineConfig({
+  build: {
+    rolldownOptions: {
+      external: ["cloudflare:workers"],
+    },
+  },
   server: {
     port: 3000,
   },
@@ -23,12 +29,14 @@ export default defineConfig({
     tanstackStart(),
     viteReact(),
     nitro({
+      preset: "cloudflare_module",
       routeRules: {
         "/**": {
           headers: {
             "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
             "Referrer-Policy": "strict-origin-when-cross-origin",
             "Strict-Transport-Security": "max-age=63072000",
+            Vary: "Host",
             "X-Content-Type-Options": "nosniff",
             "X-Frame-Options": "DENY",
           },

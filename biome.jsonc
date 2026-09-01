@@ -6,6 +6,7 @@
       "!bun.lock",
       "!src/routeTree.gen.ts",
       "!src/styles.css",
+      "!worker-configuration.d.ts",
       "!.output"
     ]
   },

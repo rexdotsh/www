@@ -1,5 +1,3 @@
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/react";
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
@@ -17,6 +15,7 @@ export const Route = createRootRoute({
   head: ({ loaderData }) => {
     const baseUrl = loaderData?.baseUrl ?? DEFAULT_BASE_URL;
     const hostname = loaderData?.hostname ?? "rex.wf";
+    const isPublicHost = loaderData?.isPublicHost ?? false;
     const name = hostname === "mridul.sh" ? "mridul" : "rex";
     const title = `${name}'s space`;
     const description = `${name}'s personal website.`;
@@ -36,7 +35,10 @@ export const Route = createRootRoute({
         { title },
         { name: "description", content: description },
         { name: "author", content: name },
-        { name: "robots", content: "index,follow" },
+        {
+          name: "robots",
+          content: isPublicHost ? "index,follow" : "noindex,nofollow",
+        },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:url", content: canonicalUrl },
@@ -130,8 +132,6 @@ function RootDocument({ children }: { children: ReactNode }) {
         >
           {children}
           <ThemeToggle />
-          <Analytics basePath="/monitor" framework="tanstack-start" />
-          <SpeedInsights basePath="/monitor" framework="tanstack-start" />
         </ThemeProvider>
         <Scripts />
       </body>
