@@ -1,12 +1,15 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import DesignSwitcher from "@/components/design-switcher";
-import AmbientDesign from "@/designs/ambient";
+import BloomDesign from "@/designs/bloom";
+import BroadsheetDesign from "@/designs/broadsheet";
 import BrutalistDesign from "@/designs/brutalist";
 import ClassicDesign from "@/designs/classic";
+import DeparturesDesign from "@/designs/departures";
 import EditorialDesign from "@/designs/editorial";
-import PlayfulDesign from "@/designs/playful";
+import MuseumDesign from "@/designs/museum";
+import SentenceDesign from "@/designs/sentence";
+import SpecDesign from "@/designs/spec";
 import { type DesignId, isDesignId } from "@/designs/registry";
-import TerminalDesign from "@/designs/terminal";
 
 const rootRoute = getRouteApi("__root__");
 
@@ -34,11 +37,14 @@ function Home() {
   return (
     <>
       {design === "classic" && <ClassicDesign hostname={hostname} />}
-      {design === "terminal" && <TerminalDesign hostname={hostname} />}
+      {design === "bloom" && <BloomDesign hostname={hostname} />}
       {design === "editorial" && <EditorialDesign hostname={hostname} />}
       {design === "brutalist" && <BrutalistDesign hostname={hostname} />}
-      {design === "ambient" && <AmbientDesign hostname={hostname} />}
-      {design === "playful" && <PlayfulDesign hostname={hostname} />}
+      {design === "museum" && <MuseumDesign hostname={hostname} />}
+      {design === "spec" && <SpecDesign hostname={hostname} />}
+      {design === "departures" && <DeparturesDesign hostname={hostname} />}
+      {design === "broadsheet" && <BroadsheetDesign hostname={hostname} />}
+      {design === "sentence" && <SentenceDesign hostname={hostname} />}
       <DesignSwitcher active={design} />
     </>
   );
