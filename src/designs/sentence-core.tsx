@@ -8,6 +8,16 @@ import {
   type SiteIdentity,
 } from "@/lib/content";
 
+/** the words that can conduct something (see encore's rose modes) */
+export type SentenceWord =
+  | "name"
+  | "builds"
+  | "writes"
+  | "garden"
+  | "music"
+  | "hi"
+  | "resume";
+
 /**
  * the sentence itself — shared by every design on the duet scheme.
  *
@@ -15,15 +25,23 @@ import {
  * it is. hovering the name reveals the other identity; on mridul.sh a
  * quiet aside below the sentence keeps the resume, so the sentence
  * itself never gets crowded.
+ *
+ * `wordStagger` typesets the sentence word by word on load;
+ * `onWordHover` reports which linked word the pointer is on, so a
+ * design can react (encore conducts the rose with it).
  */
 export function TheSentence({
   className = "",
   hostname,
+  onWordHover,
   track,
+  wordStagger = false,
 }: {
   className?: string;
   hostname: string;
+  onWordHover?: (word: SentenceWord | null) => void;
   track: SpotifyTrack | null;
+  wordStagger?: boolean;
 }) {
   const identity = getIdentity(hostname);
   const links = getNavLinks(hostname);
@@ -40,53 +58,142 @@ export function TheSentence({
   const albumArt =
     track?.image.find((image) => image.size === "medium")?.["#text"] ?? "";
 
+  // word-by-word typesetting: delays accumulate in reading order
+  let wordCount = 0;
+  const nextDelay = () => {
+    const delay = 150 + wordCount * 38;
+    wordCount += 1;
+    return delay;
+  };
+
+  const w = (text: string): ReactNode => {
+    if (!wordStagger) {
+      return text;
+    }
+    return text.split(/(\s+)/).map((token, index) =>
+      token === "" || /^\s+$/.test(token) ? (
+        token
+      ) : (
+        <span
+          className="word-in inline-block"
+          key={`${token}-${index}-${wordCount}`}
+          style={{ animationDelay: `${nextDelay()}ms` }}
+        >
+          {token}
+        </span>
+      )
+    );
+  };
+
+  const wrap = (node: ReactNode): ReactNode => {
+    if (!wordStagger) {
+      return node;
+    }
+    return (
+      <span
+        className="word-in inline-block"
+        style={{ animationDelay: `${nextDelay()}ms` }}
+      >
+        {node}
+      </span>
+    );
+  };
+
   return (
     <>
       <h1 className={className}>
-        <Peek
-          href={identity.otherDomain}
-          peek={<IdentityPeek identity={identity} />}
-          tone="name"
-        >
-          {identity.name}
-        </Peek>{" "}
-        <Peek href={github} peek={<ProjectsPeek />}>
-          builds things
-        </Peek>{" "}
-        on the internet,{" "}
-        <Peek href={blog} peek={<PostsPeek />}>
-          writes
-        </Peek>{" "}
-        sometimes, grows a{" "}
-        <Peek href={flora} peek={<FloraPeek />}>
-          garden
-        </Peek>{" "}
-        with friends, listens to{" "}
-        <Peek
-          href={track?.url ?? blog}
-          peek={
-            track ? (
-              <MusicPeek
-                albumArt={albumArt}
-                artist={track.artist}
-                isPlaying={track.isPlaying}
-                name={track.name}
-              />
-            ) : null
-          }
-        >
-          music
-        </Peek>{" "}
-        constantly, and thinks you should{" "}
-        <Peek href={social} peek={<HiPeek handle={identity.handle} />}>
-          say hi
-        </Peek>
-        <span className="text-[#b3123a]">.</span>
+        {wrap(
+          <Peek
+            hoverKey="name"
+            href={identity.otherDomain}
+            onHover={onWordHover}
+            peek={<IdentityPeek identity={identity} />}
+            tone="name"
+          >
+            {identity.name}
+          </Peek>
+        )}{" "}
+        {wrap(
+          <Peek
+            hoverKey="builds"
+            href={github}
+            onHover={onWordHover}
+            peek={<ProjectsPeek />}
+          >
+            builds things
+          </Peek>
+        )}
+        {w(" on the internet, ")}
+        {wrap(
+          <Peek
+            hoverKey="writes"
+            href={blog}
+            onHover={onWordHover}
+            peek={<PostsPeek />}
+          >
+            writes
+          </Peek>
+        )}
+        {w(" sometimes, grows a ")}
+        {wrap(
+          <Peek
+            hoverKey="garden"
+            href={flora}
+            onHover={onWordHover}
+            peek={<FloraPeek />}
+          >
+            garden
+          </Peek>
+        )}
+        {w(" with friends, listens to ")}
+        {wrap(
+          <Peek
+            hoverKey="music"
+            href={track?.url ?? blog}
+            onHover={onWordHover}
+            peek={
+              track ? (
+                <MusicPeek
+                  albumArt={albumArt}
+                  artist={track.artist}
+                  isPlaying={track.isPlaying}
+                  name={track.name}
+                />
+              ) : null
+            }
+          >
+            music
+          </Peek>
+        )}
+        {w(" constantly, and thinks you should ")}
+        {wrap(
+          <Peek
+            hoverKey="hi"
+            href={social}
+            onHover={onWordHover}
+            peek={<HiPeek handle={identity.handle} />}
+          >
+            say hi
+          </Peek>
+        )}
+        {wrap(<span className="text-[#b3123a]">.</span>)}
       </h1>
       {identity.isMridul ? (
-        <p className="mt-6 text-[#847c6c] text-[clamp(1rem,1.7vw,1.3rem)] italic leading-snug">
+        <p
+          className={`mt-6 text-[#847c6c] text-[clamp(1rem,1.7vw,1.3rem)] italic leading-snug ${wordStagger ? "word-in" : ""}`}
+          style={
+            wordStagger
+              ? { animationDelay: `${nextDelay() + 120}ms` }
+              : undefined
+          }
+        >
           ( he also keeps a{" "}
-          <Peek href="/resume" peek={<ResumePeek />}>
+          <Peek
+            hoverKey="resume"
+            href="/resume"
+            onHover={onWordHover}
+            peek={<ResumePeek />}
+          >
             resume
           </Peek>{" "}
           — for the professionally curious. )
@@ -98,12 +205,16 @@ export function TheSentence({
 
 function Peek({
   children,
+  hoverKey,
   href,
+  onHover,
   peek,
   tone = "link",
 }: {
   children: ReactNode;
+  hoverKey?: SentenceWord;
   href: string;
+  onHover?: (word: SentenceWord | null) => void;
   peek: ReactNode;
   tone?: "link" | "name";
 }) {
@@ -112,10 +223,20 @@ function Peek({
       ? "text-[#17140f] decoration-dotted decoration-[#17140f]/30 hover:decoration-[#17140f]/70"
       : "text-[#b3123a] italic decoration-[#b3123a]/30 hover:decoration-[#b3123a]";
 
+  const report = (word: SentenceWord | null) => {
+    if (onHover && hoverKey) {
+      onHover(word);
+    }
+  };
+
   return (
     <a
       className={`peek-trigger relative inline-block underline decoration-[0.04em] underline-offset-[0.14em] transition-[text-decoration-color] duration-150 ${toneClass}`}
       href={href}
+      onBlur={() => report(null)}
+      onFocus={() => report(hoverKey ?? null)}
+      onPointerEnter={() => report(hoverKey ?? null)}
+      onPointerLeave={() => report(null)}
       rel="noopener noreferrer"
       target="_blank"
     >

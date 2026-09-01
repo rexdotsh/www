@@ -1,10 +1,22 @@
 import { useEffect, useRef } from "react";
 import { ASCII_ROSE } from "@/lib/ascii-rose";
 
+export type RoseMode =
+  | "rest"
+  | "breathe"
+  | "grid"
+  | "bloom"
+  | "pulse"
+  | "lean"
+  | "sway"
+  | "shiver";
+
 interface Particle {
   activateAt: number;
   ch: string;
   color: string;
+  gridX: number;
+  gridY: number;
   homeX: number;
   homeY: number;
   vx: number;
@@ -16,6 +28,7 @@ interface Particle {
 const SPRING = 0.028;
 const DAMPING = 0.86;
 const REPEL_FORCE = 3.4;
+const TAU = Math.PI * 2;
 
 function colorFor(ch: string): string {
   if ("@#S".includes(ch)) {
@@ -56,6 +69,8 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
         color: colorFor(ch),
         homeX,
         homeY,
+        gridX: homeX,
+        gridY: homeY,
         x: scattered ? Math.random() * size : homeX,
         y: scattered ? Math.random() * size : homeY,
         vx: 0,
@@ -64,23 +79,41 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
       });
     }
   }
+
+  // tidy specimen-sheet grid, precomputed for "grid" mode
+  const g = Math.ceil(Math.sqrt(particles.length));
+  const gridSpan = size * 0.8;
+  const gridCell = gridSpan / g;
+  const gridOffset = (size - gridSpan) / 2;
+  particles.forEach((p, index) => {
+    const row = Math.floor(index / g);
+    const col = index % g;
+    p.gridX = gridOffset + (col + 0.5) * gridCell;
+    p.gridY = gridOffset + (row + 0.5) * gridCell;
+  });
+
   return particles;
 }
 
 /**
  * the rose, rebuilt from ~700 glyph particles with spring physics.
  * size follows the parent container (keep it square via aspect-square).
- * pointer repels particles from anywhere on the page; clicking the
- * canvas bursts them outward. respects prefers-reduced-motion.
+ *
+ * the pointer repels particles from anywhere on the page; clicking the
+ * canvas bursts them outward. `mode` conducts the whole flower — grid,
+ * bloom, pulse, lean, sway, shiver — and springs morph between modes.
+ * respects prefers-reduced-motion with a static render.
  */
 export default function ParticleRose({
   className = "",
   dim = 1,
+  mode = "rest",
   onTouch,
 }: {
   className?: string;
   /** base alpha multiplier — lets the rose sit behind text as a field */
   dim?: number;
+  mode?: RoseMode;
   onTouch?: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -89,6 +122,8 @@ export default function ParticleRose({
   onTouchRef.current = onTouch;
   const dimRef = useRef(dim);
   dimRef.current = dim;
+  const modeRef = useRef<RoseMode>(mode);
+  modeRef.current = mode;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -135,11 +170,48 @@ export default function ParticleRose({
       context.globalAlpha = 1;
     };
 
+    const targetFor = (p: Particle, t: number): [number, number] => {
+      const c = size / 2;
+      const dx = p.homeX - c;
+      const dy = p.homeY - c;
+
+      switch (modeRef.current) {
+        case "grid":
+          return [p.gridX, p.gridY];
+        case "bloom":
+          return [c + dx * 1.18, c + dy * 1.18];
+        case "pulse": {
+          const s = 1 + 0.07 * Math.sin(t * TAU * 1.35);
+          return [c + dx * s, c + dy * s];
+        }
+        case "lean":
+          return [p.homeX - dy * 0.3, p.homeY];
+        case "sway": {
+          const angle = 0.13 * Math.sin(t * 1.9);
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          return [c + dx * cos - dy * sin, c + dx * sin + dy * cos];
+        }
+        case "shiver":
+          return [
+            p.homeX + (Math.random() - 0.5) * 4,
+            p.homeY + (Math.random() - 0.5) * 4,
+          ];
+        case "breathe": {
+          const s = 1 + 0.014 * Math.sin(t * 1.1);
+          return [c + dx * s, c + dy * s];
+        }
+        default:
+          return [p.homeX, p.homeY];
+      }
+    };
+
     const tick = (now: number) => {
       if (!startedAt) {
         startedAt = now;
       }
       const elapsed = now - startedAt;
+      const t = now / 1000;
       const repelRadius = size * 0.16;
       context.clearRect(0, 0, size, size);
 
@@ -148,9 +220,10 @@ export default function ParticleRose({
           continue;
         }
 
-        // spring home
-        p.vx += (p.homeX - p.x) * SPRING;
-        p.vy += (p.homeY - p.y) * SPRING;
+        // spring toward the conducted target
+        const [targetX, targetY] = targetFor(p, t);
+        p.vx += (targetX - p.x) * SPRING;
+        p.vy += (targetY - p.y) * SPRING;
 
         // repel from pointer
         const dx = p.x - pointer.x;

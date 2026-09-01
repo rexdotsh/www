@@ -175,19 +175,37 @@ body {
   animation: rise-in 600ms var(--ease-strong) forwards;
 }
 
-/* one sentence + duet — media peek cards */
+/* the sentence — words typeset themselves on load (encore) */
+@keyframes word-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.35em);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.word-in {
+  animation: word-in 550ms var(--ease-strong) backwards;
+}
+
+/* the sentence — media peek cards, with a springy pop */
 .peek {
   position: absolute;
   bottom: calc(100% + 0.5em);
   left: 50%;
   translate: -50% 0;
-  transform: scale(0.95);
+  transform: scale(0.92);
   opacity: 0;
   pointer-events: none;
   transform-origin: bottom center;
   transition:
-    transform 180ms var(--ease-strong),
-    opacity 180ms var(--ease-strong);
+    transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 160ms var(--ease-strong);
   z-index: 20;
 }
 

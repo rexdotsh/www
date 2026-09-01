@@ -2,7 +2,7 @@ export const DESIGNS = [
   { id: "classic", name: "classic", key: "0" },
   { id: "duet", name: "duet", key: "1" },
   { id: "solo", name: "solo", key: "2" },
-  { id: "poster", name: "poster", key: "3" },
+  { id: "encore", name: "encore", key: "3" },
 ] as const;
 
 export type DesignId = (typeof DESIGNS)[number]["id"];

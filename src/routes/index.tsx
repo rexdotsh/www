@@ -2,7 +2,7 @@ import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import DesignSwitcher from "@/components/design-switcher";
 import ClassicDesign from "@/designs/classic";
 import DuetDesign from "@/designs/duet";
-import PosterDesign from "@/designs/poster";
+import EncoreDesign from "@/designs/encore";
 import { type DesignId, isDesignId } from "@/designs/registry";
 import SoloDesign from "@/designs/solo";
 
@@ -50,7 +50,7 @@ function Home() {
       {design === "classic" && <ClassicDesign hostname={effectiveHostname} />}
       {design === "duet" && <DuetDesign hostname={effectiveHostname} />}
       {design === "solo" && <SoloDesign hostname={effectiveHostname} />}
-      {design === "poster" && <PosterDesign hostname={effectiveHostname} />}
+      {design === "encore" && <EncoreDesign hostname={effectiveHostname} />}
       <DesignSwitcher active={design} persona={persona} />
     </>
   );
