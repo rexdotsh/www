@@ -42,9 +42,43 @@
   --heat-4: light-dark(#8f1236, #ef7d99);
 }
 
+/* a pinned choice overrides the system; light-dark() follows color-scheme */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
 body {
   background: var(--background);
   font-family: "Geist Mono Variable", monospace;
+}
+
+.theme-toggle {
+  position: fixed;
+  top: max(1.1rem, env(safe-area-inset-top));
+  right: max(1.4rem, env(safe-area-inset-right));
+  z-index: 60;
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 10px;
+  font-style: italic;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  cursor: pointer;
+  transition: color 150ms;
+}
+
+.theme-toggle:hover {
+  color: var(--rose);
+}
+
+/* the theme flip owns its own transition: no crossfade, just the clip reveal */
+html[data-vt="theme"]::view-transition-old(root),
+html[data-vt="theme"]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
 }
 
 @keyframes rise-in {

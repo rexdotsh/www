@@ -1,6 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import NotFoundPage from "@/components/not-found";
+import ThemeToggle from "@/components/theme-toggle";
 import { SITE_HEADERS } from "@/lib/headers";
 import { getSiteInfo } from "@/lib/site";
 import geistMonoWoff2 from "@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url";
@@ -110,6 +111,9 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
+// applied before paint so a pinned theme never flashes the wrong palette
+const THEME_SCRIPT = `try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
+
 function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -124,9 +128,12 @@ function RootDocument({ children }: { children: ReactNode }) {
           media="(prefers-color-scheme: dark)"
           name="theme-color"
         />
+        {/** biome-ignore lint/security/noDangerouslySetInnerHtml: static first-paint theme script */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <HeadContent />
       </head>
       <body className="antialiased">
+        <ThemeToggle />
         {children}
         <Scripts />
       </body>
