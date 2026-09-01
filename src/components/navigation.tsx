@@ -1,11 +1,7 @@
-import { getHost } from "@/app/lib/utils";
-
-export default async function Navigation() {
-  const host = await getHost();
-
+export default function Navigation({ hostname }: { hostname: string }) {
   const links = [
     { href: "https://blog.rex.wf", text: "BLOG" },
-    ...(host === "mridul.sh"
+    ...(hostname === "mridul.sh"
       ? [{ href: "/resume", text: "RESUME" }]
       : [{ href: "https://x.com/rexmkv", text: "TWITTER" }]),
     { href: "https://github.com/rexdotsh", text: "GITHUB" },

@@ -1,31 +1,27 @@
-"use client";
-
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAudioPlayer } from "react-use-audio-player";
 
-type SpotifyTrack = {
-  isPlaying: boolean;
-  name: string;
-  artist: string;
+interface SpotifyTrack {
   album: string;
+  artist: string;
+  id: string;
   image: Array<{
     "#text": string;
     size: "small" | "medium" | "large";
   }>;
+  isPlaying: boolean;
+  name: string;
   url: string;
-  id: string;
-};
+}
 
 const MIN_HEIGHT_FOR_SPOTIFY = 900;
 const POLL_INTERVAL = 60_000;
 
 export default function SpotifyNowPlaying() {
   const [track, setTrack] = useState<SpotifyTrack | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
   const [shouldShow, setShouldShow] = useState(false);
-  const pollTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const resizeTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const resizeTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const { load, isPlaying, play, pause, fade } = useAudioPlayer();
 
   const checkShouldShow = useCallback(() => {
@@ -56,7 +52,11 @@ export default function SpotifyNowPlaying() {
   const fetchTrack = useCallback(async () => {
     try {
       const trackRes = await fetch("/api/spotify/playing");
-      const trackData: SpotifyTrack = await trackRes.json();
+      if (!trackRes.ok) {
+        return;
+      }
+
+      const trackData: SpotifyTrack | null = await trackRes.json();
       if (!trackData) {
         return;
       }
@@ -65,12 +65,15 @@ export default function SpotifyNowPlaying() {
 
       if (trackData.id !== track?.id) {
         const previewRes = await fetch(`/api/spotify/preview/${trackData.id}`);
+        if (!previewRes.ok) {
+          return;
+        }
         const { url } = await previewRes.json();
         if (url) {
           load(url, { html5: true });
         }
       }
-    } catch (_err) {
+    } catch {
       // Silently fail - Spotify API errors shouldn't break the UI
     }
   }, [track?.id, load]);
@@ -128,27 +131,26 @@ export default function SpotifyNowPlaying() {
       <div className="mx-auto max-w-sm">
         <div className="relative">
           <a
-            className={`group flex items-center gap-4 rounded-lg border border-border bg-surface p-4 pr-16 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-border-hover hover:bg-surface-hover hover:shadow-md ${isVisible ? "animate-fade-in" : "opacity-0"}`}
+            className="group animate-fade-in flex items-center gap-4 rounded-lg border border-border bg-surface p-4 pr-16 shadow-sm backdrop-blur-md transition-all duration-300 hover:border-border-hover hover:bg-surface-hover hover:shadow-md"
             href={track.url}
             rel="noopener noreferrer"
             target="_blank"
           >
             <div className="relative h-16 min-w-16">
-              <Image
+              <img
                 alt={`${track.album} album art`}
                 className="rounded-md object-cover"
                 height={64}
-                onLoad={() => setTimeout(() => setIsVisible(true), 1)}
                 src={getAlbumArt()}
                 width={64}
               />
-              {track.isPlaying && isVisible && (
+              {track.isPlaying ? (
                 <div className="-bottom-2 -right-2 absolute flex items-end gap-[2px] rounded-md bg-surface-hover p-1.5 shadow-sm">
                   <div className="h-3 w-[3px] origin-bottom animate-bar-1 bg-accent" />
                   <div className="h-3 w-[3px] origin-bottom animate-bar-2 bg-accent" />
                   <div className="h-3 w-[3px] origin-bottom animate-bar-3 bg-accent" />
                 </div>
-              )}
+              ) : null}
             </div>
             <div className="mr-2 flex min-w-0 flex-1 flex-col">
               <span className="mb-0.5 text-accent text-xs">
@@ -167,7 +169,7 @@ export default function SpotifyNowPlaying() {
           </a>
           <button
             aria-label={isPlaying ? "Pause song preview" : "Play song preview"}
-            className={`-translate-y-1/2 absolute top-1/2 right-4 cursor-pointer rounded-full bg-accent/10 p-2.5 text-accent transition-colors duration-300 hover:bg-accent/20 ${isVisible ? "animate-fade-in" : "opacity-0"}`}
+            className="-translate-y-1/2 absolute top-1/2 right-4 animate-fade-in cursor-pointer rounded-full bg-accent/10 p-2.5 text-accent transition-colors duration-300 hover:bg-accent/20"
             onClick={handlePlayPreview}
             title={isPlaying ? "Pause Preview" : "Play Preview"}
             type="button"

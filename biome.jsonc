@@ -1,7 +1,13 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "includes": ["**/*", "!bun.lock", "!app/globals.css"]
+    "includes": [
+      "**/*",
+      "!bun.lock",
+      "!src/routeTree.gen.ts",
+      "!src/styles.css",
+      "!.output"
+    ]
   },
   "linter": {
     "rules": {
@@ -9,6 +15,8 @@
         "noUnknownAtRules": "off",
         "noDocumentCookie": "off",
         "noArrayIndexKey": "off",
+        "noShadow": "off",
+        "noUnnecessaryConditions": "off",
         "noConsole": {
           "level": "error",
           "options": {
@@ -30,13 +38,13 @@
         "useSimplifiedLogicExpression": "off"
       },
       "nursery": {
-        "useSortedClasses": "off",
-        "noShadow": "off"
+        "useSortedClasses": "off"
       },
       "performance": {
         "noNamespaceImport": "off",
         "useTopLevelRegex": "off",
-        "noImgElement": "off"
+        "noImgElement": "off",
+        "noJsxPropsBind": "off"
       },
       "a11y": {
         "useSemanticElements": "off"
@@ -53,5 +61,17 @@
       }
     }
   },
-  "extends": ["ultracite/core", "ultracite/next"]
+  "overrides": [
+    {
+      "includes": ["src/routes/**/*"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    }
+  ],
+  "extends": ["ultracite/biome/core", "ultracite/biome/react"]
 }
