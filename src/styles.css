@@ -4,8 +4,6 @@
 @import "@fontsource/instrument-serif/400-italic.css";
 @import "@fontsource-variable/newsreader";
 @import "@fontsource-variable/newsreader/wght-italic.css";
-@import "@fontsource/archivo-black";
-@import "@fontsource-variable/archivo";
 @variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme inline {
@@ -13,8 +11,6 @@
   --font-mono: "Geist Mono Variable", monospace;
   --font-serif-display: "Instrument Serif", Georgia, serif;
   --font-serif-body: "Newsreader Variable", Georgia, serif;
-  --font-grotesk-black: "Archivo Black", "Arial Black", sans-serif;
-  --font-grotesk: "Archivo Variable", sans-serif;
   --ease-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-inout-strong: cubic-bezier(0.77, 0, 0.175, 1);
   --color-background: var(--background);
@@ -179,119 +175,7 @@ body {
   animation: rise-in 600ms var(--ease-strong) forwards;
 }
 
-@keyframes marquee-x {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.marquee-track {
-  animation: marquee-x 24s linear infinite;
-}
-
-.marquee-track-reverse {
-  animation: marquee-x 36s linear infinite reverse;
-}
-
-/* editorial + broadsheet — subtle paper grain */
-.paper-grain::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.035;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* editorial — dotted leaders in the table of contents */
-.toc-leader {
-  flex: 1;
-  margin-inline: 0.6em;
-  border-bottom: 2px dotted currentColor;
-  opacity: 0.35;
-  transform: translateY(-0.3em);
-}
-
-/* brutalist — exposed column grid */
-.poster-grid::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background-image: linear-gradient(
-    90deg,
-    rgba(10, 10, 10, 0.05) 0,
-    rgba(10, 10, 10, 0.05) 1px,
-    transparent 1px
-  );
-  background-size: calc(100% / 6) 100%;
-}
-
-/* spec sheet — engineering graph paper */
-.graph-paper {
-  background-image:
-    linear-gradient(rgba(37, 99, 168, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(37, 99, 168, 0.05) 1px, transparent 1px),
-    linear-gradient(rgba(37, 99, 168, 0.09) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(37, 99, 168, 0.09) 1px, transparent 1px);
-  background-size:
-    8px 8px,
-    8px 8px,
-    40px 40px,
-    40px 40px;
-}
-
-/* departures — split-flap letters */
-@keyframes flap-in {
-  0% {
-    transform: rotateX(-92deg);
-    opacity: 0.4;
-  }
-  55% {
-    transform: rotateX(16deg);
-    opacity: 1;
-  }
-  100% {
-    transform: rotateX(0deg);
-    opacity: 1;
-  }
-}
-
-.flap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(
-    180deg,
-    #32322f 0%,
-    #262624 48%,
-    #1d1d1b 52%,
-    #262624 100%
-  );
-  border-radius: 2px;
-  animation: flap-in 340ms var(--ease-strong) backwards;
-}
-
-@keyframes blink-soft {
-  0%,
-  45% {
-    opacity: 1;
-  }
-  50%,
-  100% {
-    opacity: 0.15;
-  }
-}
-
-.blink-soft {
-  animation: blink-soft 1.2s step-end infinite;
-}
-
-/* one sentence — media peek cards */
+/* one sentence + duet — media peek cards */
 .peek {
   position: absolute;
   bottom: calc(100% + 0.5em);

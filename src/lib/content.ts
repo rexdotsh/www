@@ -107,10 +107,3 @@ export const POSTS: Post[] = [
     href: "https://blog.rex.wf",
   },
 ];
-
-/** loose "now" status — edit freely */
-export const NOW = {
-  doing: "building agents & infra",
-  location: "somewhere on the internet",
-  prompt: "rex@unreal:~#",
-};

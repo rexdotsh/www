@@ -1,15 +1,10 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import DesignSwitcher from "@/components/design-switcher";
 import BloomDesign from "@/designs/bloom";
-import BroadsheetDesign from "@/designs/broadsheet";
-import BrutalistDesign from "@/designs/brutalist";
 import ClassicDesign from "@/designs/classic";
-import DeparturesDesign from "@/designs/departures";
-import EditorialDesign from "@/designs/editorial";
-import MuseumDesign from "@/designs/museum";
-import SentenceDesign from "@/designs/sentence";
-import SpecDesign from "@/designs/spec";
+import DuetDesign from "@/designs/duet";
 import { type DesignId, isDesignId } from "@/designs/registry";
+import SentenceDesign from "@/designs/sentence";
 
 const rootRoute = getRouteApi("__root__");
 
@@ -38,13 +33,8 @@ function Home() {
     <>
       {design === "classic" && <ClassicDesign hostname={hostname} />}
       {design === "bloom" && <BloomDesign hostname={hostname} />}
-      {design === "editorial" && <EditorialDesign hostname={hostname} />}
-      {design === "brutalist" && <BrutalistDesign hostname={hostname} />}
-      {design === "museum" && <MuseumDesign hostname={hostname} />}
-      {design === "spec" && <SpecDesign hostname={hostname} />}
-      {design === "departures" && <DeparturesDesign hostname={hostname} />}
-      {design === "broadsheet" && <BroadsheetDesign hostname={hostname} />}
       {design === "sentence" && <SentenceDesign hostname={hostname} />}
+      {design === "duet" && <DuetDesign hostname={hostname} />}
       <DesignSwitcher active={design} />
     </>
   );
