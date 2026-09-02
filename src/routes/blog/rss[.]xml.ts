@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PUBLISHED_POSTS } from "@/lib/posts";
+import { PUBLISHED_META } from "@/lib/posts-meta";
 import { resolveSiteInfo } from "@/lib/site";
 
 const escapeXml = (value: string) =>
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/blog/rss.xml")({
         }
 
         const name = hostname === "mridul.sh" ? "mridul" : "rex";
-        const items = PUBLISHED_POSTS.map((post) => {
+        const items = PUBLISHED_META.map((post) => {
           const url = `${baseUrl}/blog/${post.slug}`;
           return `    <item>
       <title>${escapeXml(post.title)}</title>

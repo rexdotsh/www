@@ -52,7 +52,5 @@ export const BLOG_POSTS: BlogPost[] = POSTS_META.map((meta) => ({
   }),
 }));
 
-export const PUBLISHED_POSTS = BLOG_POSTS.filter((post) => !post.draft);
-
 export const getPost = (slug: string) =>
   BLOG_POSTS.find((post) => post.slug === slug);

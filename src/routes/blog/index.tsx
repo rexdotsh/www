@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import newsreaderItalicWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2?url";
 import { LINKS } from "@/lib/content";
-import { PUBLISHED_POSTS } from "@/lib/posts";
+import { PUBLISHED_META } from "@/lib/posts-meta";
 
 export const Route = createFileRoute("/blog/")({
   component: BlogIndex,
@@ -17,6 +18,13 @@ export const Route = createFileRoute("/blog/")({
         type: "application/rss+xml",
         title: "writing — rss",
         href: "/blog/rss.xml",
+      },
+      {
+        rel: "preload",
+        href: newsreaderItalicWoff2,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
       },
     ],
   }),
@@ -52,7 +60,7 @@ function BlogIndex() {
         </p>
 
         <ul className="mt-14">
-          {PUBLISHED_POSTS.map((post, index) => (
+          {PUBLISHED_META.map((post, index) => (
             <li
               className="rise"
               key={post.slug}

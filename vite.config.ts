@@ -1,4 +1,5 @@
 import mdx from "@mdx-js/rollup";
+import rehypeShiki from "@shikijs/rehype";
 import rehypeExtractToc from "@stefanprobst/rehype-extract-toc";
 import rehypeExtractTocExport from "@stefanprobst/rehype-extract-toc/mdx";
 import tailwindcss from "@tailwindcss/vite";
@@ -9,8 +10,17 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import remarkReadingTime from "remark-reading-time";
 import remarkReadingTimeExport from "remark-reading-time/mdx.js";
+import type { ShikiTransformer } from "shiki";
 import { defineConfig } from "vite";
 import { SITE_HEADERS } from "./src/lib/headers.ts";
+import { PAPER, PAPER_DARK } from "./src/lib/shiki-themes.ts";
+
+// the copy button needs the raw source at runtime
+const rawCodeTransformer: ShikiTransformer = {
+  pre(node) {
+    node.properties["data-code"] = this.source;
+  },
+};
 
 const STATIC_ASSET_HEADERS = {
   headers: {
@@ -40,6 +50,15 @@ export default defineConfig({
           rehypeSlug,
           rehypeExtractToc,
           [rehypeExtractTocExport, { name: "tableOfContents" }],
+          [
+            rehypeShiki,
+            {
+              // tokens baked at build time; the client ships zero highlighter
+              themes: { light: PAPER, dark: PAPER_DARK },
+              defaultColor: false,
+              transformers: [rawCodeTransformer],
+            },
+          ],
         ],
         remarkPlugins: [remarkGfm, remarkReadingTime, remarkReadingTimeExport],
       }),

@@ -133,7 +133,10 @@ if __name__ == "__main__":
 
 The game provides 3 intro levels, to get the player familiarized with the game. The objective of the game was pretty simple, you had to fulfil the level goals, usually by putting the golden coloured blocks in the correct positions, after which you could take the player to the winning tile. Below is a showcase of the solutions for the intro levels.
 
-<Video src="https://r2.rex.wf/blog/parabox/intro-levels.mp4?v=2" />
+<Video
+  poster="https://r2.rex.wf/blog/parabox/posters/intro-levels.webp"
+  src="https://r2.rex.wf/blog/parabox/intro-levels.mp4?v=2"
+/>
 
 ---
 
@@ -143,7 +146,10 @@ The game provides 3 intro levels, to get the player familiarized with the game. 
 
 The first main level, `Parabox`, was another simple one, simply demonstrating the use of the blue teleporters. The player had to use the teleporter to get to the winning tile. Below is a showcase of the solution.
 
-<Video src="https://r2.rex.wf/blog/parabox/parabox.mp4?v=2" />
+<Video
+  poster="https://r2.rex.wf/blog/parabox/posters/parabox.webp"
+  src="https://r2.rex.wf/blog/parabox/parabox.mp4?v=2"
+/>
 
 ---
 
@@ -164,11 +170,17 @@ We can find out the values for the moves are -
 
 The number of moves is stored at `C200`, and the moves themselves are stored after that. Here is a video showcasing that behavior.
 
-<Video src="https://r2.rex.wf/blog/parabox/impossible-overflow.mp4?v=2" />
+<Video
+  poster="https://r2.rex.wf/blog/parabox/posters/impossible-overflow.webp"
+  src="https://r2.rex.wf/blog/parabox/impossible-overflow.mp4?v=2"
+/>
 
 So, we just need the last move to be one that we can reach. Below is a showcase of the level, along with the debugger.
 
-<Video src="https://r2.rex.wf/blog/parabox/impossible-solve.mp4?v=2" />
+<Video
+  poster="https://r2.rex.wf/blog/parabox/posters/impossible-solve.webp"
+  src="https://r2.rex.wf/blog/parabox/impossible-solve.mp4?v=2"
+/>
 
 ---
 
@@ -178,7 +190,10 @@ The third main level, `Small`, was another simple one, with the player having to
 
 > You might notice `# Extra moves to store optimal snapshot (stall more if necessary)` show up in the console along with the moves, and there are some extra moves at the end of the solution. These moves were used to initialize a bug which will be used and explained in the next level.
 
-<Video src="https://r2.rex.wf/blog/parabox/small.mp4?v=2" />
+<Video
+  poster="https://r2.rex.wf/blog/parabox/posters/small.webp"
+  src="https://r2.rex.wf/blog/parabox/small.mp4?v=2"
+/>
 
 ---
 
@@ -188,7 +203,10 @@ The third main level, `Small`, was another simple one, with the player having to
 
 The fourth, and the most difficult level, `Missing`, was where we got stuck. We couldn't figure out how to solve the level, and ultimately couldn't. Our first approach is shown in this video, without abusing any bugs, and just trying to solve the level. Even after we put the gold blocks in the correct positions, we couldn't win the level.
 
-<Video src="https://r2.rex.wf/blog/parabox/missing-attempt.mp4?v=2" />
+<Video
+  poster="https://r2.rex.wf/blog/parabox/posters/missing-attempt.webp"
+  src="https://r2.rex.wf/blog/parabox/missing-attempt.mp4?v=2"
+/>
 
 As you can see, the gold blocks are in the correct positions, but the player can't win the level. We tried to debug the level, but couldn't figure out what was wrong. We ultimately tried opening a ticket with the challenge author, and were told this is expected behaviour. We thought we had to replicate the bug used to solve `Impossible`, but that didn't work either.
 
@@ -219,7 +237,10 @@ struct Block {
 
 We thought at this point that we had to abuse the `UNDO` and `REDO` commands to solve the level, but we couldn't figure out how to do that. This is also the point where we ran into a bug which was unintended behavior, causing the game to reset when interacting with the 2nd teleporter block.
 
-<Video src="https://r2.rex.wf/blog/parabox/missing-reset-bug.mp4?v=2" />
+<Video
+  poster="https://r2.rex.wf/blog/parabox/posters/missing-reset-bug.webp"
+  src="https://r2.rex.wf/blog/parabox/missing-reset-bug.mp4?v=2"
+/>
 
 #### The Intended Solution
 
@@ -227,7 +248,10 @@ After the CTF ended, the challenge author disclosed the intended solution to the
 
 The player can access the third map/stage from the **level before** by loading a snapshot (thus the need for the extra levels from the previous level). The last problem is that the player needs one more box, which can also be solved by loading a snapshot from the level before. So, we can set up our snapshot by doing some extra moves in the `Small`, to fulfil the conditions of this level. Below is a showcase of the solution.
 
-<Video src="https://r2.rex.wf/blog/parabox/missing-solve.mp4?v=2" />
+<Video
+  poster="https://r2.rex.wf/blog/parabox/posters/missing-solve.webp"
+  src="https://r2.rex.wf/blog/parabox/missing-solve.mp4?v=2"
+/>
 
 ---
 
@@ -237,7 +261,10 @@ The player can access the third map/stage from the **level before** by loading a
 
 The fifth, and last level, was another one that we **thought** we solved without using any bugs in the code. I discovered the fact that you could access the green room, by glitching through the blue room pretty fast accidentally (which apparently was the bug), but couldn't figure out how to leave it. After a while, I realised that I could simply move the green box to an area where I could easily exit it, then glitch into it after entering the blue teleporter. Below is a showcase of the solution.
 
-<Video src="https://r2.rex.wf/blog/parabox/last-hurdle.mp4?v=2" />
+<Video
+  poster="https://r2.rex.wf/blog/parabox/posters/last-hurdle.webp"
+  src="https://r2.rex.wf/blog/parabox/last-hurdle.mp4?v=2"
+/>
 
 ---
 
@@ -264,6 +291,9 @@ GPNCTF{p41n_70_d3v3l0p_h0p3fully_l355_p41n_70_50lv3_fd29a4b2833}
 
 Below is the full showcase of the solutions for all the levels.
 
-<Video src="https://r2.rex.wf/blog/parabox/full-showcase.mp4?v=2" />
+<Video
+  poster="https://r2.rex.wf/blog/parabox/posters/full-showcase.webp"
+  src="https://r2.rex.wf/blog/parabox/full-showcase.mp4?v=2"
+/>
 
 If you've made it this far, thank you for reading the writeup! I hope you enjoyed it as much as I did attempting to solve this challenge. If you have any questions, suggestions, or improvements, feel free to contact me at `@rex.wf` on Discord.

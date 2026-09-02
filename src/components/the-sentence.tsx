@@ -266,7 +266,17 @@ function Peek({
     <span
       className="peek-trigger relative inline-block"
       data-peek-open={armed ? "" : undefined}
-      onPointerEnter={() => report(hoverKey ?? null)}
+      onPointerEnter={() => {
+        report(hoverKey ?? null);
+        if (!external) {
+          // warm the route so the eventual click is instant
+          router
+            .preloadRoute({ href } as Parameters<typeof router.preloadRoute>[0])
+            .catch(() => {
+              // preloading is best-effort
+            });
+        }
+      }}
       onPointerLeave={() => {
         if (!armed) {
           report(null);

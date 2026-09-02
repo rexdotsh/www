@@ -18,3 +18,8 @@ export const POSTS_META: PostMeta[] = [
     meta: ["reverse engineering", "500 pts", "1 solve"],
   },
 ];
+
+export const PUBLISHED_META = POSTS_META.filter((post) => !post.draft);
+
+export const getPostMeta = (slug: string) =>
+  POSTS_META.find((post) => post.slug === slug);

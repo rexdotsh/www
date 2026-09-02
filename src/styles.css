@@ -486,6 +486,12 @@ html[data-vt="theme"]::view-transition-new(root) {
   color: var(--body);
 }
 
+/* shiki bakes both palettes into css vars at build time */
+.code-card span[style] {
+  color: light-dark(var(--shiki-light), var(--shiki-dark));
+  font-style: var(--shiki-light-font-style, normal);
+}
+
 .code-figure {
   margin-top: 1.25em;
 }

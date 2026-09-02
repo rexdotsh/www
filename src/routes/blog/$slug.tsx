@@ -1,7 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import newsreaderItalicWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2?url";
+import newsreaderWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2?url";
 import { PostBody } from "@/components/post-body";
 import { getPost, type TocEntry } from "@/lib/posts";
+import { getPostMeta } from "@/lib/posts-meta";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
 
@@ -9,7 +12,8 @@ export const Route = createFileRoute("/blog/$slug")({
   component: PostPage,
   notFoundComponent: BlogNotFound,
   loader: ({ params }) => {
-    const post = getPost(params.slug);
+    // meta only; the compiled post body stays in the component chunk
+    const post = getPostMeta(params.slug);
     if (!post) {
       throw notFound();
     }
@@ -53,6 +57,21 @@ export const Route = createFileRoute("/blog/$slug")({
           type: "application/rss+xml",
           title: "writing — rss",
           href: "/blog/rss.xml",
+        },
+        // prose renders in newsreader; preload both faces for LCP
+        {
+          rel: "preload",
+          href: newsreaderWoff2,
+          as: "font",
+          type: "font/woff2",
+          crossOrigin: "anonymous",
+        },
+        {
+          rel: "preload",
+          href: newsreaderItalicWoff2,
+          as: "font",
+          type: "font/woff2",
+          crossOrigin: "anonymous",
         },
       ],
       scripts: [
@@ -100,13 +119,15 @@ function BlogNotFound() {
 }
 
 function ReadingProgress() {
-  const [progress, setProgress] = useState(0);
+  const barRef = useRef<HTMLDivElement>(null);
 
+  // written straight to the node; scrolling never re-renders react
   useEffect(() => {
     let frame = 0;
     const update = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 0);
+      const progress = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+      barRef.current?.style.setProperty("transform", `scaleX(${progress})`);
     };
     const onScroll = () => {
       cancelAnimationFrame(frame);
@@ -125,8 +146,8 @@ function ReadingProgress() {
   return (
     <div
       aria-hidden="true"
-      className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-rose"
-      style={{ transform: `scaleX(${progress})` }}
+      className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0 bg-rose"
+      ref={barRef}
     />
   );
 }
