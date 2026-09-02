@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAudioPlayer } from "react-use-audio-player";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
+import TintStrips from "@/components/tint-strips";
 import { useNowPlaying } from "@/lib/use-now-playing";
 
 const rootRoute = getRouteApi("__root__");
@@ -200,6 +201,7 @@ function Home() {
           </div>
         </div>
       </div>
+      <TintStrips />
     </main>
   );
 }

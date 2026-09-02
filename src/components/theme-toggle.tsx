@@ -8,6 +8,19 @@ const THEME_COLORS: Record<Theme, string> = {
   dark: "#131315",
 };
 
+// ios safari only re-samples its bar colours when a fixed element is added or
+// removed, never on a bare style change. so after the palette flips, give it
+// one for a frame. see tint-strips.tsx for what it samples
+function nudgeBarSampling() {
+  const probe = document.createElement("div");
+  probe.style.cssText =
+    "position:fixed;top:0;left:0;width:1px;height:1px;visibility:hidden;pointer-events:none";
+  document.body.appendChild(probe);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => probe.remove());
+  });
+}
+
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme | null>(null);
 
@@ -19,10 +32,14 @@ export default function ThemeToggle() {
         | undefined;
       setTheme(pinned ?? (system.matches ? "dark" : "light"));
     };
+    const onSystemChange = () => {
+      sync();
+      nudgeBarSampling();
+    };
     sync();
     // unpinned, the label follows the system if it flips mid-visit
-    system.addEventListener("change", sync);
-    return () => system.removeEventListener("change", sync);
+    system.addEventListener("change", onSystemChange);
+    return () => system.removeEventListener("change", onSystemChange);
   }, []);
 
   // keep browser chrome in step once a theme is pinned
@@ -48,6 +65,7 @@ export default function ThemeToggle() {
         // private mode; the choice just won't persist
       }
       setTheme(next);
+      nudgeBarSampling();
     };
 
     const reduceMotion = window.matchMedia(

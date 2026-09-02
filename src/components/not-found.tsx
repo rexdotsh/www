@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import TintStrips from "@/components/tint-strips";
 
 const GRID = [
   [1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1],
@@ -227,6 +228,7 @@ export default function NotFoundPage() {
         </p>
         <ScrambleLink text="home" to="/" />
       </div>
+      <TintStrips />
     </main>
   );
 }
