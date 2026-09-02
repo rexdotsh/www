@@ -1,7 +1,14 @@
+import mdx from "@mdx-js/rollup";
+import rehypeExtractToc from "@stefanprobst/rehype-extract-toc";
+import rehypeExtractTocExport from "@stefanprobst/rehype-extract-toc/mdx";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
+import rehypeSlug from "rehype-slug";
+import remarkGfm from "remark-gfm";
+import remarkReadingTime from "remark-reading-time";
+import remarkReadingTimeExport from "remark-reading-time/mdx.js";
 import { defineConfig } from "vite";
 import { SITE_HEADERS } from "./src/lib/headers.ts";
 
@@ -26,6 +33,17 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   plugins: [
+    {
+      enforce: "pre",
+      ...mdx({
+        rehypePlugins: [
+          rehypeSlug,
+          rehypeExtractToc,
+          [rehypeExtractTocExport, { name: "tableOfContents" }],
+        ],
+        remarkPlugins: [remarkGfm, remarkReadingTime, remarkReadingTimeExport],
+      }),
+    },
     tailwindcss(),
     tanstackStart(),
     viteReact(),

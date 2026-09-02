@@ -1,7 +1,5 @@
+import type { MDXComponents, MDXContent } from "mdx/types";
 import { type ComponentProps, type ReactNode, useState } from "react";
-import Markdown, { type Components, type ExtraProps } from "react-markdown";
-import rehypeSlug from "rehype-slug";
-import remarkGfm from "remark-gfm";
 import langC from "@shikijs/langs/c";
 import langPython from "@shikijs/langs/python";
 import { createHighlighterCoreSync } from "shiki/core";
@@ -150,7 +148,7 @@ function CodeShell({ code, lang }: { code: string; lang?: string }) {
 }
 
 function heading(Tag: "h2" | "h3" | "h4") {
-  return ({ id, children }: ComponentProps<"h2"> & ExtraProps) => (
+  return ({ id, children }: ComponentProps<"h2">) => (
     <Tag id={id}>
       <a className="heading-anchor" href={`#${id}`}>
         {children}
@@ -159,82 +157,79 @@ function heading(Tag: "h2" | "h3" | "h4") {
   );
 }
 
-function Code({
-  className,
-  children,
-  node,
-}: ComponentProps<"code"> & ExtraProps) {
+function Code({ className, children }: ComponentProps<"code">) {
   const fenceLang = /language-(\w+)/.exec(className ?? "")?.[1];
   if (!fenceLang) {
     return <code>{children}</code>;
   }
   const code = String(children).replace(/\n$/, "");
-  const lang = LANGS[fenceLang];
-  const meta = (node?.data as { meta?: string } | undefined)?.meta ?? "";
-  const title = /title="([^"]+)"/.exec(meta)?.[1];
-  const shell = <CodeShell code={code} lang={lang} />;
-  if (title && meta.includes("collapsed")) {
+  return <CodeShell code={code} lang={LANGS[fenceLang]} />;
+}
+
+function CodeFile({
+  children,
+  collapsed = false,
+  title,
+}: {
+  children: ReactNode;
+  collapsed?: boolean;
+  title: string;
+}) {
+  if (collapsed) {
     return (
       <details className="code-details">
         <summary className="code-summary">{title}</summary>
-        {shell}
+        {children}
       </details>
     );
   }
-  if (title) {
-    return (
-      <figure className="code-figure">
-        <figcaption className="code-title">{title}</figcaption>
-        {shell}
-      </figure>
-    );
-  }
-  return shell;
+  return (
+    <figure className="code-figure">
+      <figcaption className="code-title">{title}</figcaption>
+      {children}
+    </figure>
+  );
 }
 
-function Media({ src, alt }: ComponentProps<"img">) {
-  const url = typeof src === "string" ? src : undefined;
-  if (alt === "video") {
-    return (
-      // biome-ignore lint/a11y/useMediaCaption: silent screen recordings
-      <video
-        className="post-media"
-        controls
-        playsInline
-        preload="metadata"
-        src={url}
-      />
-    );
-  }
-  // biome-ignore lint/correctness/useImageSize: intrinsic sizes unknown for markdown-sourced media
-  return <img alt="" className="post-media" loading="lazy" src={url} />;
+function Video({ src }: { src: string }) {
+  return (
+    // biome-ignore lint/a11y/useMediaCaption: silent screen recordings
+    <video
+      className="post-media"
+      controls
+      playsInline
+      preload="metadata"
+      src={src}
+    />
+  );
 }
 
-const COMPONENTS: Components = {
+function Figure({ alt = "", src }: { alt?: string; src: string }) {
+  // biome-ignore lint/correctness/useImageSize: intrinsic sizes vary per post
+  return <img alt={alt} className="post-media" loading="lazy" src={src} />;
+}
+
+const COMPONENTS: MDXComponents = {
   a: ({ href, children }) => (
     <a href={href} rel="noopener noreferrer" target="_blank">
       {children}
     </a>
   ),
   code: Code,
+  CodeFile,
+  Figure,
   h2: heading("h2"),
   h3: heading("h3"),
   h4: heading("h4"),
-  img: Media,
   // block code renders its own card; unwrap the default pre
   pre: ({ children }: { children?: ReactNode }) => <>{children}</>,
+  Video,
 };
 
-export function PostBody({ markdown }: { markdown: string }) {
+export function PostBody({ Content }: { Content: MDXContent }) {
   return (
     <div className="prose-post">
-      <Markdown
-        components={COMPONENTS}
-        rehypePlugins={[rehypeSlug]}
-        remarkPlugins={[remarkGfm]}
-      >
-        {markdown}
-      </Markdown>
+      <Content components={COMPONENTS} />
     </div>
   );
 }

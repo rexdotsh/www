@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { PostBody } from "@/components/post-body";
-import { getPost, getToc, type TocEntry } from "@/lib/posts";
+import { getPost, type TocEntry } from "@/lib/posts";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
 
@@ -213,7 +213,7 @@ function PostPage() {
   return (
     <main className="min-h-dvh bg-paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
       <ReadingProgress />
-      <Toc entries={getToc(post.body)} />
+      <Toc entries={post.toc} />
       <div className="mx-auto w-full max-w-xl">
         <header className="border-ink/10 border-b pb-8">
           <Link
@@ -245,7 +245,7 @@ function PostPage() {
         </header>
 
         <article className="rise mt-10" style={{ animationDelay: "200ms" }}>
-          <PostBody markdown={post.body} />
+          <PostBody Content={post.Content} />
         </article>
 
         <footer className="rise mt-16 text-center">
