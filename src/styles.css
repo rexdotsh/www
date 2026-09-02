@@ -593,25 +593,9 @@ html[data-vt="theme"]::view-transition-new(root) {
   line-height: 1.15;
 }
 
-.prose-post {
-  counter-reset: section;
-}
-
 .prose-post h2 {
   font-size: 1.8rem;
   margin-top: 1.9em;
-  counter-increment: section;
-}
-
-.prose-post h2::before {
-  content: counter(section, decimal-leading-zero);
-  display: block;
-  font-family: "Geist Mono Variable", monospace;
-  font-size: 10px;
-  letter-spacing: 0.28em;
-  color: var(--rose);
-  opacity: 0.7;
-  margin-bottom: 0.45rem;
 }
 
 .prose-post h3 {
