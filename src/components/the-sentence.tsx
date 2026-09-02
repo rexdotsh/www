@@ -122,8 +122,7 @@ export function TheSentence({
     {
       key: "music",
       href: track?.url ?? LINKS.blog,
-      // the underline skips the g's descender but would leave a stub past it;
-      // decorations do not reach into atomic inlines, so the line ends at the n
+      // decorations do not reach into atomic inlines: no underline stub past the g
       text: (
         <>
           somethin<span className="inline-block">g</span>

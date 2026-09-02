@@ -41,19 +41,16 @@
   --heat-3: light-dark(#ce2955, #cf3f63);
   --heat-4: light-dark(#8f1236, #ef7d99);
   --body: light-dark(#2b2620, #cfcdc9);
-  /* the rose's glyph ramp, deepest to lightest; dark gets a luminous cut */
   --rose-0: light-dark(#7c1030, #b42f52);
   --rose-1: light-dark(#a3123c, #d43a62);
   --rose-2: light-dark(#ce2955, #ea5d80);
   --rose-3: light-dark(#e35c7c, #f48ca6);
   --rose-4: light-dark(#f0a0b2, #f9bccb);
   --rose-glow: light-dark(#ef7f9a, #ffd6df);
-  /* paper shades toward its corners; graphite stays flat */
   --shade: light-dark(rgb(23 20 15 / 0.045), transparent);
-  /* grain is grey noise centred on 0.5 and blended with overlay, so the mean
-     colour is untouched: what safari 26 samples for its bars (the computed
-     background-color) is exactly what the eye sees. overlay is ~4x stronger on
-     dark bases, so the dark tile carries much less contrast */
+  /* grey noise centred on 0.5, blended with overlay: mean colour untouched, so
+     what safari samples for its bars is what the eye sees. overlay bites ~4x
+     harder on dark bases, hence the flatter dark tile */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncG type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncB type='linear' slope='1.6' intercept='-0.3'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --grain-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='0.45' intercept='0.275'/%3E%3CfeFuncG type='linear' slope='0.45' intercept='0.275'/%3E%3CfeFuncB type='linear' slope='0.45' intercept='0.275'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --paper-grain: var(--grain);
@@ -78,15 +75,14 @@
   --paper-grain: var(--grain-dark);
 }
 
-/* background-color stays a plain colour on purpose: ios safari reads it for
-   the status bar and toolbar (and the overscroll), theme-color is ignored now */
+/* a plain background-color on purpose: ios safari reads it for its bars and
+   the overscroll; theme-color is ignored now */
 body {
   background-color: var(--background);
   font-family: "Geist Mono Variable", monospace;
 }
 
-/* every page surface is paper with fibre. no fixed overlays: the texture is
-   painted into the element safari samples, and overlay keeps its mean colour */
+/* texture painted into the surface itself, never a fixed overlay */
 .paper {
   background-color: var(--background);
   background-image: var(--paper-grain);
@@ -94,10 +90,9 @@ body {
   background-blend-mode: overlay;
 }
 
-/* see tint-strips.tsx. ios only: everywhere else they do not exist. taller than
-   webkit's 10px "thin border" floor so it trusts the declared colour, full
-   width so it is not "too small", and no opacity/visibility tricks, which the
-   sampler rejects. a mask hides them without hiding them from the sampler */
+/* see tint-strips.tsx. ios only. taller than webkit's 10px floor so it trusts
+   the declared colour, full width so it is not "too small", masked rather than
+   opacity/visibility (which the sampler rejects) */
 .tint-strip {
   display: none;
 }
@@ -124,8 +119,8 @@ body {
   }
 }
 
-/* the home page is one screen, so its corners can be shaded. the gradient
-   reaches zero before the top and bottom edges so the bars still match */
+/* one screen, so its corners can be shaded; zero at the top and bottom edges
+   so the bars still match */
 .paper-lit {
   background-image:
     var(--paper-grain),
@@ -172,7 +167,6 @@ body {
   color: var(--faint);
   cursor: pointer;
   transition: color 150ms;
-  /* same on every page, so navigation leaves it alone */
   view-transition-name: lights;
 }
 
@@ -193,7 +187,6 @@ body {
   transform: translateX(3px);
 }
 
-/* small labels that change their mind: the old one leaves, the new one steps up */
 @keyframes swap-in {
   from {
     opacity: 0;
@@ -263,11 +256,10 @@ html[data-vt="theme"]::view-transition-new(root) {
   transition:
     filter 240ms var(--ease-strong),
     opacity 240ms var(--ease-strong);
-  /* no animation of its own; it passes the parent's delay down to the period */
+  /* passes the parent's delay down to the period */
   animation-delay: inherit;
 }
 
-/* the full stop arrives last, and lands */
 @keyframes full-stop {
   0%,
   42% {
@@ -290,8 +282,8 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation-delay: inherit;
 }
 
-/* the underline stays where skip-ink can cut clean gaps around p and g; it
-   only fills in and thickens. moving it down parks it on the descender tips */
+/* stays where skip-ink cuts clean gaps around p and g; moving it down would
+   park it on the descender tips */
 .sentence-link {
   text-decoration-line: underline;
   text-decoration-thickness: 0.04em;
@@ -349,7 +341,6 @@ html[data-vt="theme"]::view-transition-new(root) {
     0 18px 44px -18px rgb(23 20 15 / 0.38);
 }
 
-/* the card's lines step in one after another once it is up */
 .peek-card > * {
   opacity: 0;
   translate: 0 5px;
@@ -533,7 +524,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   transition: color 150ms;
 }
 
-/* the rule under the title is drawn, not printed */
 .post-header {
   position: relative;
   padding-bottom: 2rem;
@@ -603,7 +593,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   line-height: 1.15;
 }
 
-/* sections are numbered, quietly, the way a good notebook is */
 .prose-post {
   counter-reset: section;
 }
@@ -756,7 +745,6 @@ html[data-vt="theme"]::view-transition-new(root) {
     box-shadow 320ms var(--ease-strong);
 }
 
-/* the card lifts a hair while you're reading it */
 .code-shell:hover .code-card,
 .code-card:focus-visible {
   border-color: color-mix(in oklab, var(--ink) 16%, transparent);
@@ -903,7 +891,6 @@ html[data-vt="theme"]::view-transition-new(root) {
     scale 800ms var(--ease-strong);
 }
 
-/* stills develop in place as they arrive */
 .post-media[data-pending] {
   opacity: 0;
   scale: 0.985;
@@ -1158,7 +1145,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   --toc-h: 0px;
 }
 
-/* one marker on the rail, sliding between entries rather than blinking */
 .toc::after {
   content: "";
   position: absolute;
@@ -1321,7 +1307,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   }
 }
 
-/* navigation: the old page settles down as the new one rises into place */
 @keyframes vt-leave {
   to {
     opacity: 0;

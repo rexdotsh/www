@@ -7,10 +7,13 @@ const THEME_COLORS: Record<Theme, string> = {
   light: "#faf8f2",
   dark: "#131315",
 };
+const LABELS: Record<Theme, string> = {
+  light: "lights off",
+  dark: "lights on",
+};
 
-// ios safari only re-samples its bar colours when a fixed element is added or
-// removed, never on a bare style change. so after the palette flips, give it
-// one for a frame. see tint-strips.tsx for what it samples
+// ios safari re-samples its bar colours only when a fixed element comes or
+// goes, never on a style change. see tint-strips.tsx
 function nudgeBarSampling() {
   const probe = document.createElement("div");
   probe.style.cssText =
@@ -37,12 +40,11 @@ export default function ThemeToggle() {
       nudgeBarSampling();
     };
     sync();
-    // unpinned, the label follows the system if it flips mid-visit
     system.addEventListener("change", onSystemChange);
     return () => system.removeEventListener("change", onSystemChange);
   }, []);
 
-  // keep browser chrome in step once a theme is pinned
+  // chrome on android still reads theme-color
   useEffect(() => {
     if (!(theme && document.documentElement.dataset.theme)) {
       return;
@@ -104,12 +106,7 @@ export default function ThemeToggle() {
     });
   };
 
-  const label = (() => {
-    if (!theme) {
-      return "lights";
-    }
-    return theme === "dark" ? "lights on" : "lights off";
-  })();
+  const label = theme ? LABELS[theme] : "lights";
 
   return (
     <button

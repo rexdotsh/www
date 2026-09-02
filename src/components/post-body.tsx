@@ -10,7 +10,6 @@ import VideoPlayer from "@/components/video-player";
 
 const COPIED_MS = 1600;
 
-// languages that say nothing worth a label
 const QUIET_LANGS = new Set(["text", "txt", "plaintext", "plain", ""]);
 
 function Pre({ children, ...props }: ComponentProps<"pre">) {
@@ -88,7 +87,7 @@ function Figure({ alt = "", src }: { alt?: string; src: string }) {
   const imageRef = useRef<HTMLImageElement>(null);
   const [pending, setPending] = useState(false);
 
-  // visible by default (no-js, cached); only images still in flight fade in
+  // visible by default; only images still in flight fade in
   useEffect(() => {
     if (imageRef.current && !imageRef.current.complete) {
       setPending(true);

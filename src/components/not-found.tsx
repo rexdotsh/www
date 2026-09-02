@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import BackLink from "@/components/back-link";
 import TintStrips from "@/components/tint-strips";
 
 const GRID = [
@@ -73,18 +73,15 @@ function ScrambleLink({ text, to }: { text: string; to: "/" }) {
   };
 
   return (
-    <Link
-      className="back-link rise mt-6 font-mono text-muted text-xs"
+    <BackLink
+      className="rise mt-6 font-mono text-muted text-xs"
       onMouseEnter={start}
       onMouseLeave={stop}
       style={{ animationDelay: "900ms" }}
       to={to}
     >
-      <span aria-hidden="true" className="back-arrow">
-        ←
-      </span>
       {display}
-    </Link>
+    </BackLink>
   );
 }
 

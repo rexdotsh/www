@@ -8,6 +8,8 @@ export default function BackLink({
 }: {
   children: ReactNode;
   className?: string;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
   ref?: Ref<HTMLAnchorElement>;
   style?: CSSProperties;
   tabIndex?: number;

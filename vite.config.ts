@@ -15,7 +15,7 @@ import { defineConfig } from "vite";
 import { SITE_HEADERS } from "./src/lib/headers.ts";
 import { PAPER, PAPER_DARK } from "./src/lib/shiki-themes.ts";
 
-// the copy button needs the raw source at runtime; the corner label needs the language
+// the copy button and the corner label read these at runtime
 const rawCodeTransformer: ShikiTransformer = {
   pre(node) {
     node.properties["data-code"] = this.source;

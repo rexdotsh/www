@@ -48,7 +48,6 @@ const TAU = Math.PI * 2;
 // canvas is BLEED× its layout box so waves/bursts overflow instead of clip
 const BLEED = 1.24;
 
-// the cursor leaves a blush wherever it passes
 const BLUSH_RADIUS_RATIO = 0.26;
 const BLUSH_STRENGTH = 0.8;
 
@@ -60,45 +59,40 @@ const GARDEN_CENTERS: [number, number][] = [
 ];
 const GARDEN_SCALE = 0.34;
 
-// glyph weight → ramp step; the actual colors come from css so both themes apply
+// heavier glyphs take deeper steps of the ramp
 const RAMP_GLYPHS = ["@#S", "%?", "*+", ";:"];
-const RAMP_VARS = ["--rose-0", "--rose-1", "--rose-2", "--rose-3", "--rose-4"];
-const GLOW_VAR = "--rose-glow";
-const FALLBACK_RAMP: Rgb[] = [
-  [124, 16, 48],
-  [163, 18, 60],
-  [206, 41, 85],
-  [227, 92, 124],
-  [240, 160, 178],
+
+// css owns the colours (so both themes apply); these are the fallbacks
+const PALETTE_VARS: [string, Rgb][] = [
+  ["--rose-0", [124, 16, 48]],
+  ["--rose-1", [163, 18, 60]],
+  ["--rose-2", [206, 41, 85]],
+  ["--rose-3", [227, 92, 124]],
+  ["--rose-4", [240, 160, 178]],
+  ["--rose-glow", [239, 127, 154]],
 ];
-const FALLBACK_GLOW: Rgb = [239, 127, 154];
+const GLOW = PALETTE_VARS.length - 1;
 
 const rampFor = (ch: string) => {
   const index = RAMP_GLYPHS.findIndex((glyphs) => glyphs.includes(ch));
-  return index === -1 ? RAMP_VARS.length - 1 : index;
+  return index === -1 ? GLOW - 1 : index;
 };
 const toCss = ([r, g, b]: Rgb) => `rgb(${r},${g},${b})`;
 
-// resolve css custom properties (light-dark() included) to actual channels
-function readPalette(host: HTMLElement): { ramp: Rgb[]; glow: Rgb } {
+// a probe element resolves the custom properties, light-dark() included
+function readPalette(host: HTMLElement): Rgb[] {
   const probe = document.createElement("span");
   probe.style.cssText =
     "position:absolute;width:0;height:0;overflow:hidden;visibility:hidden";
   host.appendChild(probe);
-  const resolve = (variable: string, fallback: Rgb): Rgb => {
+  const palette = PALETTE_VARS.map(([variable, fallback]): Rgb => {
     probe.style.color = `var(${variable})`;
     const channels = getComputedStyle(probe)
       .color.match(/[\d.]+/g)
       ?.slice(0, 3)
       .map(Number);
-    return channels && channels.length === 3 ? (channels as Rgb) : fallback;
-  };
-  const palette = {
-    ramp: RAMP_VARS.map((variable, index) =>
-      resolve(variable, FALLBACK_RAMP[index])
-    ),
-    glow: resolve(GLOW_VAR, FALLBACK_GLOW),
-  };
+    return channels?.length === 3 ? (channels as Rgb) : fallback;
+  });
   probe.remove();
   return palette;
 }
@@ -361,10 +355,9 @@ export default function ParticleRose({
     let palette = readPalette(container);
     const pointer = { x: -9999, y: -9999 };
 
-    const recolor = () => {
-      palette = readPalette(container);
+    const tint = () => {
       for (const p of particles) {
-        p.rgb = palette.ramp[p.ramp];
+        p.rgb = palette[p.ramp];
         p.color = toCss(p.rgb);
       }
     };
@@ -420,10 +413,7 @@ export default function ParticleRose({
       canvas.height = size * dpr;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       particles = buildParticles(size, scattered && !reduceMotion);
-      for (const p of particles) {
-        p.rgb = palette.ramp[p.ramp];
-        p.color = toCss(p.rgb);
-      }
+      tint();
       const rows = ASCII_ROSE.split("\n").length;
       const inner = size / BLEED;
       const gridCell = (inner * 0.95) / Math.ceil(Math.sqrt(particles.length));
@@ -506,7 +496,7 @@ export default function ParticleRose({
       const t = now / 1000;
       const repelRadius = size * 0.16;
       const blushRadius = size * BLUSH_RADIUS_RATIO;
-      const [glowR, glowG, glowB] = palette.glow;
+      const [glowR, glowG, glowB] = palette[GLOW];
       const resting = modeRef.current === "rest";
       const artMode = modeRef.current === "art" && hasArt;
       const blink =
@@ -660,9 +650,9 @@ export default function ParticleRose({
     canvas.addEventListener("pointerdown", onPointerDown);
     canvas.addEventListener("pointerleave", onPointerLeave);
 
-    // the palette follows the lights: pinned toggle or the system flipping
     const onThemeChange = () => {
-      recolor();
+      palette = readPalette(container);
+      tint();
       if (reduceMotion) {
         drawStatic();
       }
