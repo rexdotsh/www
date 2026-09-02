@@ -1,4 +1,3 @@
-/** text ascii rose, generated from public/image.png (scripts/build-ascii-art.ts palette) */
 export const ASCII_ROSE = `             ++:::::;
        ;:   ++:,:,:;;;;:+++;;
       +::; +*;:;:;+;;;;;;+++++++

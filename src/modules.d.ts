@@ -19,3 +19,9 @@ declare module "*.mdx" {
   const Content: MDXContent;
   export default Content;
 }
+
+// bun's file loader hands back the resolved path
+declare module "*.woff" {
+  const path: string;
+  export default path;
+}
