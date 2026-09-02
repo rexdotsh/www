@@ -314,6 +314,7 @@ export default function ParticleRose({
   className = "",
   doze = false,
   mode = "rest",
+  onHold,
   onTap,
   tappable = false,
 }: {
@@ -322,6 +323,7 @@ export default function ParticleRose({
   className?: string;
   doze?: boolean;
   mode?: RoseMode;
+  onHold?: (holding: boolean) => void;
   onTap?: () => void;
   tappable?: boolean;
 }) {
@@ -335,6 +337,8 @@ export default function ParticleRose({
   dozeRef.current = doze;
   const onTapRef = useRef(onTap);
   onTapRef.current = onTap;
+  const onHoldRef = useRef(onHold);
+  onHoldRef.current = onHold;
   const loadArtRef = useRef<(url: string | null) => void>(() => undefined);
 
   useEffect(() => {
@@ -494,6 +498,10 @@ export default function ParticleRose({
     let nextPetalAt = performance.now() + 9000 + Math.random() * 8000;
     // 0 awake, 1 dozing; eased so the rose settles rather than slumps
     let dozeLevel = 0;
+    // press and hold: after a beat the petals open around the centre, and
+    // let go when the pointer does
+    let heldSince = 0;
+    let bloom = 0;
 
     const tick = (now: number) => {
       if (!startedAt) {
@@ -502,6 +510,9 @@ export default function ParticleRose({
       const elapsed = now - startedAt;
       const t = now / 1000;
       dozeLevel += ((dozeRef.current ? 1 : 0) - dozeLevel) * 0.03;
+      const opening = heldSince > 0 && now - heldSince > 180;
+      bloom += ((opening ? 1 : 0) - bloom) * (opening ? 0.03 : 0.09);
+      const spread = 1 + 0.42 * bloom;
       const spring = SPRING * (1 - 0.55 * dozeLevel);
       const sag = size * 0.025 * dozeLevel;
       const dim = 1 - 0.18 * dozeLevel;
@@ -561,8 +572,9 @@ export default function ParticleRose({
           }
         } else {
           const [targetX, targetY] = targetFor(p, t);
-          p.vx += (targetX - p.x) * spring;
-          p.vy += (targetY + sag - p.y) * spring;
+          const c = size / 2;
+          p.vx += (c + (targetX - c) * spread - p.x) * spring;
+          p.vy += (c + (targetY - c) * spread + sag - p.y) * spring;
 
           const dx = p.x - pointer.x;
           const dy = p.y - pointer.y;
@@ -572,8 +584,10 @@ export default function ParticleRose({
             p.vx += (dx / dist) * force;
             p.vy += (dy / dist) * force;
           }
-          blush =
-            dist < blushRadius ? (1 - dist / blushRadius) * BLUSH_STRENGTH : 0;
+          blush = Math.max(
+            dist < blushRadius ? (1 - dist / blushRadius) * BLUSH_STRENGTH : 0,
+            0.4 * bloom
+          );
 
           p.vx *= DAMPING;
           p.vy *= DAMPING;
@@ -647,8 +661,12 @@ export default function ParticleRose({
       }
       sfx("puff");
       press = { at: performance.now(), x: event.clientX, y: event.clientY };
+      heldSince = press.at;
+      onHoldRef.current?.(true);
     };
 
+    // a release is either the end of a hold, which puffs, or a tap, which
+    // asks for the music; never both
     const onPointerUp = (event: PointerEvent) => {
       if (!press) {
         return;
@@ -657,13 +675,19 @@ export default function ParticleRose({
       const still =
         Math.hypot(event.clientX - press.x, event.clientY - press.y) < TAP_SLOP;
       press = null;
-      if (quick && still) {
+      heldSince = 0;
+      onHoldRef.current?.(false);
+      if (bloom > 0.3) {
+        sfx("puff");
+      } else if (quick && still) {
         onTapRef.current?.();
       }
     };
 
     const onPointerCancel = () => {
       press = null;
+      heldSince = 0;
+      onHoldRef.current?.(false);
     };
 
     let cancelled = false;
