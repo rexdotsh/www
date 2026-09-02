@@ -1,12 +1,17 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import ParticleRose, { type RoseMode } from "@/components/particle-rose";
+import { useEffect, useMemo, useRef, useState } from "react";
+import ParticleRose, {
+  type RoseMode,
+  type Sky,
+} from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
 import { sfx } from "@/lib/sfx";
 import { useIdle } from "@/lib/use-idle";
 import { useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
+import { useWeather } from "@/lib/use-weather";
+import type { Weather } from "@/routes/api/weather";
 
 const rootRoute = getRouteApi("__root__");
 
@@ -53,6 +58,60 @@ const LIFTS: Record<SentenceWord, string> = {
 };
 const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[73px]";
 
+// below this the air is still; above the cap it is just windy
+const WIND_FLOOR = 6;
+const WIND_CAP = 40;
+const WINDY = 25;
+
+// what the sky does to the rose. wind blows across the screen the way it
+// blows across the map, west to east being left to right
+const skyFor = (weather: Weather | null): Sky => {
+  if (!weather) {
+    return { rain: 0, snow: 0, wind: 0 };
+  }
+  const strength = Math.min(
+    Math.max((weather.wind - WIND_FLOOR) / (WIND_CAP - WIND_FLOOR), 0),
+    1
+  );
+  return {
+    rain: weather.sky === "rain" || weather.sky === "storm" ? 1 : 0,
+    snow: weather.sky === "snow" ? 1 : 0,
+    wind: -Math.sin((weather.windFrom * Math.PI) / 180) * strength,
+  };
+};
+
+// a word for the sky, only when there is something to say
+const skyWord = (weather: Weather | null) => {
+  if (!weather) {
+    return null;
+  }
+  switch (weather.sky) {
+    case "storm":
+      return "thundering";
+    case "rain":
+      return "raining";
+    case "snow":
+      return "snowing";
+    case "fog":
+      return "foggy";
+    default:
+      return weather.wind >= WINDY ? "windy" : null;
+  }
+};
+
+const weatherCaption = (mine: Weather | null, yours: Weather | null) => {
+  const here = skyWord(mine);
+  const there = skyWord(yours);
+  if (!(here || there)) {
+    return null;
+  }
+  const mineLine = `${here ?? "clear"} where i am`;
+  if (!there || there === here) {
+    return `( ${mineLine} )`;
+  }
+  return `( ${mineLine}, ${there} where you are )`;
+};
+
 const VOLUME = 0.5;
 
 function Home() {
@@ -68,6 +127,8 @@ function Home() {
       setCover(false);
     });
   const [holding, setHolding] = useState(false);
+  const weather = useWeather();
+  const sky = useMemo(() => skyFor(weather?.mine ?? null), [weather]);
   const idle = useIdle(40_000);
   const dozing = idle && !(word || isPlaying || cover);
   const wasDozingRef = useRef(false);
@@ -155,7 +216,13 @@ function Home() {
     if (holding) {
       return "( opening up )";
     }
-    return dozing ? "( dozing )" : "( alive, technically )";
+    if (dozing) {
+      return "( dozing )";
+    }
+    return (
+      weatherCaption(weather?.mine ?? null, weather?.yours ?? null) ??
+      "( alive, technically )"
+    );
   })();
 
   const liftClass = word
@@ -194,6 +261,7 @@ function Home() {
               mode={mode}
               onHold={setHolding}
               onTap={onRoseTap}
+              sky={sky}
               tappable={Boolean(
                 previewUrl && (isPlaying || cover || word === "music")
               )}

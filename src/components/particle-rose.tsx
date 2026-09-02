@@ -14,6 +14,25 @@ export type RoseMode =
 
 type Rgb = [number, number, number];
 
+// what the weather does to the rose: wind is -1..1, signed by direction
+// across the screen; rain and snow are 0..1 densities
+export interface Sky {
+  rain: number;
+  snow: number;
+  wind: number;
+}
+
+interface Drop {
+  seed: number;
+  vy: number;
+  x: number;
+  y: number;
+}
+
+const STILL: Sky = { rain: 0, snow: 0, wind: 0 };
+const MAX_DROPS = 40;
+const MAX_FLAKES = 28;
+
 interface Particle {
   activateAt: number;
   art?: Rgb;
@@ -316,6 +335,7 @@ export default function ParticleRose({
   mode = "rest",
   onHold,
   onTap,
+  sky = STILL,
   tappable = false,
 }: {
   artFade?: number;
@@ -325,6 +345,7 @@ export default function ParticleRose({
   mode?: RoseMode;
   onHold?: (holding: boolean) => void;
   onTap?: () => void;
+  sky?: Sky;
   tappable?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -335,6 +356,8 @@ export default function ParticleRose({
   artFadeRef.current = artFade;
   const dozeRef = useRef(doze);
   dozeRef.current = doze;
+  const skyRef = useRef(sky);
+  skyRef.current = sky;
   const onTapRef = useRef(onTap);
   onTapRef.current = onTap;
   const onHoldRef = useRef(onHold);
@@ -502,6 +525,57 @@ export default function ParticleRose({
     // let go when the pointer does
     let heldSince = 0;
     let bloom = 0;
+    // weather: drops fall straight and fast, flakes drift; both pass through
+    // the rose and nudge whatever they touch
+    const drops: Drop[] = [];
+    const flakes: Drop[] = [];
+    let wind = 0;
+
+    const settle = (list: Drop[], count: number, speed: number) => {
+      while (list.length < count) {
+        list.push({
+          x: Math.random() * size,
+          y: Math.random() * size,
+          vy: speed * (0.7 + Math.random() * 0.6),
+          seed: Math.random() * TAU,
+        });
+      }
+      if (list.length > count) {
+        list.length = count;
+      }
+    };
+
+    const weather = (t: number) => {
+      const target = skyRef.current;
+      wind += (target.wind - wind) * 0.01;
+      settle(drops, Math.round(target.rain * MAX_DROPS), size * 0.016);
+      settle(flakes, Math.round(target.snow * MAX_FLAKES), size * 0.0025);
+      const [r, g, b] = palette[GLOW];
+      context.fillStyle = `rgba(${r},${g},${b},0.45)`;
+      for (const d of drops) {
+        d.y += d.vy;
+        d.x += wind * size * 0.004;
+        if (d.y > size) {
+          d.y = -4;
+          d.x = Math.random() * size;
+        }
+        context.fillText("'", d.x, d.y);
+        for (const p of particles) {
+          if (Math.abs(p.x - d.x) < 4 && Math.abs(p.y - d.y) < 6) {
+            p.vy += 0.5;
+          }
+        }
+      }
+      for (const f of flakes) {
+        f.y += f.vy;
+        f.x += Math.sin(t * 0.8 + f.seed) * 0.35 + wind * size * 0.002;
+        if (f.y > size) {
+          f.y = -4;
+          f.x = Math.random() * size;
+        }
+        context.fillText("\u00b7", f.x, f.y);
+      }
+    };
 
     const tick = (now: number) => {
       if (!startedAt) {
@@ -516,6 +590,9 @@ export default function ParticleRose({
       const spring = SPRING * (1 - 0.55 * dozeLevel);
       const sag = size * 0.025 * dozeLevel;
       const dim = 1 - 0.18 * dozeLevel;
+      // a lean with a flutter on top; the crown moves more than the stem
+      const gust =
+        wind * (0.42 + 0.2 * Math.sin(t * 1.1) + 0.08 * Math.sin(t * 3.7));
       const repelRadius = size * 0.16;
       const blushRadius = size * BLUSH_RADIUS_RATIO;
       const [glowR, glowG, glowB] = palette[GLOW];
@@ -575,6 +652,9 @@ export default function ParticleRose({
           const c = size / 2;
           p.vx += (c + (targetX - c) * spread - p.x) * spring;
           p.vy += (c + (targetY - c) * spread + sag - p.y) * spring;
+          if (gust) {
+            p.vx += gust * (1.2 - p.homeY / size);
+          }
 
           const dx = p.x - pointer.x;
           const dy = p.y - pointer.y;
@@ -612,6 +692,7 @@ export default function ParticleRose({
         }
       }
       context.globalAlpha = 1;
+      weather(t);
       raf = requestAnimationFrame(tick);
     };
 
