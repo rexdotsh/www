@@ -557,6 +557,37 @@ a.peek-name:hover {
   box-shadow: 0 0 10px -2px var(--rose);
 }
 
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% - 6px)) scale(0.92);
+  }
+}
+
+.quote-bubble {
+  position: fixed;
+  z-index: 50;
+  transform: translate(-50%, calc(-100% - 10px));
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid color-mix(in oklab, var(--rose) 35%, transparent);
+  box-shadow: 0 12px 28px -14px color-mix(in oklab, var(--rose) 40%, rgb(23 20 15 / 0.5));
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 10px;
+  font-style: italic;
+  letter-spacing: 0.06em;
+  color: var(--rose);
+  white-space: nowrap;
+  cursor: pointer;
+  animation: bubble-in 220ms var(--ease-strong) backwards;
+  transition: color 150ms;
+}
+
+.quote-bubble:hover {
+  color: var(--ink);
+}
+
 .post-header {
   position: relative;
   padding-bottom: 2rem;
