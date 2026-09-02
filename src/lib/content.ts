@@ -35,12 +35,12 @@ export const PROJECTS = [
   },
   {
     name: "s3enum-ng",
-    description: "high-throughput s3 bucket enumeration",
+    description: "high-throughput s3 enumeration",
     href: "https://github.com/rexdotsh/s3enum-ng",
   },
   {
     name: "www",
-    description: "you are here. this is its source",
+    description: "you are here, source and all",
     href: "https://github.com/rexdotsh/www",
   },
 ];
