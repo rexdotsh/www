@@ -48,59 +48,66 @@
   --rose-3: light-dark(#e35c7c, #f48ca6);
   --rose-4: light-dark(#f0a0b2, #f9bccb);
   --rose-glow: light-dark(#ef7f9a, #ffd6df);
-  --grain-alpha: 0.055;
-  /* light: paper darkens toward the edges. dark: a lamp warms the middle */
-  --vignette: light-dark(rgb(23 20 15 / 0.05), rgb(255 255 255 / 0));
-  --vignette-core: light-dark(rgb(23 20 15 / 0), rgb(255 255 255 / 0.028));
+  /* the desk lamp: shaded corners on paper, a warm centre on graphite */
+  --lamp: light-dark(transparent, rgb(255 255 255 / 0.03));
+  --shade: light-dark(rgb(23 20 15 / 0.045), transparent);
+  /* grain is grey noise centred on 0.5 and blended with overlay, so the mean
+     colour is untouched: what safari 26 samples for its bars (the computed
+     background-color) is exactly what the eye sees. overlay is ~4x stronger on
+     dark bases, so the dark tile carries less contrast */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncG type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncB type='linear' slope='1.6' intercept='-0.3'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='0.8' intercept='0.1'/%3E%3CfeFuncG type='linear' slope='0.8' intercept='0.1'/%3E%3CfeFuncB type='linear' slope='0.8' intercept='0.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --paper-grain: var(--grain);
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--ink) 18%, transparent) transparent;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --grain-alpha: 0.085;
+    --paper-grain: var(--grain-dark);
   }
 }
 
 /* a pinned choice overrides the system; light-dark() follows color-scheme */
 :root[data-theme="light"] {
   color-scheme: light;
-  --grain-alpha: 0.055;
+  --paper-grain: var(--grain);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --grain-alpha: 0.085;
+  --paper-grain: var(--grain-dark);
 }
 
+/* background-color stays a plain colour on purpose: ios safari reads it for
+   the status bar and toolbar (and the overscroll), theme-color is ignored now */
 body {
-  background: var(--background);
+  background-color: var(--background);
   font-family: "Geist Mono Variable", monospace;
 }
 
-/* paper has fibre: a tiled turbulence overlay, and a breath of vignette */
-body::before,
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-}
-
-body::before {
-  z-index: 100;
-  opacity: var(--grain-alpha);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+/* every page surface is paper with fibre. no fixed overlays: the texture is
+   painted into the element safari samples, and overlay keeps its mean colour */
+.paper {
+  background-color: var(--background);
+  background-image: var(--paper-grain);
   background-size: 160px 160px;
+  background-blend-mode: overlay;
 }
 
-body::after {
-  z-index: 99;
-  background: radial-gradient(
-    120% 95% at 50% 38%,
-    var(--vignette-core) 50%,
-    var(--vignette) 100%
-  );
+/* the home page is one screen, so it can sit under a lamp. both gradients
+   reach zero before the top and bottom edges so the bars still match */
+.paper-lit {
+  background-image:
+    var(--paper-grain),
+    radial-gradient(85% 60% at 50% 40%, var(--lamp), transparent 70%),
+    radial-gradient(130% 100% at 50% 38%, transparent 62%, var(--shade));
+  background-size:
+    160px 160px,
+    100% 100%,
+    100% 100%;
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-blend-mode: overlay, normal, normal;
 }
 
 :focus-visible {
@@ -113,8 +120,9 @@ body::after {
   :root {
     color-scheme: light;
   }
-  body::before,
-  body::after,
+  .paper {
+    background-image: none;
+  }
   .theme-toggle,
   .toc,
   .code-copy,

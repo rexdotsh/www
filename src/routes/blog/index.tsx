@@ -27,7 +27,7 @@ export const Route = createFileRoute("/blog/")({
 
 function BlogIndex() {
   return (
-    <main className="min-h-dvh bg-paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
+    <main className="min-h-dvh paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
       <div className="mx-auto w-full max-w-xl">
         <BackLink className="rise font-mono text-muted text-xs" to="/">
           home

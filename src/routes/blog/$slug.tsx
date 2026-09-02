@@ -80,7 +80,7 @@ export const Route = createFileRoute("/blog/$slug")({
 
 function BlogNotFound() {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-paper px-7 text-center font-serif-display text-ink selection:bg-rose selection:text-paper">
+    <main className="flex min-h-dvh flex-col items-center justify-center paper px-7 text-center font-serif-display text-ink selection:bg-rose selection:text-paper">
       <p className="rise font-mono text-faint text-xs italic">
         ( no such page. the rose checked. )
       </p>
@@ -322,7 +322,7 @@ function PostPage() {
   }
 
   return (
-    <main className="min-h-dvh bg-paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
+    <main className="min-h-dvh paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
       <ReadingProgress />
       <div className="mx-auto w-full max-w-xl">
         <header className="post-header">
