@@ -19,6 +19,13 @@ export function getIdentity(hostname: string): SiteIdentity {
   };
 }
 
+// where i am: the corner clock and the weather both read this
+export const HOME = {
+  lat: 12.97,
+  lon: 77.59,
+  timeZone: "Asia/Kolkata",
+};
+
 export const LINKS = {
   archive: "https://github.com/rexdotsh/ctf-writeups",
   blog: "/blog",

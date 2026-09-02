@@ -1,7 +1,31 @@
 import { useEffect, useState } from "react";
+import { HOME } from "@/lib/content";
 import { isMuted, onMuteChange, setMuted, sfx } from "@/lib/sfx";
 
 type Theme = "light" | "dark";
+
+const CLOCK = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: HOME.timeZone,
+});
+
+// the time where i am, kept to the minute; client only so hydration matches
+function useHomeClock() {
+  const [time, setTime] = useState("");
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const read = () => {
+      const now = new Date();
+      setTime(CLOCK.format(now));
+      timer = setTimeout(read, 60_000 - (now.getTime() % 60_000) + 50);
+    };
+    read();
+    return () => clearTimeout(timer);
+  }, []);
+  return time;
+}
 
 const REVEAL_MS = 550;
 const THEME_COLORS: Record<Theme, string> = {
@@ -122,6 +146,7 @@ export default function CornerNotes() {
   const lightsLabel = theme ? LABELS[theme] : "lights";
   const soundLabel = muted ? "sound on" : "sound off";
   const swap = flipped ? "swap-in" : undefined;
+  const time = useHomeClock();
 
   return (
     <span className="corner-notes">
@@ -150,7 +175,15 @@ export default function CornerNotes() {
         <span className={swap} key={soundLabel}>
           {soundLabel}
         </span>
-      </button>{" "}
+      </button>
+      {time ? (
+        <span className="corner-time">
+          <span aria-hidden="true" className="text-faint">
+            {" · "}
+          </span>
+          {time} where i am
+        </span>
+      ) : null}{" "}
       <span aria-hidden="true" className="paren">
         )
       </span>
