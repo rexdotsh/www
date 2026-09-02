@@ -71,7 +71,7 @@ export function TheSentence({
         href: string;
         key: SentenceWord;
         peek: ReactNode;
-        text: string;
+        text: ReactNode;
         tone?: "name";
       }
   )[] = [
@@ -122,7 +122,13 @@ export function TheSentence({
     {
       key: "music",
       href: track?.url ?? LINKS.blog,
-      text: "something",
+      // the underline skips the g's descender but would leave a stub past it;
+      // decorations do not reach into atomic inlines, so the line ends at the n
+      text: (
+        <>
+          somethin<span className="inline-block">g</span>
+        </>
+      ),
       peek: track ? <MusicPeek track={track} /> : null,
     },
     " on. ",
