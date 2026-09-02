@@ -10,10 +10,6 @@
   --font-serif-display: "Instrument Serif", Georgia, serif;
   --font-serif-body: "Newsreader Variable", Georgia, serif;
   --ease-strong: cubic-bezier(0.23, 1, 0.32, 1);
-  --color-background: var(--background);
-  --color-primary-hover: var(--primary-hover);
-  --color-secondary: var(--secondary);
-  --color-accent: var(--accent);
   --color-paper: var(--background);
   --color-card: var(--card);
   --color-ink: var(--ink);
@@ -22,20 +18,15 @@
   --color-faint: var(--faint);
 }
 
-/* paper by default; the lights go off only when asked. light-dark() follows
-   color-scheme, so one attribute flips the whole palette */
+/* paper by default; data-theme="dark" flips color-scheme and every light-dark() with it */
 :root {
   color-scheme: light;
   --background: light-dark(#faf8f2, #131315);
   --card: light-dark(#ffffff, #1c1c1f);
   --ink: light-dark(#17140f, #e8e6e3);
   --rose: light-dark(#b3123a, #e5476d);
-  --rose-deep: light-dark(#8f1236, #d1355c);
   --muted: light-dark(#847c6c, #98948d);
   --faint: light-dark(#a29a89, #6f6c66);
-  --primary-hover: var(--rose);
-  --secondary: var(--muted);
-  --accent: var(--rose);
   --heat-0: light-dark(#efe9dc, #232326);
   --heat-1: light-dark(#f0c3cd, #52273a);
   --heat-2: light-dark(#e5798f, #96304f);
@@ -49,9 +40,7 @@
   --rose-4: light-dark(#f0a0b2, #f9bccb);
   --rose-glow: light-dark(#ef7f9a, #ffd6df);
   --shade: light-dark(rgb(23 20 15 / 0.045), transparent);
-  /* grey noise centred on 0.5, blended with overlay: mean colour untouched, so
-     what safari samples for its bars is what the eye sees. overlay bites ~4x
-     harder on dark bases, hence the flatter dark tile */
+  /* mid-grey noise + overlay blend keeps the mean colour exact, which ios safari samples for its bars */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncG type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncB type='linear' slope='1.6' intercept='-0.3'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --grain-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='0.45' intercept='0.275'/%3E%3CfeFuncG type='linear' slope='0.45' intercept='0.275'/%3E%3CfeFuncB type='linear' slope='0.45' intercept='0.275'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --paper-grain: var(--grain);
@@ -64,8 +53,7 @@
   --paper-grain: var(--grain-dark);
 }
 
-/* a plain background-color on purpose: ios safari reads it for its bars and
-   the overscroll; theme-color is ignored now */
+/* a plain background-color: ios safari reads it for its bars, theme-color is ignored now */
 body {
   background-color: var(--background);
   font-family: "Geist Mono Variable", monospace;
@@ -78,9 +66,7 @@ body {
   background-blend-mode: overlay;
 }
 
-/* see tint-strips.tsx. ios only. taller than webkit's 10px floor so it trusts
-   the declared colour, full width so it is not "too small", masked rather than
-   opacity/visibility (which the sampler rejects) */
+/* see tint-strips.tsx: >10px tall, full width, masked (the sampler rejects opacity/visibility) */
 .tint-strip {
   display: none;
 }
@@ -189,13 +175,7 @@ body {
   animation: swap-in 320ms var(--ease-strong) backwards;
 }
 
-@media (max-width: 767px) {
-  .theme-toggle {
-    position: absolute;
-  }
-}
-
-/* the theme flip owns its own transition: no crossfade, just the clip reveal */
+/* the theme flip is a clip reveal, not a crossfade */
 html[data-vt="theme"]::view-transition-old(root),
 html[data-vt="theme"]::view-transition-new(root) {
   animation: none;
@@ -213,8 +193,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   }
 }
 
-/* entrances fill backwards, never forwards: webkit can flash a forwards-held
-   animation back to its first frame when something animates inside it */
+/* entrances fill backwards only; webkit flashes forwards-held animations when a child animates */
 .rise {
   animation: rise-in 600ms var(--ease-strong) backwards;
 }
@@ -236,8 +215,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation: word-in 550ms var(--ease-strong) backwards;
 }
 
-/* the focus blur lives on an inner layer so it composes with the
-   entrance animation instead of fighting it for the same element */
+/* blur on an inner layer so it does not fight the entrance for transform/filter */
 .word-body {
   transition:
     filter 240ms var(--ease-strong),
@@ -267,8 +245,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation-delay: inherit;
 }
 
-/* stays where skip-ink cuts clean gaps around p and g; moving it down would
-   park it on the descender tips */
+/* offset stays put: lower and the line sits on the descender tips of p and g */
 .sentence-link {
   text-decoration-line: underline;
   text-decoration-thickness: 0.04em;
@@ -400,28 +377,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   }
 }
 
-@keyframes wave-p2 {
-  0%,
-  100% {
-    opacity: 0.6;
-  }
-  12.5%,
-  87.5% {
-    opacity: 1;
-  }
-  25%,
-  75% {
-    opacity: 0.6;
-  }
-  37.5%,
-  62.5% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-
 @keyframes wave-p3 {
   0%,
   50%,
@@ -438,28 +393,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   }
   37.5%,
   62.5% {
-    opacity: 0.6;
-  }
-}
-
-@keyframes wave-p4 {
-  0%,
-  100% {
-    opacity: 0;
-  }
-  12.5%,
-  87.5% {
-    opacity: 0.3;
-  }
-  25%,
-  75% {
-    opacity: 0.6;
-  }
-  37.5%,
-  62.5% {
-    opacity: 1;
-  }
-  50% {
     opacity: 0.6;
   }
 }
@@ -487,26 +420,35 @@ html[data-vt="theme"]::view-transition-new(root) {
 .wave-p1 {
   animation: wave-p1 2s linear infinite;
 }
-.wave-p2 {
-  animation: wave-p2 2s linear infinite;
-}
 .wave-p3 {
   animation: wave-p3 2s linear infinite;
-}
-.wave-p4 {
-  animation: wave-p4 2s linear infinite;
 }
 .wave-p5 {
   animation: wave-p5 2s linear infinite;
 }
-
-/* ---- blog ---- */
 
 .back-link {
   display: inline-flex;
   align-items: center;
   gap: 0.6ch;
   transition: color 150ms;
+}
+
+.back-link:hover {
+  color: var(--rose);
+}
+
+.back-arrow {
+  display: inline-block;
+  transition: transform 200ms var(--ease-strong);
+}
+
+.back-link:hover .back-arrow {
+  transform: translateX(-3px);
+}
+
+.reading-progress {
+  box-shadow: 0 0 10px -2px var(--rose);
 }
 
 .post-header {
@@ -522,33 +464,13 @@ html[data-vt="theme"]::view-transition-new(root) {
   height: 1px;
   background: color-mix(in oklab, var(--ink) 10%, transparent);
   transform-origin: left;
-  animation: draw-rule 900ms var(--ease-strong) 260ms both;
+  animation: draw-rule 900ms var(--ease-strong) 260ms backwards;
 }
 
 @keyframes draw-rule {
   from {
     transform: scaleX(0);
   }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-.reading-progress {
-  box-shadow: 0 0 10px -2px var(--rose);
-}
-
-.back-link:hover {
-  color: var(--rose);
-}
-
-.back-arrow {
-  display: inline-block;
-  transition: transform 200ms var(--ease-strong);
-}
-
-.back-link:hover .back-arrow {
-  transform: translateX(-3px);
 }
 
 .prose-post {
@@ -864,8 +786,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   scale: 0.985;
 }
 
-/* ---- video player ---- */
-
 .player {
   overflow: hidden;
   --progress: 0;
@@ -986,8 +906,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   color: var(--faint);
 }
 
-/* the fill is a normal-flow child sized in percent, so it cannot leave the
-   rail in any engine; the track is the rail's own background */
+/* the fill is a percent-width flow child so it can never leave the rail */
 .player-rail {
   display: flex;
   align-items: center;
@@ -1081,8 +1000,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   background: var(--card);
 }
 
-/* a column as tall as the article, so the sticky nav inside starts level
-   with the first paragraph and stops where the article does */
+/* as tall as the article, so the sticky nav starts and stops with it */
 .toc-column {
   display: none;
   position: absolute;
@@ -1293,21 +1211,11 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
-  }
-}
-
 @media (max-width: 767px) {
+  .theme-toggle {
+    position: absolute;
+  }
+
   .peek {
     position: fixed;
     top: auto;
@@ -1320,6 +1228,12 @@ html[data-vt="theme"]::view-transition-new(root) {
   }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1328,5 +1242,11 @@ html[data-vt="theme"]::view-transition-new(root) {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
