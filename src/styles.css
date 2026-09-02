@@ -48,8 +48,7 @@
   --rose-3: light-dark(#e35c7c, #f48ca6);
   --rose-4: light-dark(#f0a0b2, #f9bccb);
   --rose-glow: light-dark(#ef7f9a, #ffd6df);
-  /* the desk lamp: shaded corners on paper, a warm centre on graphite */
-  --lamp: light-dark(transparent, rgb(255 255 255 / 0.03));
+  /* paper shades toward its corners; graphite stays flat */
   --shade: light-dark(rgb(23 20 15 / 0.045), transparent);
   /* grain is grey noise centred on 0.5 and blended with overlay, so the mean
      colour is untouched: what safari 26 samples for its bars (the computed
@@ -125,19 +124,17 @@ body {
   }
 }
 
-/* the home page is one screen, so it can sit under a lamp. both gradients
-   reach zero before the top and bottom edges so the bars still match */
+/* the home page is one screen, so its corners can be shaded. the gradient
+   reaches zero before the top and bottom edges so the bars still match */
 .paper-lit {
   background-image:
     var(--paper-grain),
-    radial-gradient(85% 60% at 50% 40%, var(--lamp), transparent 70%),
     radial-gradient(130% 100% at 50% 38%, transparent 62%, var(--shade));
   background-size:
     160px 160px,
-    100% 100%,
     100% 100%;
-  background-repeat: repeat, no-repeat, no-repeat;
-  background-blend-mode: overlay, normal, normal;
+  background-repeat: repeat, no-repeat;
+  background-blend-mode: overlay, normal;
 }
 
 :focus-visible {
