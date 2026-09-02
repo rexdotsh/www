@@ -186,7 +186,7 @@ body {
 
 .swap-in {
   display: inline-block;
-  animation: swap-in 320ms var(--ease-strong) both;
+  animation: swap-in 320ms var(--ease-strong) backwards;
 }
 
 @media (max-width: 767px) {
@@ -213,9 +213,10 @@ html[data-vt="theme"]::view-transition-new(root) {
   }
 }
 
+/* entrances fill backwards, never forwards: webkit can flash a forwards-held
+   animation back to its first frame when something animates inside it */
 .rise {
-  opacity: 0;
-  animation: rise-in 600ms var(--ease-strong) forwards;
+  animation: rise-in 600ms var(--ease-strong) backwards;
 }
 
 @keyframes word-in {
@@ -262,7 +263,7 @@ html[data-vt="theme"]::view-transition-new(root) {
 
 .full-stop {
   display: inline-block;
-  animation: full-stop 950ms var(--ease-strong) both;
+  animation: full-stop 950ms var(--ease-strong) backwards;
   animation-delay: inherit;
 }
 
@@ -842,7 +843,7 @@ html[data-vt="theme"]::view-transition-new(root) {
 }
 
 .code-details[open] .code-card {
-  animation: rise-in 320ms var(--ease-strong) both;
+  animation: rise-in 320ms var(--ease-strong) backwards;
 }
 
 .post-media {
@@ -962,7 +963,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   font-size: 10px;
   font-style: italic;
   color: rgb(255 255 255 / 0.75);
-  animation: rise-in 320ms var(--ease-strong) both;
+  animation: rise-in 320ms var(--ease-strong) backwards;
 }
 
 .player-bar {

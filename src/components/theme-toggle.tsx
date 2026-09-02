@@ -27,6 +27,8 @@ function nudgeBarSampling() {
 // paper by default; only the dark choice is pinned
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme | null>(null);
+  // the label only animates for a flip, not for hydration filling it in
+  const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
     setTheme(
@@ -63,6 +65,7 @@ export default function ThemeToggle() {
         // private mode; the choice just won't persist
       }
       setTheme(next);
+      setFlipped(true);
       nudgeBarSampling();
     };
 
@@ -114,7 +117,7 @@ export default function ThemeToggle() {
       <span aria-hidden="true" className="paren">
         (
       </span>{" "}
-      <span className="swap-in" key={label}>
+      <span className={flipped ? "swap-in" : undefined} key={label}>
         {label}
       </span>{" "}
       <span aria-hidden="true" className="paren">
