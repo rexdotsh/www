@@ -52,10 +52,20 @@ export function useNowPlaying() {
       }
     };
 
+    // pause polling while the tab is hidden; resume fresh on return
+    const onVisibility = () => {
+      clearTimeout(timeout);
+      if (!document.hidden) {
+        poll();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     poll();
     return () => {
       abortController.abort();
       clearTimeout(timeout);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 

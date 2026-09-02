@@ -380,12 +380,22 @@ const HEAT_COLORS = [
 function useContributions() {
   const [data, setData] = useState<Contributions | null>(null);
   useEffect(() => {
-    fetch("/api/github/contributions")
-      .then((response) =>
-        response.ok ? (response.json() as Promise<Contributions | null>) : null
-      )
-      .then(setData)
-      .catch(() => setData(null));
+    // deferred to idle time; the heatmap is only visible on peek anyway
+    const load = () =>
+      fetch("/api/github/contributions")
+        .then((response) =>
+          response.ok
+            ? (response.json() as Promise<Contributions | null>)
+            : null
+        )
+        .then(setData)
+        .catch(() => setData(null));
+    if ("requestIdleCallback" in window) {
+      const idle = requestIdleCallback(() => load());
+      return () => cancelIdleCallback(idle);
+    }
+    const timeout = setTimeout(load, 1500);
+    return () => clearTimeout(timeout);
   }, []);
   return data;
 }

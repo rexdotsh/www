@@ -5,6 +5,8 @@ import ThemeToggle from "@/components/theme-toggle";
 import { SITE_HEADERS } from "@/lib/headers";
 import { getSiteInfo } from "@/lib/site";
 import geistMonoWoff2 from "@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url";
+import instrumentItalicWoff2 from "@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2?url";
+import instrumentWoff2 from "@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2?url";
 import appCss from "../styles.css?url";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
@@ -63,6 +65,21 @@ export const Route = createRootRoute({
       ],
       links: [
         { rel: "stylesheet", href: appCss },
+        // the sentence renders in instrument serif; preload both faces for LCP
+        {
+          rel: "preload",
+          href: instrumentWoff2,
+          as: "font",
+          type: "font/woff2",
+          crossOrigin: "anonymous",
+        },
+        {
+          rel: "preload",
+          href: instrumentItalicWoff2,
+          as: "font",
+          type: "font/woff2",
+          crossOrigin: "anonymous",
+        },
         {
           rel: "preload",
           href: geistMonoWoff2,
