@@ -12,7 +12,7 @@ export type Sound =
   | "pause"
   | "chime";
 
-const MASTER_GAIN = 0.32;
+const MASTER_GAIN = 0.8;
 const STORAGE_KEY = "sound";
 
 let context: AudioContext | null = null;
@@ -21,8 +21,18 @@ let noise: AudioBuffer | null = null;
 let muted = false;
 const listeners = new Set<(muted: boolean) => void>();
 
+// browsers without the api (older safari) get the benefit of the doubt
+const activation = () => {
+  const state = navigator.userActivation;
+  return state
+    ? { ever: state.hasBeenActive, now: state.isActive }
+    : { ever: true, now: true };
+};
+
+// no context before the page has been touched: it would only sit suspended
+// and complain in the console
 const ensure = () => {
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" || !activation().ever) {
     return null;
   }
   if (!context) {
@@ -30,9 +40,6 @@ const ensure = () => {
     master = context.createGain();
     master.gain.value = MASTER_GAIN;
     master.connect(context.destination);
-  }
-  if (context.state === "suspended") {
-    context.resume().catch(() => undefined);
   }
   return context;
 };
@@ -100,45 +107,58 @@ const hiss = (
   source.stop(at + attack + decay + 0.02);
 };
 
+// peaks sit around -16 to -10 dBFS after the master: present, not loud.
+// fundamentals stay above ~250hz so laptop speakers can actually make them
 const SOUNDS: Record<Sound, (ctx: AudioContext) => void> = {
   // a card landing, a toc step
-  tick: (ctx) => tone(ctx, "sine", 1500, 950, 0.07, 0.004, 0.045),
+  tick: (ctx) => tone(ctx, "sine", 1500, 950, 0.2, 0.003, 0.07),
   // something confirmed
-  pop: (ctx) => tone(ctx, "sine", 520, 820, 0.14, 0.008, 0.09),
+  pop: (ctx) => tone(ctx, "sine", 520, 820, 0.32, 0.008, 0.1),
   // a switch, falling and rising
   lightsOff: (ctx) => {
-    tone(ctx, "triangle", 190, 95, 0.2, 0.006, 0.12);
-    hiss(ctx, 3000, 400, 0.05, 0.003, 0.05);
+    tone(ctx, "triangle", 320, 160, 0.4, 0.005, 0.13);
+    hiss(ctx, 3000, 400, 0.14, 0.003, 0.05);
   },
   lightsOn: (ctx) => {
-    tone(ctx, "triangle", 110, 230, 0.2, 0.006, 0.12);
-    hiss(ctx, 400, 3000, 0.05, 0.003, 0.05);
+    tone(ctx, "triangle", 170, 340, 0.4, 0.005, 0.13);
+    hiss(ctx, 400, 3000, 0.14, 0.003, 0.05);
   },
   // the rose scattering
-  puff: (ctx) => hiss(ctx, 1600, 220, 0.22, 0.01, 0.22),
+  puff: (ctx) => hiss(ctx, 1600, 220, 0.7, 0.01, 0.24),
   // two steps up, two steps down
   play: (ctx) => {
-    tone(ctx, "sine", 620, 640, 0.1, 0.006, 0.06);
-    tone(ctx, "sine", 930, 960, 0.1, 0.006, 0.08, ctx.currentTime + 0.07);
+    tone(ctx, "sine", 620, 640, 0.25, 0.006, 0.07);
+    tone(ctx, "sine", 930, 960, 0.25, 0.006, 0.1, ctx.currentTime + 0.07);
   },
   pause: (ctx) => {
-    tone(ctx, "sine", 930, 900, 0.1, 0.006, 0.06);
-    tone(ctx, "sine", 620, 600, 0.1, 0.006, 0.08, ctx.currentTime + 0.07);
+    tone(ctx, "sine", 930, 900, 0.25, 0.006, 0.07);
+    tone(ctx, "sine", 620, 600, 0.25, 0.006, 0.1, ctx.currentTime + 0.07);
   },
   // a petal touching down
   chime: (ctx) => {
-    tone(ctx, "sine", 1320, 1318, 0.07, 0.01, 0.6);
-    tone(ctx, "sine", 1980, 1976, 0.03, 0.01, 0.45);
+    tone(ctx, "sine", 1320, 1318, 0.2, 0.01, 0.9);
+    tone(ctx, "sine", 1980, 1976, 0.08, 0.01, 0.6);
   },
 };
 
+// resume() settles asynchronously, so the sound that rides the unlocking
+// gesture waits for it instead of being dropped. without a live gesture a
+// suspended context cannot be lifted, and the sound is let go
 export const sfx = (sound: Sound) => {
   if (muted) {
     return;
   }
   const ctx = ensure();
-  if (ctx && ctx.state === "running") {
+  if (!ctx) {
+    return;
+  }
+  if (ctx.state === "running") {
     SOUNDS[sound](ctx);
+  } else if (activation().now) {
+    ctx
+      .resume()
+      .then(() => SOUNDS[sound](ctx))
+      .catch(() => undefined);
   }
 };
 
@@ -168,7 +188,8 @@ export const onMuteChange = (listener: (muted: boolean) => void) => {
 };
 
 // read the stored choice and wake the context on the first real gesture, so
-// hover sounds later on are allowed to play
+// hover sounds later on are allowed to play. pointerup rather than pointerdown:
+// a touch only counts as a gesture once the finger lifts
 if (typeof window !== "undefined") {
   try {
     muted = localStorage.getItem(STORAGE_KEY) === "off";
@@ -176,10 +197,20 @@ if (typeof window !== "undefined") {
     // private mode
   }
   const wake = () => {
-    ensure();
-    window.removeEventListener("pointerdown", wake);
-    window.removeEventListener("keydown", wake);
+    const ctx = ensure();
+    if (!ctx) {
+      return;
+    }
+    ctx
+      .resume()
+      .then(() => {
+        if (ctx.state === "running") {
+          window.removeEventListener("pointerup", wake);
+          window.removeEventListener("keydown", wake);
+        }
+      })
+      .catch(() => undefined);
   };
-  window.addEventListener("pointerdown", wake, { passive: true });
+  window.addEventListener("pointerup", wake, { passive: true });
   window.addEventListener("keydown", wake);
 }
