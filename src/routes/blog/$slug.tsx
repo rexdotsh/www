@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import newsreaderItalicWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2?url";
 import newsreaderWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2?url";
 import { PostBody } from "@/components/post-body";
@@ -175,26 +175,69 @@ function Toc({ entries }: { entries: TocEntry[] }) {
     return () => observer.disconnect();
   }, [entries]);
 
+  // h4s are folded under their h3 and only unfold while you are in that section
+  const rows = useMemo(() => groupChildren(entries), [entries]);
+  const activeParent = entries.find((entry) => entry.id === active)?.parent;
+
+  const link = (entry: TocEntry) => (
+    <a
+      className={`toc-item toc-depth-${entry.depth}${
+        active === entry.id ? " toc-active" : ""
+      }`}
+      href={`#${entry.id}`}
+      key={entry.id}
+    >
+      {entry.text}
+    </a>
+  );
+
   return (
     // the column spans the article so the sticky nav starts level with the
     // first paragraph and stops at the end, instead of floating mid-screen
     <aside className="toc-column">
       <nav aria-label="contents" className="toc rise">
         <span className="toc-label">contents</span>
-        {entries.map((entry) => (
-          <a
-            className={`toc-item toc-depth-${entry.depth}${
-              active === entry.id ? " toc-active" : ""
-            }`}
-            href={`#${entry.id}`}
-            key={entry.id}
-          >
-            {entry.text}
-          </a>
-        ))}
+        {rows.map((row) =>
+          "children" in row ? (
+            <span
+              className="toc-children"
+              data-open={
+                active === row.parent || activeParent === row.parent
+                  ? ""
+                  : undefined
+              }
+              key={`children-${row.parent}`}
+            >
+              <span className="toc-children-inner">
+                {row.children.map(link)}
+              </span>
+            </span>
+          ) : (
+            link(row)
+          )
+        )}
       </nav>
     </aside>
   );
+}
+
+type TocRow = TocEntry | { children: TocEntry[]; parent: string };
+
+function groupChildren(entries: TocEntry[]): TocRow[] {
+  const rows: TocRow[] = [];
+  for (const entry of entries) {
+    const last = rows.at(-1);
+    if (entry.depth === 4 && entry.parent) {
+      if (last && "children" in last && last.parent === entry.parent) {
+        last.children.push(entry);
+      } else {
+        rows.push({ children: [entry], parent: entry.parent });
+      }
+    } else {
+      rows.push(entry);
+    }
+  }
+  return rows;
 }
 
 function FallingPetal() {

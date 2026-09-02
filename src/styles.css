@@ -663,11 +663,23 @@ html[data-vt="theme"]::view-transition-new(root) {
 
 .toc-depth-4 {
   padding-left: 2.8rem;
-  padding-top: 0.14rem;
-  padding-bottom: 0.14rem;
-  font-size: 8.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
+}
+
+/* h4s unfold beneath their h3 only while that section is the current one */
+.toc-children {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 320ms var(--ease-strong);
+}
+
+.toc-children[data-open] {
+  grid-template-rows: 1fr;
+}
+
+.toc-children-inner {
+  display: block;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .toc-item:hover {
