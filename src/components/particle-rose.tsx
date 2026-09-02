@@ -48,10 +48,6 @@ const TAU = Math.PI * 2;
 // canvas is BLEED× its layout box so waves/bursts overflow instead of clip
 const BLEED = 1.24;
 
-// at rest the rose breathes: a slow, barely-there swell
-const BREATH_PERIOD_S = 5.5;
-const BREATH_DEPTH = 0.012;
-
 // the cursor leaves a blush wherever it passes
 const BLUSH_RADIUS_RATIO = 0.26;
 const BLUSH_STRENGTH = 0.8;
@@ -487,10 +483,8 @@ export default function ParticleRose({
             p.homeX + (Math.random() - 0.5) * 4,
             p.homeY + (Math.random() - 0.5) * 4,
           ];
-        default: {
-          const s = 1 + BREATH_DEPTH * Math.sin((t * TAU) / BREATH_PERIOD_S);
-          return [c + dx * s, c + dy * s];
-        }
+        default:
+          return [p.homeX, p.homeY];
       }
     };
 

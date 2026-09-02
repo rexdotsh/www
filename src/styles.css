@@ -54,9 +54,9 @@
   /* grain is grey noise centred on 0.5 and blended with overlay, so the mean
      colour is untouched: what safari 26 samples for its bars (the computed
      background-color) is exactly what the eye sees. overlay is ~4x stronger on
-     dark bases, so the dark tile carries less contrast */
+     dark bases, so the dark tile carries much less contrast */
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncG type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncB type='linear' slope='1.6' intercept='-0.3'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --grain-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='0.8' intercept='0.1'/%3E%3CfeFuncG type='linear' slope='0.8' intercept='0.1'/%3E%3CfeFuncB type='linear' slope='0.8' intercept='0.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='0.45' intercept='0.275'/%3E%3CfeFuncG type='linear' slope='0.45' intercept='0.275'/%3E%3CfeFuncB type='linear' slope='0.45' intercept='0.275'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --paper-grain: var(--grain);
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--ink) 18%, transparent) transparent;
@@ -293,21 +293,21 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation-delay: inherit;
 }
 
+/* the underline stays where skip-ink can cut clean gaps around p and g; it
+   only fills in and thickens. moving it down parks it on the descender tips */
 .sentence-link {
   text-decoration-line: underline;
   text-decoration-thickness: 0.04em;
   text-underline-offset: 0.14em;
   text-decoration-skip-ink: auto;
   transition:
-    text-decoration-color 200ms var(--ease-strong),
-    text-underline-offset 340ms var(--ease-strong),
-    text-decoration-thickness 340ms var(--ease-strong);
+    text-decoration-color 220ms var(--ease-strong),
+    text-decoration-thickness 320ms var(--ease-strong);
 }
 
 .sentence-link:hover,
 .peek-trigger[data-peek-open] .sentence-link {
-  text-underline-offset: 0.21em;
-  text-decoration-thickness: 0.06em;
+  text-decoration-thickness: 0.065em;
 }
 
 @media (hover: hover) and (pointer: fine) {
