@@ -272,7 +272,12 @@ function Peek({
     <span
       className="peek-trigger relative inline-block"
       data-peek-open={armed ? "" : undefined}
-      onPointerEnter={() => {
+      // a finger fires enter, leave, then click; only the click counts, or the
+      // rose lifts, drops and lifts again on every tap
+      onPointerEnter={(event) => {
+        if (event.pointerType === "touch") {
+          return;
+        }
         report(hoverKey ?? null);
         if (!external) {
           router
@@ -280,8 +285,8 @@ function Peek({
             .catch(() => undefined);
         }
       }}
-      onPointerLeave={() => {
-        if (!armed) {
+      onPointerLeave={(event) => {
+        if (event.pointerType !== "touch" && !armed) {
           report(null);
         }
       }}
