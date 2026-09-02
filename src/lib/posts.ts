@@ -6,7 +6,7 @@ import ParaboxContent, {
 } from "@/content/parabox.mdx";
 import { type PostMeta, POSTS_META } from "@/lib/posts-meta";
 
-export type TocDepth = 2 | 3 | 4;
+type TocDepth = 2 | 3 | 4;
 
 export interface TocEntry {
   depth: TocDepth;
@@ -47,9 +47,7 @@ const CONTENT: Record<string, PostContent> = {
   },
 };
 
-export interface BlogPost extends PostMeta, PostContent {}
-
-export const BLOG_POSTS: BlogPost[] = POSTS_META.map((meta) => ({
+const POSTS: (PostMeta & PostContent)[] = POSTS_META.map((meta) => ({
   ...meta,
   ...(CONTENT[meta.slug] ?? {
     Content: (() => null) as MDXContent,
@@ -59,4 +57,4 @@ export const BLOG_POSTS: BlogPost[] = POSTS_META.map((meta) => ({
 }));
 
 export const getPost = (slug: string) =>
-  BLOG_POSTS.find((post) => post.slug === slug);
+  POSTS.find((post) => post.slug === slug);

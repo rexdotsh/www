@@ -6,15 +6,19 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import monoWoff from "@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff" with {
+  type: "file",
+};
+import serifWoff from "@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff" with {
+  type: "file",
+};
 import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 import { ASCII_ROSE } from "../src/lib/ascii-rose";
 import { POSTS_META } from "../src/lib/posts-meta";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(SCRIPT_DIR, "..");
-const OUT_DIR = path.join(ROOT, "public", "og");
-const FONTS = path.join(ROOT, "node_modules");
+const OUT_DIR = path.resolve(SCRIPT_DIR, "..", "public", "og");
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -108,18 +112,8 @@ const card = (title: string, metaLine: string): Node =>
     ]
   );
 
-const serif = fs.readFileSync(
-  path.join(
-    FONTS,
-    "@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff"
-  )
-);
-const mono = fs.readFileSync(
-  path.join(
-    FONTS,
-    "@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff"
-  )
-);
+const serif = fs.readFileSync(serifWoff);
+const mono = fs.readFileSync(monoWoff);
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
