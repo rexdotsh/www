@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isMuted, onMuteChange, setMuted, sfx } from "@/lib/sfx";
 
 type Theme = "light" | "dark";
 
@@ -24,16 +25,19 @@ function nudgeBarSampling() {
   });
 }
 
-// paper by default; only the dark choice is pinned
-export default function ThemeToggle() {
+// ( lights off · sound off ): paper and sound by default, both choices pinned
+export default function CornerNotes() {
   const [theme, setTheme] = useState<Theme | null>(null);
-  // the label only animates for a flip, not for hydration filling it in
+  const [muted, setMutedState] = useState(false);
+  // labels only animate for a flip, not for hydration filling them in
   const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
     setTheme(
       document.documentElement.dataset.theme === "dark" ? "dark" : "light"
     );
+    setMutedState(isMuted());
+    return onMuteChange(setMutedState);
   }, []);
 
   useEffect(() => {
@@ -67,6 +71,7 @@ export default function ThemeToggle() {
       setTheme(next);
       setFlipped(true);
       nudgeBarSampling();
+      sfx(next === "dark" ? "lightsOff" : "lightsOn");
     };
 
     const reduceMotion = window.matchMedia(
@@ -105,24 +110,50 @@ export default function ThemeToggle() {
     });
   };
 
-  const label = theme ? LABELS[theme] : "lights";
+  const toggleSound = () => {
+    const next = !muted;
+    setMuted(next);
+    setFlipped(true);
+    if (!next) {
+      sfx("pop");
+    }
+  };
+
+  const lightsLabel = theme ? LABELS[theme] : "lights";
+  const soundLabel = muted ? "sound on" : "sound off";
+  const swap = flipped ? "swap-in" : undefined;
 
   return (
-    <button
-      aria-label="toggle color theme"
-      className="theme-toggle"
-      onClick={toggle}
-      type="button"
-    >
+    <span className="corner-notes">
       <span aria-hidden="true" className="paren">
         (
       </span>{" "}
-      <span className={flipped ? "swap-in" : undefined} key={label}>
-        {label}
-      </span>{" "}
+      <button
+        aria-label="toggle color theme"
+        className="corner-button"
+        onClick={toggle}
+        type="button"
+      >
+        <span className={swap} key={lightsLabel}>
+          {lightsLabel}
+        </span>
+      </button>
+      <span aria-hidden="true" className="text-faint">
+        {" · "}
+      </span>
+      <button
+        aria-label="toggle sound effects"
+        className="corner-button"
+        onClick={toggleSound}
+        type="button"
+      >
+        <span className={swap} key={soundLabel}>
+          {soundLabel}
+        </span>
+      </button>{" "}
       <span aria-hidden="true" className="paren">
         )
       </span>
-    </button>
+    </span>
   );
 }

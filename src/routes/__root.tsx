@@ -1,7 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import NotFoundPage from "@/components/not-found";
-import ThemeToggle from "@/components/theme-toggle";
+import CornerNotes from "@/components/corner-notes";
 import { preloadFont } from "@/lib/head";
 import { SITE_HEADERS } from "@/lib/headers";
 import { getSiteInfo } from "@/lib/site";
@@ -123,7 +123,7 @@ function RootDocument({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body className="antialiased">
-        <ThemeToggle />
+        <CornerNotes />
         {children}
         <Scripts />
       </body>
