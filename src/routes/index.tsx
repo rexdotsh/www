@@ -37,19 +37,19 @@ const CAPTIONS: Record<SentenceWord, string> = {
   resume: "( pretending to be a document )",
 };
 
-// each lift is the card's offsetHeight − 4 at a 390px viewport, so the
-// caption clears the card by 12px. to re-measure, set data-peek-open on
-// the word's .peek-trigger and read .peek-card.offsetHeight.
+// each lift is the card's offsetHeight + 3 at a 390px viewport, so the
+// caption clears the tab (7px above the card) by 12px. to re-measure, set
+// data-peek-open on the word's .peek-trigger and read .peek-card.offsetHeight.
 const LIFTS: Record<SentenceWord, string> = {
-  name: "max-md:-translate-y-[53px]",
-  builds: "max-md:-translate-y-[224px]",
-  writes: "max-md:-translate-y-[77px]",
-  garden: "max-md:-translate-y-[66px]",
-  music: "max-md:-translate-y-[78px]",
-  hi: "max-md:-translate-y-[54px]",
+  name: "max-md:-translate-y-[50px]",
+  builds: "max-md:-translate-y-[218px]",
+  writes: "max-md:-translate-y-[66px]",
+  garden: "max-md:-translate-y-[79px]",
+  music: "max-md:-translate-y-[85px]",
+  hi: "max-md:-translate-y-[66px]",
   resume: "max-md:-translate-y-[54px]",
 };
-const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[64px]";
+const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[73px]";
 
 const VOLUME = 0.5;
 
