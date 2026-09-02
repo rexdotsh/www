@@ -30,17 +30,17 @@ export const LINKS = {
 export const PROJECTS = [
   {
     name: "kleis",
-    description: "opencode-first oauth proxy for coding agents",
+    description: "oauth proxy for coding agents",
     href: "https://github.com/rexdotsh/kleis",
   },
   {
-    name: "flora",
-    description: "random utilities for the web, with friends",
-    href: "https://floraorg.github.io",
+    name: "s3enum-ng",
+    description: "fast s3 bucket enumeration",
+    href: "https://github.com/rexdotsh/s3enum-ng",
   },
   {
-    name: "s3enum-ng",
-    description: "high-throughput s3 bucket enumeration",
-    href: "https://github.com/rexdotsh/s3enum-ng",
+    name: "www",
+    description: "you are here",
+    href: "https://github.com/rexdotsh/www",
   },
 ];
