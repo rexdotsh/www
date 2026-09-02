@@ -195,28 +195,37 @@ function Toc({ entries }: { entries: TocEntry[] }) {
     // the column spans the article so the sticky nav starts level with the
     // first paragraph and stops at the end, instead of floating mid-screen
     <aside className="toc-column">
-      <nav aria-label="contents" className="toc rise">
-        <span className="toc-label">contents</span>
-        {rows.map((row) =>
-          "children" in row ? (
-            <span
-              className="toc-children"
-              data-open={
-                active === row.parent || activeParent === row.parent
-                  ? ""
-                  : undefined
-              }
-              key={`children-${row.parent}`}
-            >
-              <span className="toc-children-inner">
-                {row.children.map(link)}
+      <div className="toc rise">
+        {/* the way back rides along with the contents on wide screens */}
+        <Link className="back-link toc-back" to="/blog">
+          <span aria-hidden="true" className="back-arrow">
+            ←
+          </span>
+          writing
+        </Link>
+        <nav aria-label="contents">
+          <span className="toc-label">contents</span>
+          {rows.map((row) =>
+            "children" in row ? (
+              <span
+                className="toc-children"
+                data-open={
+                  active === row.parent || activeParent === row.parent
+                    ? ""
+                    : undefined
+                }
+                key={`children-${row.parent}`}
+              >
+                <span className="toc-children-inner">
+                  {row.children.map(link)}
+                </span>
               </span>
-            </span>
-          ) : (
-            link(row)
-          )
-        )}
-      </nav>
+            ) : (
+              link(row)
+            )
+          )}
+        </nav>
+      </div>
     </aside>
   );
 }
@@ -284,7 +293,7 @@ function PostPage() {
       <div className="mx-auto w-full max-w-xl">
         <header className="border-ink/10 border-b pb-8">
           <Link
-            className="back-link rise font-mono text-muted text-xs"
+            className="back-link header-back rise font-mono text-muted text-xs"
             to="/blog"
           >
             <span aria-hidden="true" className="back-arrow">

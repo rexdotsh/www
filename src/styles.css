@@ -615,9 +615,14 @@ html[data-vt="theme"]::view-transition-new(root) {
   width: 12.5rem;
 }
 
+/* once the column is there, the way back lives in it, not above the title */
 @media (min-width: 1200px) {
   .toc-column {
     display: block;
+  }
+
+  .header-back {
+    display: none;
   }
 }
 
@@ -625,6 +630,15 @@ html[data-vt="theme"]::view-transition-new(root) {
   position: sticky;
   top: 6rem;
   animation-delay: 350ms;
+}
+
+/* sits above the contents, flush with their text, with room to breathe */
+.toc-back {
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: 1rem;
+  margin-bottom: 1.75rem;
 }
 
 .toc-label {
