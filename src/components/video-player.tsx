@@ -9,7 +9,7 @@ const clock = (seconds: number) => {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
 };
 
-function Icon({ name }: { name: "play" | "pause" | "expand" }) {
+function Icon({ name }: { name: "play" | "expand" }) {
   return (
     <svg
       aria-hidden="true"
@@ -24,21 +24,22 @@ function Icon({ name }: { name: "play" | "pause" | "expand" }) {
     >
       {name === "play" ? (
         <path d="M3 1.8v8.4L10 6z" fill="currentColor" stroke="none" />
-      ) : null}
-      {name === "pause" ? <path d="M3.5 2v8M8.5 2v8" /> : null}
-      {name === "expand" ? (
+      ) : (
         <path d="M1.5 4.5v-3h3M10.5 4.5v-3h-3M1.5 7.5v3h3M10.5 7.5v3h-3" />
-      ) : null}
+      )}
     </svg>
   );
 }
 
-// silent screen recordings: a poster, one big play, a rail, a clock, fullscreen.
-// no volume, because there is nothing to hear
+// silent screen recordings. the picture is the play/pause surface, one cue
+// sits on it whenever it is not playing, and the strip beneath holds the
+// clock, a rail you can scrub, and fullscreen. no volume: nothing to hear
 export default function VideoPlayer({
+  duration: knownDuration = 0,
   poster,
   src,
 }: {
+  duration?: number;
   poster?: string;
   src: string;
 }) {
@@ -47,7 +48,7 @@ export default function VideoPlayer({
   const [state, setState] = useState<State>("idle");
   const [buffering, setBuffering] = useState(false);
   const [current, setCurrent] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(knownDuration);
 
   const toggle = () => {
     const video = videoRef.current;
@@ -61,27 +62,23 @@ export default function VideoPlayer({
     }
   };
 
-  const seekBy = (delta: number) => {
+  const seekTo = (seconds: number) => {
     const video = videoRef.current;
     if (video && Number.isFinite(video.duration)) {
-      video.currentTime = Math.min(
-        video.duration,
-        Math.max(0, video.currentTime + delta)
+      const clamped = Math.min(video.duration, Math.max(0, seconds));
+      video.currentTime = clamped;
+      setCurrent(clamped);
+      frameRef.current?.style.setProperty(
+        "--progress",
+        `${clamped / video.duration}`
       );
-    }
-  };
-
-  const seekTo = (fraction: number) => {
-    const video = videoRef.current;
-    if (video && Number.isFinite(video.duration)) {
-      video.currentTime = Math.min(1, Math.max(0, fraction)) * video.duration;
-      frameRef.current?.style.setProperty("--progress", `${fraction}`);
     }
   };
 
   const scrub = (event: PointerEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    seekTo((event.clientX - rect.left) / rect.width);
+    const fraction = (event.clientX - rect.left) / rect.width;
+    seekTo(fraction * (videoRef.current?.duration ?? 0));
   };
 
   const fullscreen = () => {
@@ -121,6 +118,7 @@ export default function VideoPlayer({
 
   // while any control has focus. space and enter are left to the buttons
   const onKeyDown = (event: React.KeyboardEvent) => {
+    const video = videoRef.current;
     switch (event.key) {
       case "k":
         toggle();
@@ -129,10 +127,10 @@ export default function VideoPlayer({
         fullscreen();
         break;
       case "ArrowLeft":
-        seekBy(-SEEK_STEP_S);
+        seekTo((video?.currentTime ?? 0) - SEEK_STEP_S);
         break;
       case "ArrowRight":
-        seekBy(SEEK_STEP_S);
+        seekTo((video?.currentTime ?? 0) + SEEK_STEP_S);
         break;
       default:
         return;
@@ -141,14 +139,12 @@ export default function VideoPlayer({
   };
 
   const playing = state === "playing";
-  const showClock = duration > 0;
 
   return (
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: shortcuts for whichever control has focus
     <div
       aria-label="video"
       className="player post-media"
-      data-buffering={buffering ? "" : undefined}
       data-state={state}
       onKeyDown={onKeyDown}
       ref={frameRef}
@@ -176,7 +172,7 @@ export default function VideoPlayer({
           ref={videoRef}
           src={src}
         />
-        {state === "idle" || state === "ended" ? (
+        {playing ? null : (
           <button
             aria-label={state === "ended" ? "play again" : "play"}
             className="player-cue"
@@ -185,7 +181,7 @@ export default function VideoPlayer({
           >
             {state === "ended" ? "( again )" : <Icon name="play" />}
           </button>
-        ) : null}
+        )}
         {buffering && playing ? (
           <span aria-live="polite" className="player-note">
             ( loading )
@@ -194,20 +190,12 @@ export default function VideoPlayer({
       </div>
 
       <div className="player-bar">
-        <button
-          aria-label={playing ? "pause" : "play"}
-          className="player-btn"
-          onClick={toggle}
-          type="button"
-        >
-          <Icon name={playing ? "pause" : "play"} />
-        </button>
-        {showClock ? (
-          <span className="player-clock">
-            {clock(current)}
+        <span className="player-clock">
+          {clock(current)}
+          {duration > 0 ? (
             <span className="player-clock-total"> / {clock(duration)}</span>
-          </span>
-        ) : null}
+          ) : null}
+        </span>
         <div
           aria-label="seek"
           aria-valuemax={duration}
@@ -215,8 +203,8 @@ export default function VideoPlayer({
           aria-valuenow={current}
           className="player-rail"
           onPointerDown={(event) => {
-            event.currentTarget.setPointerCapture(event.pointerId);
             scrub(event);
+            event.currentTarget.setPointerCapture(event.pointerId);
           }}
           onPointerMove={(event) => {
             if (event.currentTarget.hasPointerCapture(event.pointerId)) {
