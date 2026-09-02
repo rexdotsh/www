@@ -30,17 +30,17 @@ export const LINKS = {
 export const PROJECTS = [
   {
     name: "kleis",
-    description: "oauth proxy for coding agents",
+    description: "an oauth proxy for coding agents",
     href: "https://github.com/rexdotsh/kleis",
   },
   {
     name: "s3enum-ng",
-    description: "fast s3 bucket enumeration",
+    description: "high-throughput s3 bucket enumeration",
     href: "https://github.com/rexdotsh/s3enum-ng",
   },
   {
     name: "www",
-    description: "you are here",
+    description: "you are here. this is its source",
     href: "https://github.com/rexdotsh/www",
   },
 ];
