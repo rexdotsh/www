@@ -177,7 +177,9 @@ function Home() {
         </div>
 
         <div
-          className="rise flex shrink-0 flex-col items-center"
+          // above the sentence on phones so the tap-catcher behind an open
+          // card cannot swallow a tap meant for the rose
+          className="rise relative z-20 flex shrink-0 flex-col items-center md:z-auto"
           style={{ animationDelay: "200ms" }}
         >
           <div
