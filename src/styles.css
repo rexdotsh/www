@@ -74,6 +74,13 @@ body {
   color: var(--rose);
 }
 
+/* on small screens it scrolls away with the page instead of floating over text */
+@media (max-width: 767px) {
+  .theme-toggle {
+    position: absolute;
+  }
+}
+
 /* the theme flip owns its own transition: no crossfade, just the clip reveal */
 html[data-vt="theme"]::view-transition-old(root),
 html[data-vt="theme"]::view-transition-new(root) {
