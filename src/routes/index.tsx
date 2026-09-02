@@ -37,10 +37,13 @@ const CAPTIONS: Record<SentenceWord, string> = {
   resume: "( pretending to be a document )",
 };
 
+// each lift is the card's offsetHeight − 4 at a 390px viewport, so the
+// caption clears the card by 12px. to re-measure, set data-peek-open on
+// the word's .peek-trigger and read .peek-card.offsetHeight.
 const LIFTS: Record<SentenceWord, string> = {
   name: "max-md:-translate-y-[53px]",
   builds: "max-md:-translate-y-[224px]",
-  writes: "max-md:-translate-y-[150px]",
+  writes: "max-md:-translate-y-[77px]",
   garden: "max-md:-translate-y-[66px]",
   music: "max-md:-translate-y-[78px]",
   hi: "max-md:-translate-y-[54px]",

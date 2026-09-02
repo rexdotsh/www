@@ -327,15 +327,20 @@ function Peek({
 function PeekCard({
   children,
   compact = false,
+  fit = false,
 }: {
   children: ReactNode;
   compact?: boolean;
+  fit?: boolean;
 }) {
+  const size = compact
+    ? "w-fit max-w-60 p-3"
+    : fit
+      ? "w-fit max-w-60 p-4"
+      : "w-60 p-4";
   return (
     <span
-      className={`peek-card block rounded-xl border border-ink/10 bg-card text-left font-mono not-italic ${
-        compact ? "w-fit max-w-60 p-3" : "w-60 p-4"
-      }`}
+      className={`peek-card block rounded-xl border border-ink/10 bg-card text-left font-mono not-italic ${size}`}
     >
       {children}
     </span>
@@ -482,7 +487,7 @@ function ProjectsPeek() {
 function PostsPeek() {
   const router = useRouter();
   return (
-    <PeekCard>
+    <PeekCard fit>
       <span className="block text-faint text-[9px] uppercase tracking-[0.25em]">
         recent writing
       </span>
