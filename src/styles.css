@@ -419,7 +419,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   border: 1px solid color-mix(in oklab, var(--ink) 8%, transparent);
   border-radius: 5px;
   padding: 0.1em 0.35em;
-  white-space: nowrap;
 }
 
 .prose-post strong {
