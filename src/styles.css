@@ -247,6 +247,29 @@ html[data-vt="theme"]::view-transition-new(root) {
   display: inline-block;
   animation: full-stop 950ms var(--ease-strong) backwards;
   animation-delay: inherit;
+  cursor: pointer;
+}
+
+@keyframes full-stop-fall {
+  0% {
+    transform: none;
+  }
+  68% {
+    transform: translateY(var(--drop));
+  }
+  82% {
+    transform: translateY(calc(var(--drop) - 0.28em)) scaleY(1.1);
+  }
+  100% {
+    transform: translateY(var(--drop)) scaleY(1);
+  }
+}
+
+.full-stop-fallen {
+  transform: translateY(var(--drop));
+  animation: full-stop-fall 900ms cubic-bezier(0.45, 0, 0.7, 1) backwards;
+  animation-delay: 0s;
+  cursor: default;
 }
 
 /* offset stays put: lower and the line sits on the descender tips of p and g */
