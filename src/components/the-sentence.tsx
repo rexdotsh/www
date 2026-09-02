@@ -2,7 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
 import { getIdentity, LINKS, PROJECTS } from "@/lib/content";
 import { PUBLISHED_META } from "@/lib/posts-meta";
-import { sfx } from "@/lib/sfx";
+import { SCALE, sfx } from "@/lib/sfx";
 import type { SpotifyTrack } from "@/lib/use-now-playing";
 
 export type SentenceWord =
@@ -13,6 +13,17 @@ export type SentenceWord =
   | "music"
   | "hi"
   | "resume";
+
+// reading order
+const NOTES: Record<SentenceWord, number> = {
+  name: SCALE[0],
+  builds: SCALE[1],
+  writes: SCALE[2],
+  garden: SCALE[3],
+  music: SCALE[4],
+  hi: SCALE[5],
+  resume: SCALE[5],
+};
 
 export function TheSentence({
   className = "",
@@ -246,7 +257,7 @@ function Peek({
         setArmed(true);
         report(hoverKey);
         if (peek) {
-          sfx("tick");
+          sfx("tick", NOTES[hoverKey]);
         }
         return;
       }
@@ -286,7 +297,7 @@ function Peek({
         }
         report(hoverKey ?? null);
         if (peek && event.pointerType === "mouse") {
-          sfx("tick");
+          sfx("tick", hoverKey ? NOTES[hoverKey] : undefined);
         }
         if (!external) {
           router

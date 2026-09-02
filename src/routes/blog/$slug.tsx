@@ -7,7 +7,7 @@ import { PostBody } from "@/components/post-body";
 import { preloadFont, RSS_LINK } from "@/lib/head";
 import { getPost, type TocEntry } from "@/lib/posts";
 import { getPostMeta } from "@/lib/posts-meta";
-import { sfx } from "@/lib/sfx";
+import { SCALE, sfx } from "@/lib/sfx";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
 
@@ -236,7 +236,10 @@ function Toc({
       }`}
       href={`#${entry.id}`}
       key={entry.id}
-      onClick={() => sfx("tick")}
+      // walking down the contents walks down the scale
+      onClick={() =>
+        sfx("tick", SCALE.at(-1 - (entries.indexOf(entry) % SCALE.length)))
+      }
     >
       {entry.text}
     </a>

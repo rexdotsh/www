@@ -109,9 +109,9 @@ const hiss = (
 
 // peaks sit around -16 to -10 dBFS after the master: present, not loud.
 // fundamentals stay above ~250hz so laptop speakers can actually make them
-const SOUNDS: Record<Sound, (ctx: AudioContext) => void> = {
-  // a card landing, a toc step
-  tick: (ctx) => tone(ctx, "sine", 1500, 950, 0.2, 0.003, 0.07),
+const SOUNDS: Record<Sound, (ctx: AudioContext, pitch: number) => void> = {
+  // a card landing, a toc step. pitch is the note it lands on
+  tick: (ctx, pitch) => tone(ctx, "sine", pitch * 1.5, pitch, 0.2, 0.003, 0.07),
   // something confirmed
   pop: (ctx) => tone(ctx, "sine", 520, 820, 0.32, 0.008, 0.1),
   // a switch, falling and rising
@@ -144,7 +144,7 @@ const SOUNDS: Record<Sound, (ctx: AudioContext) => void> = {
 // resume() settles asynchronously, so the sound that rides the unlocking
 // gesture waits for it instead of being dropped. without a live gesture a
 // suspended context cannot be lifted, and the sound is let go
-export const sfx = (sound: Sound) => {
+export const sfx = (sound: Sound, pitch = 950) => {
   if (muted) {
     return;
   }
@@ -153,14 +153,18 @@ export const sfx = (sound: Sound) => {
     return;
   }
   if (ctx.state === "running") {
-    SOUNDS[sound](ctx);
+    SOUNDS[sound](ctx, pitch);
   } else if (activation().now) {
     ctx
       .resume()
-      .then(() => SOUNDS[sound](ctx))
+      .then(() => SOUNDS[sound](ctx, pitch))
       .catch(() => undefined);
   }
 };
+
+// c pentatonic, one note per word of the sentence, so reading it left to
+// right hums a scale
+export const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
 
 export const isMuted = () => muted;
 
