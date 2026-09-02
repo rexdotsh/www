@@ -4,6 +4,9 @@ export interface PostMeta {
   description: string;
   draft?: boolean;
   meta: string[];
+  // what the post page computes from the mdx, copied here by hand so the
+  // index can show it without loading the post
+  readingMinutes: number;
   slug: string;
   title: string;
 }
@@ -16,6 +19,7 @@ export const POSTS_META: PostMeta[] = [
     dateLabel: "nov 27, 2024",
     description: "a gameboy reverse engineering challenge.",
     meta: ["reverse engineering", "500 pts", "1 solve"],
+    readingMinutes: 9,
   },
 ];
 

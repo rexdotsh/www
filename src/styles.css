@@ -1299,6 +1299,18 @@ a.peek-name:hover {
   animation: petal-sway 1.5s ease-in-out 2 alternate both;
 }
 
+/* reading time on the index: a petal a minute */
+.petal-count {
+  color: var(--rose);
+  opacity: 0.55;
+  letter-spacing: 0.16em;
+  transition: opacity 200ms;
+}
+
+.group:hover .petal-count {
+  opacity: 1;
+}
+
 @keyframes petal-fall {
   0% {
     transform: translateY(-0.4rem);

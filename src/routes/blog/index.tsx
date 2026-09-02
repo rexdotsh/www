@@ -6,6 +6,8 @@ import { preloadFont, RSS_LINK } from "@/lib/head";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 
 const DESCRIPTION = "occasional writeups and notes.";
+// one petal a minute; anything longer is just a long read
+const MAX_PETALS = 12;
 
 export const Route = createFileRoute("/blog/")({
   component: BlogIndex,
@@ -60,6 +62,15 @@ function BlogIndex() {
               >
                 <span className="block font-mono text-faint text-[11px] tabular-nums transition-colors duration-200 group-hover:text-muted">
                   {post.dateLabel}
+                  <span aria-hidden="true"> · </span>
+                  <span
+                    aria-label={`${post.readingMinutes} min read`}
+                    className="petal-count"
+                    role="img"
+                    title={`${post.readingMinutes} min read`}
+                  >
+                    {"*".repeat(Math.min(post.readingMinutes, MAX_PETALS))}
+                  </span>
                 </span>
                 <span
                   className="mt-1 block text-[clamp(1.4rem,4.5vw,1.8rem)] leading-tight transition-colors duration-200 group-hover:text-rose"
