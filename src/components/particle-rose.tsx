@@ -32,6 +32,7 @@ interface Particle {
   hiY: number;
   homeX: number;
   homeY: number;
+  ramp: number;
   rgb: Rgb;
   vx: number;
   vy: number;
@@ -47,6 +48,14 @@ const TAU = Math.PI * 2;
 // canvas is BLEED× its layout box so waves/bursts overflow instead of clip
 const BLEED = 1.24;
 
+// at rest the rose breathes: a slow, barely-there swell
+const BREATH_PERIOD_S = 5.5;
+const BREATH_DEPTH = 0.012;
+
+// the cursor leaves a blush wherever it passes
+const BLUSH_RADIUS_RATIO = 0.26;
+const BLUSH_STRENGTH = 0.8;
+
 const GARDEN_CENTERS: [number, number][] = [
   [0.28, 0.3],
   [0.73, 0.26],
@@ -55,19 +64,48 @@ const GARDEN_CENTERS: [number, number][] = [
 ];
 const GARDEN_SCALE = 0.34;
 
-const RAMP: [string, string][] = [
-  ["@#S", "#7c1030"],
-  ["%?", "#a3123c"],
-  ["*+", "#ce2955"],
-  [";:", "#e35c7c"],
+// glyph weight → ramp step; the actual colors come from css so both themes apply
+const RAMP_GLYPHS = ["@#S", "%?", "*+", ";:"];
+const RAMP_VARS = ["--rose-0", "--rose-1", "--rose-2", "--rose-3", "--rose-4"];
+const GLOW_VAR = "--rose-glow";
+const FALLBACK_RAMP: Rgb[] = [
+  [124, 16, 48],
+  [163, 18, 60],
+  [206, 41, 85],
+  [227, 92, 124],
+  [240, 160, 178],
 ];
-const toRgb = (hex: string): Rgb => [
-  Number.parseInt(hex.slice(1, 3), 16),
-  Number.parseInt(hex.slice(3, 5), 16),
-  Number.parseInt(hex.slice(5, 7), 16),
-];
-const colorFor = (ch: string) =>
-  RAMP.find(([glyphs]) => glyphs.includes(ch))?.[1] ?? "#f0a0b2";
+const FALLBACK_GLOW: Rgb = [239, 127, 154];
+
+const rampFor = (ch: string) => {
+  const index = RAMP_GLYPHS.findIndex((glyphs) => glyphs.includes(ch));
+  return index === -1 ? RAMP_VARS.length - 1 : index;
+};
+const toCss = ([r, g, b]: Rgb) => `rgb(${r},${g},${b})`;
+
+// resolve css custom properties (light-dark() included) to actual channels
+function readPalette(host: HTMLElement): { ramp: Rgb[]; glow: Rgb } {
+  const probe = document.createElement("span");
+  probe.style.cssText =
+    "position:absolute;width:0;height:0;overflow:hidden;visibility:hidden";
+  host.appendChild(probe);
+  const resolve = (variable: string, fallback: Rgb): Rgb => {
+    probe.style.color = `var(${variable})`;
+    const channels = getComputedStyle(probe)
+      .color.match(/[\d.]+/g)
+      ?.slice(0, 3)
+      .map(Number);
+    return channels && channels.length === 3 ? (channels as Rgb) : fallback;
+  };
+  const palette = {
+    ramp: RAMP_VARS.map((variable, index) =>
+      resolve(variable, FALLBACK_RAMP[index])
+    ),
+    glow: resolve(GLOW_VAR, FALLBACK_GLOW),
+  };
+  probe.remove();
+  return palette;
+}
 
 function buildParticles(size: number, scattered: boolean): Particle[] {
   const lines = ASCII_ROSE.split("\n");
@@ -77,6 +115,8 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
   const pad = (size - inner) / 2;
   const cellW = inner / cols;
   const cellH = inner / rows;
+  const center = size / 2;
+  const maxRadius = inner / 2;
   const particles: Particle[] = [];
 
   for (let row = 0; row < rows; row += 1) {
@@ -88,12 +128,17 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
       }
       const homeX = pad + col * cellW + cellW / 2;
       const homeY = pad + row * cellH + cellH / 2;
-      const color = colorFor(ch);
+      // bloom: start folded toward the core with a twist, the heart wakes first
+      const radius = Math.hypot(homeX - center, homeY - center);
+      const angle =
+        Math.atan2(homeY - center, homeX - center) +
+        (Math.random() - 0.5) * 1.7;
       particles.push({
         ch,
         cluster: particles.length % GARDEN_CENTERS.length,
-        color,
-        rgb: toRgb(color),
+        color: "",
+        ramp: rampFor(ch),
+        rgb: [0, 0, 0],
         homeX,
         homeY,
         gridX: homeX,
@@ -107,11 +152,13 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
         cubeZ: 0,
         hiX: homeX,
         hiY: homeY,
-        x: scattered ? Math.random() * size : homeX,
-        y: scattered ? Math.random() * size : homeY,
+        x: scattered ? center + Math.cos(angle) * radius * 0.18 : homeX,
+        y: scattered ? center + Math.sin(angle) * radius * 0.18 : homeY,
         vx: 0,
         vy: 0,
-        activateAt: scattered ? Math.random() * 900 : 0,
+        activateAt: scattered
+          ? (radius / maxRadius) * 620 + Math.random() * 220
+          : 0,
       });
     }
   }
@@ -315,7 +362,16 @@ export default function ParticleRose({
     let artImage: HTMLImageElement | null = null;
     let baseFont = "";
     let artFont = "";
+    let palette = readPalette(container);
     const pointer = { x: -9999, y: -9999 };
+
+    const recolor = () => {
+      palette = readPalette(container);
+      for (const p of particles) {
+        p.rgb = palette.ramp[p.ramp];
+        p.color = toCss(p.rgb);
+      }
+    };
 
     const applyArt = () => {
       hasArt = false;
@@ -368,6 +424,10 @@ export default function ParticleRose({
       canvas.height = size * dpr;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       particles = buildParticles(size, scattered && !reduceMotion);
+      for (const p of particles) {
+        p.rgb = palette.ramp[p.ramp];
+        p.color = toCss(p.rgb);
+      }
       const rows = ASCII_ROSE.split("\n").length;
       const inner = size / BLEED;
       const gridCell = (inner * 0.95) / Math.ceil(Math.sqrt(particles.length));
@@ -427,8 +487,10 @@ export default function ParticleRose({
             p.homeX + (Math.random() - 0.5) * 4,
             p.homeY + (Math.random() - 0.5) * 4,
           ];
-        default:
-          return [p.homeX, p.homeY];
+        default: {
+          const s = 1 + BREATH_DEPTH * Math.sin((t * TAU) / BREATH_PERIOD_S);
+          return [c + dx * s, c + dy * s];
+        }
       }
     };
 
@@ -449,6 +511,8 @@ export default function ParticleRose({
       const elapsed = now - startedAt;
       const t = now / 1000;
       const repelRadius = size * 0.16;
+      const blushRadius = size * BLUSH_RADIUS_RATIO;
+      const [glowR, glowG, glowB] = palette.glow;
       const resting = modeRef.current === "rest";
       const artMode = modeRef.current === "art" && hasArt;
       const blink =
@@ -473,6 +537,7 @@ export default function ParticleRose({
         }
 
         let alpha = Math.min(1, (elapsed - p.activateAt) / 350) * blink;
+        let blush = 0;
 
         if (petal?.p === p) {
           if (petal.phase === "fall") {
@@ -512,6 +577,8 @@ export default function ParticleRose({
             p.vx += (dx / dist) * force;
             p.vy += (dy / dist) * force;
           }
+          blush =
+            dist < blushRadius ? (1 - dist / blushRadius) * BLUSH_STRENGTH : 0;
 
           p.vx *= DAMPING;
           p.vy *= DAMPING;
@@ -526,6 +593,10 @@ export default function ParticleRose({
           const [rr, rg, rb] = p.rgb;
           context.fillStyle = `rgb(${r + (rr - r) * k},${g + (rg - g) * k},${b + (rb - b) * k})`;
           context.fillText("#", p.x, p.y);
+        } else if (blush > 0) {
+          const [r, g, b] = p.rgb;
+          context.fillStyle = `rgb(${r + (glowR - r) * blush},${g + (glowG - g) * blush},${b + (glowB - b) * blush})`;
+          context.fillText(p.ch, p.x, p.y);
         } else {
           context.fillStyle = p.color;
           context.fillText(p.ch, p.x, p.y);
@@ -595,10 +666,27 @@ export default function ParticleRose({
     canvas.addEventListener("pointerdown", onPointerDown);
     canvas.addEventListener("pointerleave", onPointerLeave);
 
+    // the palette follows the lights: pinned toggle or the system flipping
+    const onThemeChange = () => {
+      recolor();
+      if (reduceMotion) {
+        drawStatic();
+      }
+    };
+    const themeObserver = new MutationObserver(onThemeChange);
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    const systemScheme = window.matchMedia("(prefers-color-scheme: dark)");
+    systemScheme.addEventListener("change", onThemeChange);
+
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
       resizeObserver.disconnect();
+      themeObserver.disconnect();
+      systemScheme.removeEventListener("change", onThemeChange);
       window.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointerleave", onPointerLeave);

@@ -123,7 +123,7 @@ function ReadingProgress() {
   return (
     <div
       aria-hidden="true"
-      className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0 bg-rose"
+      className="reading-progress fixed inset-x-0 top-0 z-50 h-0.5 origin-left scale-x-0 bg-rose"
       ref={barRef}
     />
   );
@@ -154,6 +154,7 @@ function Toc({
   backRef: React.RefObject<HTMLAnchorElement | null>;
   entries: TocEntry[];
 }) {
+  const navRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<string | null>(null);
   const [showBack, setShowBack] = useState(false);
   const rows = useMemo(() => groupChildren(entries), [entries]);
@@ -172,25 +173,61 @@ function Toc({
     return () => observer.disconnect();
   }, [backRef]);
 
+  // current = last heading above the reading line, so hash jumps and scroll
+  // restoration land on the right entry too
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (observed) => {
-        for (const entry of observed) {
-          if (entry.isIntersecting) {
-            setActive(entry.target.id);
-          }
-        }
-      },
-      { rootMargin: "-8% 0px -78% 0px" }
+    const headings = entries.flatMap(
+      (entry) => document.getElementById(entry.id) ?? []
     );
-    for (const entry of entries) {
-      const heading = document.getElementById(entry.id);
-      if (heading) {
-        observer.observe(heading);
-      }
-    }
-    return () => observer.disconnect();
+    let frame = 0;
+    const update = () => {
+      const line = window.innerHeight * 0.24;
+      const current = headings.findLast(
+        (heading) => heading.getBoundingClientRect().top <= line
+      );
+      setActive(current?.id ?? null);
+    };
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, [entries]);
+
+  // the rail marker; re-placed after a fold settles, since that moves the rows
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) {
+      return;
+    }
+    const place = () => {
+      const current = active
+        ? nav.querySelector<HTMLElement>(`[href="#${active}"]`)
+        : null;
+      if (!current) {
+        nav.style.setProperty("--toc-on", "0");
+        return;
+      }
+      nav.style.setProperty("--toc-on", "1");
+      nav.style.setProperty("--toc-y", `${current.offsetTop}px`);
+      nav.style.setProperty("--toc-h", `${current.offsetHeight}px`);
+    };
+    const onSettle = (event: TransitionEvent) => {
+      if (event.propertyName === "grid-template-rows") {
+        place();
+      }
+    };
+    place();
+    nav.addEventListener("transitionend", onSettle);
+    return () => nav.removeEventListener("transitionend", onSettle);
+  }, [active]);
 
   const link = (entry: TocEntry) => (
     <a
@@ -206,7 +243,7 @@ function Toc({
 
   return (
     <aside className="toc-column">
-      <div className="toc rise">
+      <div className="toc rise" ref={navRef}>
         <span className="toc-back-slot" data-show={showBack ? "" : undefined}>
           <span className="toc-back-inner">
             <BackLink
@@ -288,7 +325,7 @@ function PostPage() {
     <main className="min-h-dvh bg-paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
       <ReadingProgress />
       <div className="mx-auto w-full max-w-xl">
-        <header className="border-ink/10 border-b pb-8">
+        <header className="post-header">
           <BackLink
             className="rise font-mono text-muted text-xs"
             ref={headerBackRef}
@@ -301,7 +338,7 @@ function PostPage() {
             style={{ viewTransitionName: `post-${post.slug}` }}
           >
             {post.title}
-            <span className="text-rose">.</span>
+            <span className="full-stop text-rose">.</span>
           </h1>
           <p
             className="rise mt-4 font-mono text-faint text-[11px]"

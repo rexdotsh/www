@@ -168,7 +168,7 @@ export function TheSentence({
             >
               hi back
             </Peek>
-            <span className="text-rose">.</span>
+            <span className="full-stop text-rose">.</span>
           </>
         )}
       </h1>
@@ -283,7 +283,7 @@ function Peek({
       ref={wrapperRef}
     >
       <a
-        className={`underline decoration-[0.04em] underline-offset-[0.14em] transition-[text-decoration-color] duration-150 ${
+        className={`sentence-link ${
           tone === "name"
             ? "text-ink decoration-dotted decoration-ink/30 hover:decoration-ink/70"
             : "text-rose italic decoration-rose/30 hover:decoration-rose"
@@ -328,7 +328,7 @@ function PeekCard({
 }) {
   return (
     <span
-      className={`block rounded-xl border border-ink/10 bg-card text-left font-mono not-italic shadow-[0_16px_40px_-16px_rgba(23,20,15,0.35)] ${
+      className={`peek-card block rounded-xl border border-ink/10 bg-card text-left font-mono not-italic ${
         compact ? "w-fit max-w-60 p-3" : "w-60 p-4"
       }`}
     >

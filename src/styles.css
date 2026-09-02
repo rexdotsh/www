@@ -41,20 +41,88 @@
   --heat-3: light-dark(#ce2955, #cf3f63);
   --heat-4: light-dark(#8f1236, #ef7d99);
   --body: light-dark(#2b2620, #cfcdc9);
+  /* the rose's glyph ramp, deepest to lightest; dark gets a luminous cut */
+  --rose-0: light-dark(#7c1030, #b42f52);
+  --rose-1: light-dark(#a3123c, #d43a62);
+  --rose-2: light-dark(#ce2955, #ea5d80);
+  --rose-3: light-dark(#e35c7c, #f48ca6);
+  --rose-4: light-dark(#f0a0b2, #f9bccb);
+  --rose-glow: light-dark(#ef7f9a, #ffd6df);
+  --grain-alpha: 0.055;
+  /* light: paper darkens toward the edges. dark: a lamp warms the middle */
+  --vignette: light-dark(rgb(23 20 15 / 0.05), rgb(255 255 255 / 0));
+  --vignette-core: light-dark(rgb(23 20 15 / 0), rgb(255 255 255 / 0.028));
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--ink) 18%, transparent) transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --grain-alpha: 0.085;
+  }
 }
 
 /* a pinned choice overrides the system; light-dark() follows color-scheme */
 :root[data-theme="light"] {
   color-scheme: light;
+  --grain-alpha: 0.055;
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --grain-alpha: 0.085;
 }
 
 body {
   background: var(--background);
   font-family: "Geist Mono Variable", monospace;
+}
+
+/* paper has fibre: a tiled turbulence overlay, and a breath of vignette */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body::before {
+  z-index: 100;
+  opacity: var(--grain-alpha);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+body::after {
+  z-index: 99;
+  background: radial-gradient(
+    120% 95% at 50% 38%,
+    var(--vignette-core) 50%,
+    var(--vignette) 100%
+  );
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--rose);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+@media print {
+  :root {
+    color-scheme: light;
+  }
+  body::before,
+  body::after,
+  .theme-toggle,
+  .toc,
+  .code-copy,
+  .code-lang,
+  .petal-stage,
+  .reading-progress {
+    display: none !important;
+  }
 }
 
 .theme-toggle {
@@ -69,10 +137,42 @@ body {
   color: var(--faint);
   cursor: pointer;
   transition: color 150ms;
+  /* same on every page, so navigation leaves it alone */
+  view-transition-name: lights;
 }
 
 .theme-toggle:hover {
   color: var(--rose);
+}
+
+.theme-toggle .paren {
+  display: inline-block;
+  transition: transform 260ms var(--ease-strong);
+}
+
+.theme-toggle:hover .paren:first-child {
+  transform: translateX(-3px);
+}
+
+.theme-toggle:hover .paren:last-child {
+  transform: translateX(3px);
+}
+
+/* small labels that change their mind: the old one leaves, the new one steps up */
+@keyframes swap-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.swap-in {
+  display: inline-block;
+  animation: swap-in 320ms var(--ease-strong) both;
 }
 
 /* on small screens it scrolls away with the page instead of floating over text */
@@ -128,6 +228,48 @@ html[data-vt="theme"]::view-transition-new(root) {
   transition:
     filter 240ms var(--ease-strong),
     opacity 240ms var(--ease-strong);
+  /* no animation of its own; it passes the parent's delay down to the period */
+  animation-delay: inherit;
+}
+
+/* the full stop arrives last, and lands */
+@keyframes full-stop {
+  0%,
+  42% {
+    opacity: 0;
+    transform: translateY(-0.4em) scale(0.5);
+  }
+  72% {
+    opacity: 1;
+    transform: translateY(0.05em) scale(1.18);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.full-stop {
+  display: inline-block;
+  animation: full-stop 950ms var(--ease-strong) both;
+  animation-delay: inherit;
+}
+
+.sentence-link {
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.04em;
+  text-underline-offset: 0.14em;
+  text-decoration-skip-ink: auto;
+  transition:
+    text-decoration-color 200ms var(--ease-strong),
+    text-underline-offset 340ms var(--ease-strong),
+    text-decoration-thickness 340ms var(--ease-strong);
+}
+
+.sentence-link:hover,
+.peek-trigger[data-peek-open] .sentence-link {
+  text-underline-offset: 0.21em;
+  text-decoration-thickness: 0.06em;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -153,34 +295,77 @@ html[data-vt="theme"]::view-transition-new(root) {
   left: 50%;
   width: max-content;
   translate: -50% 0;
-  transform: scale(0.92);
+  transform: scale(0.92) translateY(6px);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transform-origin: bottom center;
   transition:
-    transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1),
     opacity 160ms var(--ease-strong),
-    visibility 0s 240ms;
+    visibility 0s 260ms;
   z-index: 20;
 }
 
+.peek-card {
+  box-shadow:
+    0 1px 0 0 color-mix(in oklab, var(--ink) 4%, transparent) inset,
+    0 2px 6px -2px rgb(23 20 15 / 0.12),
+    0 18px 44px -18px rgb(23 20 15 / 0.38);
+}
+
+/* the card's lines step in one after another once it is up */
+.peek-card > * {
+  opacity: 0;
+  translate: 0 5px;
+  transition:
+    opacity 220ms var(--ease-strong),
+    translate 280ms var(--ease-strong);
+}
+
+.peek-card > :nth-child(2) {
+  transition-delay: 35ms;
+}
+
+.peek-card > :nth-child(3) {
+  transition-delay: 70ms;
+}
+
+.peek-card > :nth-child(4) {
+  transition-delay: 105ms;
+}
+
+.peek-card > :nth-child(n + 5) {
+  transition-delay: 140ms;
+}
+
 .peek-trigger[data-peek-open] .peek {
-  transform: scale(1);
+  transform: scale(1) translateY(0);
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transition-delay: 0s;
 }
 
+.peek-trigger[data-peek-open] .peek-card > * {
+  opacity: 1;
+  translate: 0 0;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .peek-trigger:hover .peek,
   .peek-trigger:focus-within .peek {
-    transform: scale(1);
+    transform: scale(1) translateY(0);
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
     transition-delay: 0s;
+  }
+
+  .peek-trigger:hover .peek-card > *,
+  .peek-trigger:focus-within .peek-card > * {
+    opacity: 1;
+    translate: 0 0;
   }
 }
 
@@ -313,6 +498,36 @@ html[data-vt="theme"]::view-transition-new(root) {
   transition: color 150ms;
 }
 
+/* the rule under the title is drawn, not printed */
+.post-header {
+  position: relative;
+  padding-bottom: 2rem;
+}
+
+.post-header::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: color-mix(in oklab, var(--ink) 10%, transparent);
+  transform-origin: left;
+  animation: draw-rule 900ms var(--ease-strong) 260ms both;
+}
+
+@keyframes draw-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.reading-progress {
+  box-shadow: 0 0 10px -2px var(--rose);
+}
+
 .back-link:hover {
   color: var(--rose);
 }
@@ -353,9 +568,26 @@ html[data-vt="theme"]::view-transition-new(root) {
   line-height: 1.15;
 }
 
+/* sections are numbered, quietly, the way a good notebook is */
+.prose-post {
+  counter-reset: section;
+}
+
 .prose-post h2 {
   font-size: 1.8rem;
   margin-top: 1.9em;
+  counter-increment: section;
+}
+
+.prose-post h2::before {
+  content: counter(section, decimal-leading-zero);
+  display: block;
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  color: var(--rose);
+  opacity: 0.7;
+  margin-bottom: 0.45rem;
 }
 
 .prose-post h3 {
@@ -484,6 +716,16 @@ html[data-vt="theme"]::view-transition-new(root) {
   font-size: 0.78rem;
   line-height: 1.65;
   color: var(--body);
+  transition:
+    border-color 220ms var(--ease-strong),
+    box-shadow 320ms var(--ease-strong);
+}
+
+/* the card lifts a hair while you're reading it */
+.code-shell:hover .code-card,
+.code-card:focus-visible {
+  border-color: color-mix(in oklab, var(--ink) 16%, transparent);
+  box-shadow: 0 18px 40px -20px rgba(23, 20, 15, 0.38);
 }
 
 /* shiki bakes both palettes into css vars at build time */
@@ -500,37 +742,57 @@ html[data-vt="theme"]::view-transition-new(root) {
   position: relative;
 }
 
-.code-copy {
+.code-tools {
   position: absolute;
   top: 0.6rem;
   right: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   font-family: "Geist Mono Variable", monospace;
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: var(--faint);
+  z-index: 1;
+}
+
+.code-copy,
+.code-lang {
   background: color-mix(in oklab, var(--card) 92%, transparent);
   border-radius: 6px;
   padding: 3px 7px;
+  color: var(--faint);
+}
+
+.code-copy {
   cursor: pointer;
   opacity: 0;
+  translate: 4px 0;
   transition:
-    opacity 150ms,
+    opacity 180ms var(--ease-strong),
+    translate 220ms var(--ease-strong),
     color 150ms;
 }
 
 .code-shell:hover .code-copy,
 .code-copy:focus-visible {
   opacity: 1;
+  translate: 0 0;
 }
 
 .code-copy:hover {
   color: var(--rose);
 }
 
+.code-lang {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
 @media (hover: none) {
   .code-copy {
     opacity: 0.75;
+    translate: 0 0;
   }
 }
 
@@ -601,6 +863,15 @@ html[data-vt="theme"]::view-transition-new(root) {
   border: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
   background: var(--card);
   box-shadow: 0 12px 32px -20px rgba(23, 20, 15, 0.3);
+  transition:
+    opacity 600ms var(--ease-strong),
+    scale 800ms var(--ease-strong);
+}
+
+/* stills develop in place as they arrive */
+.post-media[data-pending] {
+  opacity: 0;
+  scale: 0.985;
 }
 
 /* ---- video player ---- */
@@ -847,6 +1118,26 @@ html[data-vt="theme"]::view-transition-new(root) {
   position: sticky;
   top: 6rem;
   animation-delay: 350ms;
+  --toc-on: 0;
+  --toc-y: 0px;
+  --toc-h: 0px;
+}
+
+/* one marker on the rail, sliding between entries rather than blinking */
+.toc::after {
+  content: "";
+  position: absolute;
+  left: -0.5px;
+  top: var(--toc-y);
+  height: var(--toc-h);
+  width: 2px;
+  border-radius: 1px;
+  background: var(--rose);
+  opacity: var(--toc-on);
+  transition:
+    top 320ms var(--ease-strong),
+    height 320ms var(--ease-strong),
+    opacity 200ms var(--ease-strong);
 }
 
 /* unfolds once the header's back link has scrolled away */
@@ -945,7 +1236,10 @@ html[data-vt="theme"]::view-transition-new(root) {
 
 .toc-active {
   color: var(--rose);
-  border-left-color: var(--rose);
+}
+
+.post-list > li + li {
+  border-top: 1px solid color-mix(in oklab, var(--ink) 8%, transparent);
 }
 
 .petal-stage {
@@ -992,9 +1286,31 @@ html[data-vt="theme"]::view-transition-new(root) {
   }
 }
 
-::view-transition-old(root),
+/* navigation: the old page settles down as the new one rises into place */
+@keyframes vt-leave {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes vt-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+::view-transition-old(root) {
+  animation: vt-leave 180ms var(--ease-strong) both;
+}
+
 ::view-transition-new(root) {
-  animation-duration: 220ms;
+  animation: vt-arrive 300ms var(--ease-strong) both;
+}
+
+::view-transition-group(lights) {
+  animation: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {

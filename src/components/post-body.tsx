@@ -1,29 +1,49 @@
 import type { MDXComponents, MDXContent } from "mdx/types";
-import { type ComponentProps, type ReactNode, useState } from "react";
+import {
+  type ComponentProps,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import VideoPlayer from "@/components/video-player";
 
 const COPIED_MS = 1600;
 
+// languages that say nothing worth a label
+const QUIET_LANGS = new Set(["text", "txt", "plaintext", "plain", ""]);
+
 function Pre({ children, ...props }: ComponentProps<"pre">) {
-  const code = (props as { "data-code"?: string })["data-code"] ?? "";
+  const data = props as { "data-code"?: string; "data-lang"?: string };
+  const code = data["data-code"] ?? "";
+  const lang = data["data-lang"] ?? "";
   const [copied, setCopied] = useState(false);
   return (
     <div className="code-shell">
-      <button
-        className="code-copy"
-        onClick={() => {
-          navigator.clipboard
-            .writeText(code)
-            .then(() => {
-              setCopied(true);
-              setTimeout(() => setCopied(false), COPIED_MS);
-            })
-            .catch(() => undefined);
-        }}
-        type="button"
-      >
-        {copied ? "( copied )" : "copy"}
-      </button>
+      <span className="code-tools">
+        <button
+          className="code-copy"
+          onClick={() => {
+            navigator.clipboard
+              .writeText(code)
+              .then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), COPIED_MS);
+              })
+              .catch(() => undefined);
+          }}
+          type="button"
+        >
+          <span className="swap-in" key={String(copied)}>
+            {copied ? "( copied )" : "copy"}
+          </span>
+        </button>
+        {QUIET_LANGS.has(lang) ? null : (
+          <span aria-hidden="true" className="code-lang">
+            {lang}
+          </span>
+        )}
+      </span>
       <pre className="code-card">{children}</pre>
     </div>
   );
@@ -65,8 +85,30 @@ function CodeFile({
 }
 
 function Figure({ alt = "", src }: { alt?: string; src: string }) {
-  // biome-ignore lint/correctness/useImageSize: intrinsic sizes vary per post
-  return <img alt={alt} className="post-media" loading="lazy" src={src} />;
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [pending, setPending] = useState(false);
+
+  // visible by default (no-js, cached); only images still in flight fade in
+  useEffect(() => {
+    if (imageRef.current && !imageRef.current.complete) {
+      setPending(true);
+    }
+  }, []);
+
+  return (
+    // biome-ignore lint/correctness/useImageSize: intrinsic sizes vary per post
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: onLoad only tracks the fade-in
+    <img
+      alt={alt}
+      className="post-media"
+      data-pending={pending ? "" : undefined}
+      decoding="async"
+      loading="lazy"
+      onLoad={() => setPending(false)}
+      ref={imageRef}
+      src={src}
+    />
+  );
 }
 
 const COMPONENTS: MDXComponents = {

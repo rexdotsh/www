@@ -193,10 +193,7 @@ function Home() {
               aria-hidden="true"
               className="mt-2.5 h-4 font-mono text-faint text-[10px] italic"
             >
-              <span
-                className="inline-block transition-opacity duration-300"
-                key={caption}
-              >
+              <span className="swap-in" key={caption}>
                 {caption}
               </span>
             </p>

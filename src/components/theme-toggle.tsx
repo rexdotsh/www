@@ -12,13 +12,17 @@ export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
-    const pinned = document.documentElement.dataset.theme as Theme | undefined;
-    setTheme(
-      pinned ??
-        (window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light")
-    );
+    const system = window.matchMedia("(prefers-color-scheme: dark)");
+    const sync = () => {
+      const pinned = document.documentElement.dataset.theme as
+        | Theme
+        | undefined;
+      setTheme(pinned ?? (system.matches ? "dark" : "light"));
+    };
+    sync();
+    // unpinned, the label follows the system if it flips mid-visit
+    system.addEventListener("change", sync);
+    return () => system.removeEventListener("change", sync);
   }, []);
 
   // keep browser chrome in step once a theme is pinned
@@ -84,9 +88,9 @@ export default function ThemeToggle() {
 
   const label = (() => {
     if (!theme) {
-      return "( lights )";
+      return "lights";
     }
-    return theme === "dark" ? "( lights on )" : "( lights off )";
+    return theme === "dark" ? "lights on" : "lights off";
   })();
 
   return (
@@ -96,7 +100,15 @@ export default function ThemeToggle() {
       onClick={toggle}
       type="button"
     >
-      {label}
+      <span aria-hidden="true" className="paren">
+        (
+      </span>{" "}
+      <span className="swap-in" key={label}>
+        {label}
+      </span>{" "}
+      <span aria-hidden="true" className="paren">
+        )
+      </span>
     </button>
   );
 }

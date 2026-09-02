@@ -37,7 +37,7 @@ function BlogIndex() {
           className="rise mt-10 text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
           style={{ animationDelay: "80ms" }}
         >
-          writing<span className="text-rose">.</span>
+          writing<span className="full-stop text-rose">.</span>
         </h1>
         <p
           className="rise mt-3 font-mono text-faint text-[11px] italic"
@@ -46,7 +46,7 @@ function BlogIndex() {
           ( occasionally, about things worth the words )
         </p>
 
-        <ul className="mt-14">
+        <ul className="post-list mt-14">
           {PUBLISHED_META.map((post, index) => (
             <li
               className="rise"
@@ -58,7 +58,7 @@ function BlogIndex() {
                 params={{ slug: post.slug }}
                 to="/blog/$slug"
               >
-                <span className="block font-mono text-faint text-[11px] tabular-nums">
+                <span className="block font-mono text-faint text-[11px] tabular-nums transition-colors duration-200 group-hover:text-muted">
                   {post.dateLabel}
                 </span>
                 <span
