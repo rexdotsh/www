@@ -10,7 +10,8 @@ export type Sound =
   | "puff"
   | "play"
   | "pause"
-  | "chime";
+  | "chime"
+  | "stir";
 
 const MASTER_GAIN = 0.8;
 const STORAGE_KEY = "sound";
@@ -139,6 +140,8 @@ const SOUNDS: Record<Sound, (ctx: AudioContext, pitch: number) => void> = {
     tone(ctx, "sine", 1320, 1318, 0.2, 0.01, 0.9);
     tone(ctx, "sine", 1980, 1976, 0.08, 0.01, 0.6);
   },
+  // the rose waking from a doze
+  stir: (ctx) => tone(ctx, "sine", 260, 340, 0.16, 0.03, 0.22),
 };
 
 // resume() settles asynchronously, so the sound that rides the unlocking

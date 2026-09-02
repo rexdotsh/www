@@ -312,6 +312,7 @@ export default function ParticleRose({
   artFade = 0,
   artUrl = null,
   className = "",
+  doze = false,
   mode = "rest",
   onTap,
   tappable = false,
@@ -319,6 +320,7 @@ export default function ParticleRose({
   artFade?: number;
   artUrl?: string | null;
   className?: string;
+  doze?: boolean;
   mode?: RoseMode;
   onTap?: () => void;
   tappable?: boolean;
@@ -329,6 +331,8 @@ export default function ParticleRose({
   modeRef.current = mode;
   const artFadeRef = useRef(artFade);
   artFadeRef.current = artFade;
+  const dozeRef = useRef(doze);
+  dozeRef.current = doze;
   const onTapRef = useRef(onTap);
   onTapRef.current = onTap;
   const loadArtRef = useRef<(url: string | null) => void>(() => undefined);
@@ -488,6 +492,8 @@ export default function ParticleRose({
       y0: number;
     } | null = null;
     let nextPetalAt = performance.now() + 9000 + Math.random() * 8000;
+    // 0 awake, 1 dozing; eased so the rose settles rather than slumps
+    let dozeLevel = 0;
 
     const tick = (now: number) => {
       if (!startedAt) {
@@ -495,6 +501,10 @@ export default function ParticleRose({
       }
       const elapsed = now - startedAt;
       const t = now / 1000;
+      dozeLevel += ((dozeRef.current ? 1 : 0) - dozeLevel) * 0.03;
+      const spring = SPRING * (1 - 0.55 * dozeLevel);
+      const sag = size * 0.025 * dozeLevel;
+      const dim = 1 - 0.18 * dozeLevel;
       const repelRadius = size * 0.16;
       const blushRadius = size * BLUSH_RADIUS_RATIO;
       const [glowR, glowG, glowB] = palette[GLOW];
@@ -521,7 +531,7 @@ export default function ParticleRose({
           continue;
         }
 
-        let alpha = Math.min(1, (elapsed - p.activateAt) / 350) * blink;
+        let alpha = Math.min(1, (elapsed - p.activateAt) / 350) * blink * dim;
         let blush = 0;
 
         if (petal?.p === p) {
@@ -551,8 +561,8 @@ export default function ParticleRose({
           }
         } else {
           const [targetX, targetY] = targetFor(p, t);
-          p.vx += (targetX - p.x) * SPRING;
-          p.vy += (targetY - p.y) * SPRING;
+          p.vx += (targetX - p.x) * spring;
+          p.vy += (targetY + sag - p.y) * spring;
 
           const dx = p.x - pointer.x;
           const dy = p.y - pointer.y;

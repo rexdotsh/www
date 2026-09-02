@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
+import { sfx } from "@/lib/sfx";
+import { useIdle } from "@/lib/use-idle";
 import { useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
 
@@ -65,6 +67,16 @@ function Home() {
       setArtFade(0);
       setCover(false);
     });
+  const idle = useIdle(40_000);
+  const dozing = idle && !(word || isPlaying || cover);
+  const wasDozingRef = useRef(false);
+
+  useEffect(() => {
+    if (wasDozingRef.current && !dozing) {
+      sfx("stir");
+    }
+    wasDozingRef.current = dozing;
+  }, [dozing]);
 
   const onWordHover = (next: SentenceWord | null) => {
     setWord(next);
@@ -136,7 +148,10 @@ function Home() {
       }
       return CAPTIONS.music;
     }
-    return word ? CAPTIONS[word] : "( alive, technically )";
+    if (word) {
+      return CAPTIONS[word];
+    }
+    return dozing ? "( dozing )" : "( alive, technically )";
   })();
 
   const liftClass = word
@@ -171,6 +186,7 @@ function Home() {
               artFade={artFade}
               artUrl={albumArt}
               className="w-[min(64vw,300px)] md:w-[min(34vw,440px)]"
+              doze={dozing}
               mode={mode}
               onTap={onRoseTap}
               tappable={Boolean(
