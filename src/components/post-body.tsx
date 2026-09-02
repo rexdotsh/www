@@ -1,5 +1,6 @@
 import type { MDXComponents, MDXContent } from "mdx/types";
 import { type ComponentProps, type ReactNode, useState } from "react";
+import VideoPlayer from "@/components/video-player";
 
 const COPIED_MS = 1600;
 
@@ -63,20 +64,6 @@ function CodeFile({
   );
 }
 
-function Video({ poster, src }: { poster?: string; src: string }) {
-  return (
-    // biome-ignore lint/a11y/useMediaCaption: silent screen recordings
-    <video
-      className="post-media"
-      controls
-      playsInline
-      poster={poster}
-      preload={poster ? "none" : "metadata"}
-      src={src}
-    />
-  );
-}
-
 function Figure({ alt = "", src }: { alt?: string; src: string }) {
   // biome-ignore lint/correctness/useImageSize: intrinsic sizes vary per post
   return <img alt={alt} className="post-media" loading="lazy" src={src} />;
@@ -94,7 +81,7 @@ const COMPONENTS: MDXComponents = {
   h3: heading("h3"),
   h4: heading("h4"),
   pre: Pre,
-  Video,
+  Video: VideoPlayer,
 };
 
 export function PostBody({ Content }: { Content: MDXContent }) {
