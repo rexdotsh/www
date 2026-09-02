@@ -44,11 +44,3 @@ export const PROJECTS = [
     href: "https://github.com/rexdotsh/s3enum-ng",
   },
 ];
-
-export const POSTS = [
-  {
-    title: "gpn ctf 2024 – parabox",
-    date: "2024-11",
-    href: "/blog/parabox",
-  },
-];

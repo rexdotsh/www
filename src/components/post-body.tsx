@@ -17,9 +17,7 @@ function Pre({ children, ...props }: ComponentProps<"pre">) {
               setCopied(true);
               setTimeout(() => setCopied(false), COPIED_MS);
             })
-            .catch(() => {
-              // clipboard unavailable; the button just stays quiet
-            });
+            .catch(() => undefined);
         }}
         type="button"
       >

@@ -603,9 +603,8 @@ html[data-vt="theme"]::view-transition-new(root) {
   box-shadow: 0 12px 32px -20px rgba(23, 20, 15, 0.3);
 }
 
-/* the contents live in the left gutter, in a column as tall as the article.
-   the nav inside is sticky: it starts level with the first paragraph, rides
-   along while you read, and stops where the article does */
+/* a column as tall as the article, so the sticky nav inside starts level
+   with the first paragraph and stops where the article does */
 .toc-column {
   display: none;
   position: absolute;
@@ -627,8 +626,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation-delay: 350ms;
 }
 
-/* the way back arrives above the contents once the header's own link has
-   scrolled away: the slot unfolds, and the link settles in from above */
+/* unfolds once the header's back link has scrolled away */
 .toc-back-slot {
   display: grid;
   grid-template-rows: 0fr;
@@ -689,7 +687,6 @@ html[data-vt="theme"]::view-transition-new(root) {
     border-color 150ms;
 }
 
-/* three depths, each stepping in and quieting down */
 .toc-depth-2 {
   color: var(--muted);
 }
@@ -702,7 +699,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   padding-left: 2.8rem;
 }
 
-/* h4s unfold beneath their h3 only while that section is the current one */
+/* h4s, folded unless their h3 is the current section */
 .toc-children {
   display: grid;
   grid-template-rows: 0fr;

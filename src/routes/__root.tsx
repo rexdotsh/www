@@ -2,6 +2,7 @@ import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import NotFoundPage from "@/components/not-found";
 import ThemeToggle from "@/components/theme-toggle";
+import { preloadFont } from "@/lib/head";
 import { SITE_HEADERS } from "@/lib/headers";
 import { getSiteInfo } from "@/lib/site";
 import geistMonoWoff2 from "@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url";
@@ -65,28 +66,9 @@ export const Route = createRootRoute({
       ],
       links: [
         { rel: "stylesheet", href: appCss },
-        // the sentence renders in instrument serif; preload both faces for LCP
-        {
-          rel: "preload",
-          href: instrumentWoff2,
-          as: "font",
-          type: "font/woff2",
-          crossOrigin: "anonymous",
-        },
-        {
-          rel: "preload",
-          href: instrumentItalicWoff2,
-          as: "font",
-          type: "font/woff2",
-          crossOrigin: "anonymous",
-        },
-        {
-          rel: "preload",
-          href: geistMonoWoff2,
-          as: "font",
-          type: "font/woff2",
-          crossOrigin: "anonymous",
-        },
+        preloadFont(instrumentWoff2),
+        preloadFont(instrumentItalicWoff2),
+        preloadFont(geistMonoWoff2),
         { rel: "icon", href: "/favicon.ico" },
         { rel: "apple-touch-icon", href: "/image.png" },
         { rel: "canonical", href: canonicalUrl },

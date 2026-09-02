@@ -1,8 +1,10 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import newsreaderItalicWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2?url";
 import newsreaderWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2?url";
+import BackLink from "@/components/back-link";
 import { PostBody } from "@/components/post-body";
+import { preloadFont, RSS_LINK } from "@/lib/head";
 import { getPost, type TocEntry } from "@/lib/posts";
 import { getPostMeta } from "@/lib/posts-meta";
 
@@ -11,24 +13,20 @@ const DEFAULT_BASE_URL = "https://rex.wf";
 export const Route = createFileRoute("/blog/$slug")({
   component: PostPage,
   notFoundComponent: BlogNotFound,
+  // meta only, so the compiled post body stays out of the loader chunk
   loader: ({ params }) => {
-    // meta only; the compiled post body stays in the component chunk
     const post = getPostMeta(params.slug);
     if (!post) {
       throw notFound();
     }
-    return {
-      date: post.date,
-      description: post.description,
-      slug: post.slug,
-      title: post.title,
-    };
+    const { date, description, slug, title } = post;
+    return { date, description, slug, title };
   },
   head: ({ loaderData, matches }) => {
     if (!loaderData) {
       return { meta: [{ title: "writing" }] };
     }
-    // the root match is always first and carries the resolved site info
+    // the root match carries the resolved site info
     const baseUrl =
       (matches[0]?.loaderData as { baseUrl?: string } | undefined)?.baseUrl ??
       DEFAULT_BASE_URL;
@@ -52,27 +50,9 @@ export const Route = createFileRoute("/blog/$slug")({
         { name: "twitter:image", content: imageUrl },
       ],
       links: [
-        {
-          rel: "alternate",
-          type: "application/rss+xml",
-          title: "writing — rss",
-          href: "/blog/rss.xml",
-        },
-        // prose renders in newsreader; preload both faces for LCP
-        {
-          rel: "preload",
-          href: newsreaderWoff2,
-          as: "font",
-          type: "font/woff2",
-          crossOrigin: "anonymous",
-        },
-        {
-          rel: "preload",
-          href: newsreaderItalicWoff2,
-          as: "font",
-          type: "font/woff2",
-          crossOrigin: "anonymous",
-        },
+        RSS_LINK,
+        preloadFont(newsreaderWoff2),
+        preloadFont(newsreaderItalicWoff2),
       ],
       scripts: [
         {
@@ -104,16 +84,13 @@ function BlogNotFound() {
       <p className="rise font-mono text-faint text-xs italic">
         ( no such page. the rose checked. )
       </p>
-      <Link
-        className="back-link rise mt-8 font-mono text-muted text-xs"
+      <BackLink
+        className="rise mt-8 font-mono text-muted text-xs"
         style={{ animationDelay: "120ms" }}
         to="/blog"
       >
-        <span aria-hidden="true" className="back-arrow">
-          ←
-        </span>
         writing
-      </Link>
+      </BackLink>
     </main>
   );
 }
@@ -121,7 +98,7 @@ function BlogNotFound() {
 function ReadingProgress() {
   const barRef = useRef<HTMLDivElement>(null);
 
-  // written straight to the node; scrolling never re-renders react
+  // written straight to the node so scrolling never re-renders
   useEffect(() => {
     let frame = 0;
     const update = () => {
@@ -152,6 +129,24 @@ function ReadingProgress() {
   );
 }
 
+type TocRow = TocEntry | { children: TocEntry[]; parent: string };
+
+// consecutive h4s become one foldable group under their h3
+function groupChildren(entries: TocEntry[]): TocRow[] {
+  const rows: TocRow[] = [];
+  for (const entry of entries) {
+    const last = rows.at(-1);
+    if (!(entry.depth === 4 && entry.parent)) {
+      rows.push(entry);
+    } else if (last && "children" in last && last.parent === entry.parent) {
+      last.children.push(entry);
+    } else {
+      rows.push({ children: [entry], parent: entry.parent });
+    }
+  }
+  return rows;
+}
+
 function Toc({
   backRef,
   entries,
@@ -161,9 +156,10 @@ function Toc({
 }) {
   const [active, setActive] = useState<string | null>(null);
   const [showBack, setShowBack] = useState(false);
+  const rows = useMemo(() => groupChildren(entries), [entries]);
+  const activeParent = entries.find((entry) => entry.id === active)?.parent;
 
-  // the header's back link is the real one; this column only offers its own
-  // once that has scrolled out of view above
+  // the column's back link only appears once the header's has scrolled away
   useEffect(() => {
     const anchor = backRef.current;
     if (!anchor) {
@@ -177,9 +173,6 @@ function Toc({
   }, [backRef]);
 
   useEffect(() => {
-    const headings = entries
-      .map((entry) => document.getElementById(entry.id))
-      .filter((element): element is HTMLElement => element !== null);
     const observer = new IntersectionObserver(
       (observed) => {
         for (const entry of observed) {
@@ -190,15 +183,14 @@ function Toc({
       },
       { rootMargin: "-8% 0px -78% 0px" }
     );
-    for (const headingElement of headings) {
-      observer.observe(headingElement);
+    for (const entry of entries) {
+      const heading = document.getElementById(entry.id);
+      if (heading) {
+        observer.observe(heading);
+      }
     }
     return () => observer.disconnect();
   }, [entries]);
-
-  // h4s are folded under their h3 and only unfold while you are in that section
-  const rows = useMemo(() => groupChildren(entries), [entries]);
-  const activeParent = entries.find((entry) => entry.id === active)?.parent;
 
   const link = (entry: TocEntry) => (
     <a
@@ -213,22 +205,17 @@ function Toc({
   );
 
   return (
-    // the column spans the article so the sticky nav starts level with the
-    // first paragraph and stops at the end, instead of floating mid-screen
     <aside className="toc-column">
       <div className="toc rise">
         <span className="toc-back-slot" data-show={showBack ? "" : undefined}>
           <span className="toc-back-inner">
-            <Link
-              className="back-link toc-back"
+            <BackLink
+              className="toc-back"
               tabIndex={showBack ? undefined : -1}
               to="/blog"
             >
-              <span aria-hidden="true" className="back-arrow">
-                ←
-              </span>
               writing
-            </Link>
+            </BackLink>
           </span>
         </span>
         <nav aria-label="contents">
@@ -256,25 +243,6 @@ function Toc({
       </div>
     </aside>
   );
-}
-
-type TocRow = TocEntry | { children: TocEntry[]; parent: string };
-
-function groupChildren(entries: TocEntry[]): TocRow[] {
-  const rows: TocRow[] = [];
-  for (const entry of entries) {
-    const last = rows.at(-1);
-    if (entry.depth === 4 && entry.parent) {
-      if (last && "children" in last && last.parent === entry.parent) {
-        last.children.push(entry);
-      } else {
-        rows.push({ children: [entry], parent: entry.parent });
-      }
-    } else {
-      rows.push(entry);
-    }
-  }
-  return rows;
 }
 
 function FallingPetal() {
@@ -321,16 +289,13 @@ function PostPage() {
       <ReadingProgress />
       <div className="mx-auto w-full max-w-xl">
         <header className="border-ink/10 border-b pb-8">
-          <Link
-            className="back-link rise font-mono text-muted text-xs"
+          <BackLink
+            className="rise font-mono text-muted text-xs"
             ref={headerBackRef}
             to="/blog"
           >
-            <span aria-hidden="true" className="back-arrow">
-              ←
-            </span>
             writing
-          </Link>
+          </BackLink>
           <h1
             className="mt-9 text-[clamp(2rem,6.5vw,2.9rem)] leading-[1.1]"
             style={{ viewTransitionName: `post-${post.slug}` }}
@@ -365,15 +330,9 @@ function PostPage() {
           >
             ( fin )
           </p>
-          <Link
-            className="back-link mt-6 font-mono text-muted text-xs"
-            to="/blog"
-          >
-            <span aria-hidden="true" className="back-arrow">
-              ←
-            </span>
+          <BackLink className="mt-6 font-mono text-muted text-xs" to="/blog">
             more writing
-          </Link>
+          </BackLink>
         </footer>
       </div>
     </main>

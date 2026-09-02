@@ -125,7 +125,6 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
 
 await Promise.all(
   POSTS_META.filter((entry) => !entry.draft).map(async (post) => {
-    // the card carries the date only; per-post tags stay on the page
     const svg = await satori(
       card(post.title, post.dateLabel) as unknown as Parameters<
         typeof satori

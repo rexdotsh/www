@@ -1,6 +1,7 @@
 import { useRouter } from "@tanstack/react-router";
 import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
-import { getIdentity, LINKS, POSTS, PROJECTS } from "@/lib/content";
+import { getIdentity, LINKS, PROJECTS } from "@/lib/content";
+import { PUBLISHED_META } from "@/lib/posts-meta";
 import type { SpotifyTrack } from "@/lib/use-now-playing";
 
 export type SentenceWord =
@@ -269,12 +270,9 @@ function Peek({
       onPointerEnter={() => {
         report(hoverKey ?? null);
         if (!external) {
-          // warm the route so the eventual click is instant
           router
             .preloadRoute({ href } as Parameters<typeof router.preloadRoute>[0])
-            .catch(() => {
-              // preloading is best-effort
-            });
+            .catch(() => undefined);
         }
       }}
       onPointerLeave={() => {
@@ -483,26 +481,27 @@ function PostsPeek() {
       <span className="block text-faint text-[9px] uppercase tracking-[0.25em]">
         recent writing
       </span>
-      {POSTS.map((post) => (
-        <a
-          className="group mt-2 block"
-          href={post.href}
-          key={post.title}
-          onClick={(event) => {
-            if (post.href.startsWith("/")) {
+      {PUBLISHED_META.map((post) => {
+        const href = `/blog/${post.slug}`;
+        return (
+          <a
+            className="group mt-2 block"
+            href={href}
+            key={post.slug}
+            onClick={(event) => {
               event.preventDefault();
-              router.navigate({ href: post.href });
-            }
-          }}
-        >
-          <span className="block truncate text-ink text-xs group-hover:text-rose">
-            {post.title}
-          </span>
-          <span className="block text-muted text-[10px] tabular-nums">
-            {post.date}
-          </span>
-        </a>
-      ))}
+              router.navigate({ href });
+            }}
+          >
+            <span className="block truncate text-ink text-xs group-hover:text-rose">
+              {post.title}
+            </span>
+            <span className="block text-muted text-[10px] tabular-nums">
+              {post.date.slice(0, 7)}
+            </span>
+          </a>
+        );
+      })}
     </PeekCard>
   );
 }

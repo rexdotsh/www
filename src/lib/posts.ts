@@ -11,13 +11,11 @@ export type TocDepth = 2 | 3 | 4;
 export interface TocEntry {
   depth: TocDepth;
   id: string;
-  // h4s know their h3, so the contents can show them only inside that section
   parent?: string;
   text: string;
 }
 
-// h2 through h4; anything deeper is body structure, not wayfinding.
-// text mirrors the heading as written, so headings are the place to set case
+// h2 through h4, each h4 remembering its h3 so the contents can fold them
 const flattenToc = (nodes: MdxTocNode[], parent?: string): TocEntry[] =>
   nodes.flatMap((node) => {
     const entry: TocEntry[] =

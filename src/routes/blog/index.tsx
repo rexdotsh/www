@@ -1,32 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import newsreaderItalicWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2?url";
+import BackLink from "@/components/back-link";
 import { LINKS } from "@/lib/content";
+import { preloadFont, RSS_LINK } from "@/lib/head";
 import { PUBLISHED_META } from "@/lib/posts-meta";
+
+const DESCRIPTION = "occasional writeups and notes.";
 
 export const Route = createFileRoute("/blog/")({
   component: BlogIndex,
   head: () => ({
     meta: [
       { title: "writing" },
-      { name: "description", content: "occasional writeups and notes." },
+      { name: "description", content: DESCRIPTION },
       { property: "og:title", content: "writing" },
-      { property: "og:description", content: "occasional writeups and notes." },
+      { property: "og:description", content: DESCRIPTION },
     ],
-    links: [
-      {
-        rel: "alternate",
-        type: "application/rss+xml",
-        title: "writing — rss",
-        href: "/blog/rss.xml",
-      },
-      {
-        rel: "preload",
-        href: newsreaderItalicWoff2,
-        as: "font",
-        type: "font/woff2",
-        crossOrigin: "anonymous",
-      },
-    ],
+    links: [RSS_LINK, preloadFont(newsreaderItalicWoff2)],
   }),
   headers: () => ({
     "Cache-Control": "public, max-age=0",
@@ -39,12 +29,9 @@ function BlogIndex() {
   return (
     <main className="min-h-dvh bg-paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
       <div className="mx-auto w-full max-w-xl">
-        <Link className="back-link rise font-mono text-muted text-xs" to="/">
-          <span aria-hidden="true" className="back-arrow">
-            ←
-          </span>
+        <BackLink className="rise font-mono text-muted text-xs" to="/">
           home
-        </Link>
+        </BackLink>
 
         <h1
           className="rise mt-10 text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
