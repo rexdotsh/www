@@ -503,14 +503,6 @@ function PostsPeek() {
           </span>
         </a>
       ))}
-      <a
-        className="mt-3 block border-ink/10 border-t pt-2 text-faint text-[10px] transition-colors duration-150 hover:text-rose"
-        href={LINKS.archive}
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        older writeups on github →
-      </a>
     </PeekCard>
   );
 }

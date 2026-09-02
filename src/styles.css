@@ -603,20 +603,28 @@ html[data-vt="theme"]::view-transition-new(root) {
   box-shadow: 0 12px 32px -20px rgba(23, 20, 15, 0.3);
 }
 
-.toc {
+/* the contents live in the left gutter, in a column as tall as the article.
+   the nav inside is sticky: it starts level with the first paragraph, rides
+   along while you read, and stops where the article does */
+.toc-column {
   display: none;
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  left: max(2rem, calc(50vw - 18rem - 14.5rem));
-  width: 12rem;
-  animation-delay: 350ms;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -15.5rem;
+  width: 12.5rem;
 }
 
-@media (min-width: 1240px) {
-  .toc {
+@media (min-width: 1200px) {
+  .toc-column {
     display: block;
   }
+}
+
+.toc {
+  position: sticky;
+  top: 6rem;
+  animation-delay: 350ms;
 }
 
 .toc-label {
@@ -644,8 +652,22 @@ html[data-vt="theme"]::view-transition-new(root) {
     border-color 150ms;
 }
 
-.toc-sub {
-  padding-left: 1.8rem;
+/* three depths, each stepping in and quieting down */
+.toc-depth-2 {
+  color: var(--muted);
+}
+
+.toc-depth-3 {
+  padding-left: 1.9rem;
+}
+
+.toc-depth-4 {
+  padding-left: 2.8rem;
+  padding-top: 0.14rem;
+  padding-bottom: 0.14rem;
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
 }
 
 .toc-item:hover {

@@ -14,7 +14,7 @@ export const POSTS_META: PostMeta[] = [
     title: "gpn ctf 2024 – parabox",
     date: "2024-11-27",
     dateLabel: "nov 27, 2024",
-    description: "a gameboy reverse engineering challenge with one solve.",
+    description: "a gameboy reverse engineering challenge.",
     meta: ["reverse engineering", "500 pts", "1 solve"],
   },
 ];

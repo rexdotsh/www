@@ -6,19 +6,22 @@ import ParaboxContent, {
 } from "@/content/parabox.mdx";
 import { type PostMeta, POSTS_META } from "@/lib/posts-meta";
 
+export type TocDepth = 2 | 3 | 4;
+
 export interface TocEntry {
-  depth: 2 | 3;
+  depth: TocDepth;
   id: string;
   text: string;
 }
 
+// h2 through h4; anything deeper is body structure, not wayfinding
 const flattenToc = (nodes: MdxTocNode[]): TocEntry[] =>
   nodes.flatMap((node) => {
     const entry: TocEntry[] =
-      node.id && node.depth < 4
+      node.id && node.depth >= 2 && node.depth <= 4
         ? [
             {
-              depth: node.depth as 2 | 3,
+              depth: node.depth as TocDepth,
               id: node.id,
               text: node.value.toLowerCase(),
             },

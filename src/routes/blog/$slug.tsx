@@ -176,20 +176,24 @@ function Toc({ entries }: { entries: TocEntry[] }) {
   }, [entries]);
 
   return (
-    <nav aria-label="contents" className="toc rise">
-      <span className="toc-label">contents</span>
-      {entries.map((entry) => (
-        <a
-          className={`toc-item${entry.depth === 3 ? " toc-sub" : ""}${
-            active === entry.id ? " toc-active" : ""
-          }`}
-          href={`#${entry.id}`}
-          key={entry.id}
-        >
-          {entry.text}
-        </a>
-      ))}
-    </nav>
+    // the column spans the article so the sticky nav starts level with the
+    // first paragraph and stops at the end, instead of floating mid-screen
+    <aside className="toc-column">
+      <nav aria-label="contents" className="toc rise">
+        <span className="toc-label">contents</span>
+        {entries.map((entry) => (
+          <a
+            className={`toc-item toc-depth-${entry.depth}${
+              active === entry.id ? " toc-active" : ""
+            }`}
+            href={`#${entry.id}`}
+            key={entry.id}
+          >
+            {entry.text}
+          </a>
+        ))}
+      </nav>
+    </aside>
   );
 }
 
@@ -234,7 +238,6 @@ function PostPage() {
   return (
     <main className="min-h-dvh bg-paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
       <ReadingProgress />
-      <Toc entries={post.toc} />
       <div className="mx-auto w-full max-w-xl">
         <header className="border-ink/10 border-b pb-8">
           <Link
@@ -265,9 +268,12 @@ function PostPage() {
           </p>
         </header>
 
-        <article className="rise mt-10" style={{ animationDelay: "200ms" }}>
-          <PostBody Content={post.Content} />
-        </article>
+        <div className="relative mt-10">
+          <Toc entries={post.toc} />
+          <article className="rise" style={{ animationDelay: "200ms" }}>
+            <PostBody Content={post.Content} />
+          </article>
+        </div>
 
         <footer className="rise mt-16 text-center">
           <FallingPetal />
