@@ -3,13 +3,15 @@ import { type PointerEvent, useEffect, useRef, useState } from "react";
 type State = "idle" | "playing" | "paused" | "ended";
 
 const SEEK_STEP_S = 5;
+const AWAKE_MS = 1100;
+const FLASH_MS = 550;
 
 const clock = (seconds: number) => {
   const whole = Math.floor(seconds);
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
 };
 
-function Icon({ name }: { name: "play" | "expand" }) {
+function Icon({ name }: { name: "play" | "pause" | "expand" }) {
   return (
     <svg
       aria-hidden="true"
@@ -24,16 +26,21 @@ function Icon({ name }: { name: "play" | "expand" }) {
     >
       {name === "play" ? (
         <path d="M3 1.8v8.4L10 6z" fill="currentColor" stroke="none" />
-      ) : (
+      ) : null}
+      {name === "pause" ? (
+        <path d="M3.4 2v8M8.6 2v8" strokeWidth="2.2" />
+      ) : null}
+      {name === "expand" ? (
         <path d="M1.5 4.5v-3h3M10.5 4.5v-3h-3M1.5 7.5v3h3M10.5 7.5v3h-3" />
-      )}
+      ) : null}
     </svg>
   );
 }
 
-// silent screen recordings. the picture is the play/pause surface, one cue
-// sits on it whenever it is not playing, and the strip beneath holds the
-// clock, a rail you can scrub, and fullscreen. no volume: nothing to hear
+// silent screen recordings. the picture is the play/pause surface with one
+// cue on it: play when stopped, pause while the pointer is awake over it.
+// touch has no hover, so it gets a strip button instead and a flash on tap.
+// no volume: nothing to hear
 export default function VideoPlayer({
   duration: knownDuration = 0,
   poster,
@@ -45,10 +52,22 @@ export default function VideoPlayer({
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const awakeTimer = useRef(0);
+  const flashTimer = useRef(0);
   const [state, setState] = useState<State>("idle");
   const [buffering, setBuffering] = useState(false);
+  const [awake, setAwake] = useState(false);
+  const [flash, setFlash] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(knownDuration);
+
+  useEffect(
+    () => () => {
+      clearTimeout(awakeTimer.current);
+      clearTimeout(flashTimer.current);
+    },
+    []
+  );
 
   const toggle = () => {
     const video = videoRef.current;
@@ -57,9 +76,25 @@ export default function VideoPlayer({
     }
     if (video.paused || video.ended) {
       video.play().catch(() => undefined);
+      if (window.matchMedia("(hover: none)").matches) {
+        setFlash(true);
+        clearTimeout(flashTimer.current);
+        flashTimer.current = window.setTimeout(() => setFlash(false), FLASH_MS);
+      }
     } else {
       video.pause();
     }
+  };
+
+  const wake = () => {
+    setAwake(true);
+    clearTimeout(awakeTimer.current);
+    awakeTimer.current = window.setTimeout(() => setAwake(false), AWAKE_MS);
+  };
+
+  const sleep = () => {
+    clearTimeout(awakeTimer.current);
+    setAwake(false);
   };
 
   const seekTo = (seconds: number) => {
@@ -139,6 +174,7 @@ export default function VideoPlayer({
   };
 
   const playing = state === "playing";
+  const cueVisible = !playing || awake;
 
   return (
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: shortcuts for whichever control has focus
@@ -150,7 +186,7 @@ export default function VideoPlayer({
       ref={frameRef}
       role="group"
     >
-      <div className="player-stage">
+      <div className="player-stage" onPointerLeave={sleep} onPointerMove={wake}>
         {/* biome-ignore lint/a11y/useMediaCaption: silent screen recordings */}
         <video
           className="player-video"
@@ -172,16 +208,25 @@ export default function VideoPlayer({
           ref={videoRef}
           src={src}
         />
-        {playing ? null : (
-          <button
-            aria-label={state === "ended" ? "play again" : "play"}
-            className="player-cue"
-            onClick={toggle}
-            type="button"
-          >
-            {state === "ended" ? "( again )" : <Icon name="play" />}
-          </button>
-        )}
+        <button
+          aria-label={playing ? "pause" : "play"}
+          className="player-cue"
+          data-visible={cueVisible ? "" : undefined}
+          onClick={toggle}
+          tabIndex={cueVisible ? undefined : -1}
+          type="button"
+        >
+          {state === "ended" ? (
+            "( again )"
+          ) : (
+            <Icon name={playing ? "pause" : "play"} />
+          )}
+        </button>
+        {flash ? (
+          <span aria-hidden="true" className="player-cue player-flash">
+            <Icon name="play" />
+          </span>
+        ) : null}
         {buffering && playing ? (
           <span aria-live="polite" className="player-note">
             ( loading )
@@ -190,6 +235,16 @@ export default function VideoPlayer({
       </div>
 
       <div className="player-bar">
+        {state === "playing" || state === "paused" ? (
+          <button
+            aria-label={playing ? "pause" : "play"}
+            className="player-btn player-toggle"
+            onClick={toggle}
+            type="button"
+          >
+            <Icon name={playing ? "pause" : "play"} />
+          </button>
+        ) : null}
         <span className="player-clock">
           {clock(current)}
           {duration > 0 ? (
