@@ -87,7 +87,6 @@ function Figure({ alt = "", src }: { alt?: string; src: string }) {
   const imageRef = useRef<HTMLImageElement>(null);
   const [pending, setPending] = useState(false);
 
-  // visible by default; only images still in flight fade in
   useEffect(() => {
     if (imageRef.current && !imageRef.current.complete) {
       setPending(true);

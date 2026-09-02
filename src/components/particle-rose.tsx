@@ -59,10 +59,9 @@ const GARDEN_CENTERS: [number, number][] = [
 ];
 const GARDEN_SCALE = 0.34;
 
-// heavier glyphs take deeper steps of the ramp
 const RAMP_GLYPHS = ["@#S", "%?", "*+", ";:"];
 
-// css owns the colours (so both themes apply); these are the fallbacks
+// fallbacks for the css palette
 const PALETTE_VARS: [string, Rgb][] = [
   ["--rose-0", [124, 16, 48]],
   ["--rose-1", [163, 18, 60]],
@@ -118,7 +117,6 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
       }
       const homeX = pad + col * cellW + cellW / 2;
       const homeY = pad + row * cellH + cellH / 2;
-      // bloom: start folded toward the core with a twist, the heart wakes first
       const radius = Math.hypot(homeX - center, homeY - center);
       const angle =
         Math.atan2(homeY - center, homeX - center) +

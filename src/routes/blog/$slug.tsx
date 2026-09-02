@@ -201,7 +201,6 @@ function Toc({
     };
   }, [entries]);
 
-  // the rail marker; re-placed after a fold settles, since that moves the rows
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) {

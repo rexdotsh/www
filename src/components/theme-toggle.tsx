@@ -44,7 +44,6 @@ export default function ThemeToggle() {
     return () => system.removeEventListener("change", onSystemChange);
   }, []);
 
-  // chrome on android still reads theme-color
   useEffect(() => {
     if (!(theme && document.documentElement.dataset.theme)) {
       return;
