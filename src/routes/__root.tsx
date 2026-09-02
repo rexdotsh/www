@@ -110,23 +110,14 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
-// applied before paint so a pinned theme never flashes the wrong palette
-const THEME_SCRIPT = `try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
+// applied before paint so a pinned dark never flashes paper first
+const THEME_SCRIPT = `try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta
-          content="#faf8f2"
-          media="(prefers-color-scheme: light)"
-          name="theme-color"
-        />
-        <meta
-          content="#131315"
-          media="(prefers-color-scheme: dark)"
-          name="theme-color"
-        />
+        <meta content="#faf8f2" name="theme-color" />
         {/** biome-ignore lint/security/noDangerouslySetInnerHtml: static first-paint theme script */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <HeadContent />

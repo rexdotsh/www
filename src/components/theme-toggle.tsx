@@ -24,32 +24,21 @@ function nudgeBarSampling() {
   });
 }
 
+// paper by default; only the dark choice is pinned
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme | null>(null);
 
   useEffect(() => {
-    const system = window.matchMedia("(prefers-color-scheme: dark)");
-    const sync = () => {
-      const pinned = document.documentElement.dataset.theme as
-        | Theme
-        | undefined;
-      setTheme(pinned ?? (system.matches ? "dark" : "light"));
-    };
-    const onSystemChange = () => {
-      sync();
-      nudgeBarSampling();
-    };
-    sync();
-    system.addEventListener("change", onSystemChange);
-    return () => system.removeEventListener("change", onSystemChange);
+    setTheme(
+      document.documentElement.dataset.theme === "dark" ? "dark" : "light"
+    );
   }, []);
 
   useEffect(() => {
-    if (!(theme && document.documentElement.dataset.theme)) {
-      return;
-    }
-    for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
-      meta.setAttribute("content", THEME_COLORS[theme]);
+    if (theme) {
+      document
+        .querySelector('meta[name="theme-color"]')
+        ?.setAttribute("content", THEME_COLORS[theme]);
     }
   }, [theme]);
 
@@ -59,9 +48,17 @@ export default function ThemeToggle() {
     }
     const next: Theme = theme === "dark" ? "light" : "dark";
     const apply = () => {
-      document.documentElement.dataset.theme = next;
+      if (next === "dark") {
+        document.documentElement.dataset.theme = "dark";
+      } else {
+        delete document.documentElement.dataset.theme;
+      }
       try {
-        localStorage.setItem("theme", next);
+        if (next === "dark") {
+          localStorage.setItem("theme", "dark");
+        } else {
+          localStorage.removeItem("theme");
+        }
       } catch {
         // private mode; the choice just won't persist
       }

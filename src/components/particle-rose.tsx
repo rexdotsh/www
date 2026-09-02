@@ -660,15 +660,12 @@ export default function ParticleRose({
       attributes: true,
       attributeFilter: ["data-theme"],
     });
-    const systemScheme = window.matchMedia("(prefers-color-scheme: dark)");
-    systemScheme.addEventListener("change", onThemeChange);
 
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
       resizeObserver.disconnect();
       themeObserver.disconnect();
-      systemScheme.removeEventListener("change", onThemeChange);
       window.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointerleave", onPointerLeave);

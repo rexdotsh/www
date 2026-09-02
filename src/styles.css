@@ -22,9 +22,10 @@
   --color-faint: var(--faint);
 }
 
-/* light: warm paper. dark: premium graphite, rose brightened for contrast */
+/* paper by default; the lights go off only when asked. light-dark() follows
+   color-scheme, so one attribute flips the whole palette */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --background: light-dark(#faf8f2, #131315);
   --card: light-dark(#ffffff, #1c1c1f);
   --ink: light-dark(#17140f, #e8e6e3);
@@ -56,18 +57,6 @@
   --paper-grain: var(--grain);
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--ink) 18%, transparent) transparent;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper-grain: var(--grain-dark);
-  }
-}
-
-/* a pinned choice overrides the system; light-dark() follows color-scheme */
-:root[data-theme="light"] {
-  color-scheme: light;
-  --paper-grain: var(--grain);
 }
 
 :root[data-theme="dark"] {
