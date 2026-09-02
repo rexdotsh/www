@@ -615,14 +615,9 @@ html[data-vt="theme"]::view-transition-new(root) {
   width: 12.5rem;
 }
 
-/* once the column is there, the way back lives in it, not above the title */
 @media (min-width: 1200px) {
   .toc-column {
     display: block;
-  }
-
-  .header-back {
-    display: none;
   }
 }
 
@@ -632,13 +627,41 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation-delay: 350ms;
 }
 
-/* sits above the contents, flush with their text, with room to breathe */
+/* the way back arrives above the contents once the header's own link has
+   scrolled away: the slot unfolds, and the link settles in from above */
+.toc-back-slot {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 320ms var(--ease-strong);
+}
+
+.toc-back-slot[data-show] {
+  grid-template-rows: 1fr;
+}
+
+.toc-back-inner {
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .toc-back {
   font-family: "Geist Mono Variable", monospace;
   font-size: 11px;
   color: var(--muted);
   margin-left: 1rem;
   margin-bottom: 1.75rem;
+  opacity: 0;
+  translate: 0 -6px;
+  transition:
+    opacity 240ms var(--ease-strong),
+    translate 320ms var(--ease-strong),
+    color 150ms;
+}
+
+.toc-back-slot[data-show] .toc-back {
+  opacity: 1;
+  translate: 0 0;
 }
 
 .toc-label {

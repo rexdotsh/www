@@ -152,8 +152,29 @@ function ReadingProgress() {
   );
 }
 
-function Toc({ entries }: { entries: TocEntry[] }) {
+function Toc({
+  backRef,
+  entries,
+}: {
+  backRef: React.RefObject<HTMLAnchorElement | null>;
+  entries: TocEntry[];
+}) {
   const [active, setActive] = useState<string | null>(null);
+  const [showBack, setShowBack] = useState(false);
+
+  // the header's back link is the real one; this column only offers its own
+  // once that has scrolled out of view above
+  useEffect(() => {
+    const anchor = backRef.current;
+    if (!anchor) {
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      setShowBack(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+    });
+    observer.observe(anchor);
+    return () => observer.disconnect();
+  }, [backRef]);
 
   useEffect(() => {
     const headings = entries
@@ -196,13 +217,20 @@ function Toc({ entries }: { entries: TocEntry[] }) {
     // first paragraph and stops at the end, instead of floating mid-screen
     <aside className="toc-column">
       <div className="toc rise">
-        {/* the way back rides along with the contents on wide screens */}
-        <Link className="back-link toc-back" to="/blog">
-          <span aria-hidden="true" className="back-arrow">
-            ←
+        <span className="toc-back-slot" data-show={showBack ? "" : undefined}>
+          <span className="toc-back-inner">
+            <Link
+              className="back-link toc-back"
+              tabIndex={showBack ? undefined : -1}
+              to="/blog"
+            >
+              <span aria-hidden="true" className="back-arrow">
+                ←
+              </span>
+              writing
+            </Link>
           </span>
-          writing
-        </Link>
+        </span>
         <nav aria-label="contents">
           <span className="toc-label">contents</span>
           {rows.map((row) =>
@@ -282,6 +310,7 @@ function FallingPetal() {
 function PostPage() {
   const { slug } = Route.useParams();
   const post = getPost(slug);
+  const headerBackRef = useRef<HTMLAnchorElement>(null);
 
   if (!post) {
     return null;
@@ -293,7 +322,8 @@ function PostPage() {
       <div className="mx-auto w-full max-w-xl">
         <header className="border-ink/10 border-b pb-8">
           <Link
-            className="back-link header-back rise font-mono text-muted text-xs"
+            className="back-link rise font-mono text-muted text-xs"
+            ref={headerBackRef}
             to="/blog"
           >
             <span aria-hidden="true" className="back-arrow">
@@ -321,7 +351,7 @@ function PostPage() {
         </header>
 
         <div className="relative mt-10">
-          <Toc entries={post.toc} />
+          <Toc backRef={headerBackRef} entries={post.toc} />
           <article className="rise" style={{ animationDelay: "200ms" }}>
             <PostBody Content={post.Content} />
           </article>
