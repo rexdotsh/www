@@ -118,8 +118,16 @@ type SoundPlayer = (state: AudioState, pitch?: number) => void;
 
 const playSound: Record<Sound, SoundPlayer> = {
   // a card landing, a toc step, and the sound that confirms a hover
-  tick: (state, pitch = 950) =>
-    tone(state, "triangle", pitch * 1.45, pitch, 0.34, 0.006, 0.12),
+  tick: (state, pitch = 720) =>
+    tone(
+      state,
+      "sine",
+      Math.max(360, pitch * 0.8),
+      pitch * 1.15,
+      0.42,
+      0.008,
+      0.16
+    ),
   pop: (state) => tone(state, "sine", 520, 820, 0.32, 0.008, 0.1),
   lightsOff: (state) => {
     tone(state, "triangle", 320, 160, 0.4, 0.005, 0.13);
@@ -191,7 +199,7 @@ function unlock() {
     .catch(() => undefined);
 }
 
-export const sfx = (sound: Sound, pitch = 950) => {
+export const sfx = (sound: Sound, pitch = 720) => {
   if (muted) {
     return;
   }
