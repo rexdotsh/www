@@ -311,6 +311,10 @@ function Peek({
         onClick={handleClick}
         onFocus={() => report(hoverKey ?? null)}
         onPointerEnter={(event) => {
+          console.info("[sfx-hover] pointerenter", {
+            pointerType: event.pointerType,
+            word: hoverKey ?? "unknown",
+          });
           if (event.pointerType !== "touch") {
             sfx("hover");
           }

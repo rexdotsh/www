@@ -22,12 +22,38 @@ interface AudioState {
 let audio: AudioState | null = null;
 let muted = false;
 const listeners = new Set<(muted: boolean) => void>();
+const debug = (message: string, details?: unknown) => {
+  console.info(`[sfx] ${message}`, details ?? "");
+};
+
+const syncMuted = () => {
+  if (typeof window === "undefined") {
+    return muted;
+  }
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY) === "off";
+    if (stored !== muted) {
+      debug("mute state synced", { from: muted, to: stored });
+      muted = stored;
+    }
+  } catch {
+    // private mode; keep the in-memory choice
+  }
+  return muted;
+};
 
 const hasActivation = () =>
   !navigator.userActivation || navigator.userActivation.hasBeenActive;
 
 const getAudio = () => {
-  if (typeof window === "undefined" || !hasActivation()) {
+  if (
+    typeof window === "undefined" ||
+    typeof AudioContext === "undefined" ||
+    !hasActivation()
+  ) {
+    if (typeof window !== "undefined" && typeof AudioContext === "undefined") {
+      debug("AudioContext unavailable");
+    }
     return null;
   }
   if (audio) {
@@ -39,6 +65,7 @@ const getAudio = () => {
   output.gain.value = MASTER_GAIN;
   output.connect(context.destination);
   audio = { context, output, noise: null };
+  debug("context created", { state: context.state });
   return audio;
 };
 
@@ -174,13 +201,19 @@ const stopUnlock = () => {
 };
 
 const unlock = () => {
-  if (muted) {
+  if (syncMuted()) {
+    debug("unlock skipped because muted");
     return;
   }
   const state = getAudio();
   if (!state) {
+    debug("unlock skipped because no audio state");
     return;
   }
+  debug("unlock", {
+    active: navigator.userActivation?.isActive,
+    state: state.context.state,
+  });
   if (state.context.state === "running") {
     stopUnlock();
     return;
@@ -188,37 +221,48 @@ const unlock = () => {
   state.context
     .resume()
     .then(() => {
+      debug("resume finished", { state: state.context.state });
       if (state.context.state === "running") {
         stopUnlock();
       }
     })
-    .catch(() => undefined);
+    .catch((error: unknown) => debug("resume failed", error));
 };
 
 export const sfx = (sound: Sound, pitch = 720) => {
-  if (muted) {
+  const currentMuted = syncMuted();
+  debug("request", { muted: currentMuted, pitch, sound });
+  if (currentMuted) {
     return;
   }
   const state = getAudio();
   if (!state) {
+    debug("request dropped because no audio state", { sound });
     return;
   }
   if (state.context.state === "running") {
     playSound[sound](state, pitch);
+    debug("scheduled", { sound, state: state.context.state });
     return;
   }
 
+  debug("waiting for resume", { sound, state: state.context.state });
   state.context
     .resume()
     .then(() => {
-      if (!muted && state.context.state === "running") {
+      debug("resume finished for request", {
+        sound,
+        state: state.context.state,
+      });
+      if (!syncMuted() && state.context.state === "running") {
         playSound[sound](state, pitch);
+        debug("scheduled after resume", { sound });
       }
     })
-    .catch(() => undefined);
+    .catch((error: unknown) => debug("request resume failed", error));
 };
 
-export const isMuted = () => muted;
+export const isMuted = () => syncMuted();
 
 export const setMuted = (next: boolean) => {
   muted = next;
@@ -231,6 +275,7 @@ export const setMuted = (next: boolean) => {
   } catch {
     // private mode; the choice just won't persist
   }
+  debug("mute state set", { muted, stored: syncMuted() });
   for (const listener of listeners) {
     listener(next);
   }
