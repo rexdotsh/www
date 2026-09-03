@@ -1,5 +1,6 @@
 export type Sound =
   | "tick"
+  | "hover"
   | "pop"
   | "lightsOff"
   | "lightsOn"
@@ -109,6 +110,9 @@ const hiss = (
   source.stop(at + attack + decay + 0.02);
 };
 
+const confirmation = (state: AudioState) =>
+  tone(state, "sine", 520, 820, 0.32, 0.008, 0.1);
+
 const playSound: Record<Sound, (state: AudioState, pitch?: number) => void> = {
   // a card landing, a toc step, and the sound that confirms a hover
   tick: (state, pitch = 720) =>
@@ -121,7 +125,8 @@ const playSound: Record<Sound, (state: AudioState, pitch?: number) => void> = {
       0.008,
       0.16
     ),
-  pop: (state) => tone(state, "sine", 520, 820, 0.32, 0.008, 0.1),
+  hover: confirmation,
+  pop: confirmation,
   lightsOff: (state) => {
     tone(state, "triangle", 320, 160, 0.4, 0.005, 0.13);
     hiss(state, 3000, 400, 0.14, 0.003, 0.05);
