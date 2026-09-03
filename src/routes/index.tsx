@@ -154,7 +154,7 @@ function Home() {
         </div>
 
         <div
-          className="rise relative z-20 flex shrink-0 flex-col items-center md:z-auto"
+          className={`rise relative z-20 flex shrink-0 flex-col items-center md:z-auto ${word === "music" ? "max-md:z-40" : ""}`}
           style={{ animationDelay: "200ms" }}
         >
           <div

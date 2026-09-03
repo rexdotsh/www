@@ -708,6 +708,7 @@ export default function ParticleRose({
   return (
     <div
       className={`relative aspect-square ${tappable ? "cursor-pointer" : "cursor-crosshair"} ${className}`}
+      data-rose=""
       ref={containerRef}
     >
       <canvas

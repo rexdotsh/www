@@ -122,11 +122,7 @@ export function TheSentence({
     {
       key: "music",
       href: track?.url ?? LINKS.blog,
-      text: (
-        <>
-          somethin<span className="inline-block">g</span>
-        </>
-      ),
+      text: "something",
       peek: track ? <MusicPeek track={track} /> : null,
     },
     " on. ",
@@ -253,16 +249,20 @@ function Peek({
     if (!armed) {
       return;
     }
-    const onDocumentPointerDown = (event: PointerEvent) => {
-      if (!wrapperRef.current?.contains(event.target as Node)) {
+    const onDocumentPointerDown = ({ target }: PointerEvent) => {
+      if (!wrapperRef.current?.contains(target as Node)) {
         setArmed(false);
-        onHover?.(null);
+        const tappedRose =
+          target instanceof Element && target.closest("[data-rose]");
+        if (!tappedRose || hoverKey !== "music") {
+          onHover?.(null);
+        }
       }
     };
     document.addEventListener("pointerdown", onDocumentPointerDown);
     return () =>
       document.removeEventListener("pointerdown", onDocumentPointerDown);
-  }, [armed, onHover]);
+  }, [armed, hoverKey, onHover]);
 
   return (
     <span
