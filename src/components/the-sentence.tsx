@@ -284,9 +284,6 @@ function Peek({
           return;
         }
         report(hoverKey ?? null);
-        if (peek) {
-          sfx("tick");
-        }
         if (!external) {
           router
             .preloadRoute({ href } as Parameters<typeof router.preloadRoute>[0])
@@ -313,6 +310,11 @@ function Peek({
         }}
         onClick={handleClick}
         onFocus={() => report(hoverKey ?? null)}
+        onPointerEnter={(event) => {
+          if (peek && event.pointerType !== "touch") {
+            sfx("tick");
+          }
+        }}
         rel={external ? "noopener noreferrer" : undefined}
         target={external ? "_blank" : undefined}
       >
