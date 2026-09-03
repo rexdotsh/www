@@ -13,8 +13,6 @@ const LABELS: Record<Theme, string> = {
   dark: "lights on",
 };
 
-// ios safari re-samples its bar colours only when a fixed element comes or
-// goes, never on a style change. see tint-strips.tsx
 function nudgeBarSampling() {
   const probe = document.createElement("div");
   probe.style.cssText =
@@ -80,7 +78,6 @@ export default function CornerNotes() {
       return;
     }
 
-    // circular reveal of the new palette, wiping out from the cursor
     const { clientX: x, clientY: y } = event;
     const radius = Math.hypot(
       Math.max(x, window.innerWidth - x),
