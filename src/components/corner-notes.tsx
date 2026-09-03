@@ -24,30 +24,24 @@ function nudgeBarSampling() {
 }
 
 export default function CornerNotes() {
-  const [theme, setTheme] = useState<Theme | null>(null);
-  const [muted, setMutedState] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() =>
+    typeof document !== "undefined" &&
+    document.documentElement.dataset.theme === "dark"
+      ? "dark"
+      : "light"
+  );
+  const [muted, setMutedState] = useState(isMuted);
   const [flipped, setFlipped] = useState(false);
 
-  useEffect(() => {
-    setTheme(
-      document.documentElement.dataset.theme === "dark" ? "dark" : "light"
-    );
-    setMutedState(isMuted());
-    return onMuteChange(setMutedState);
-  }, []);
+  useEffect(() => onMuteChange(setMutedState), []);
 
   useEffect(() => {
-    if (theme) {
-      document
-        .querySelector('meta[name="theme-color"]')
-        ?.setAttribute("content", THEME_COLORS[theme]);
-    }
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", THEME_COLORS[theme]);
   }, [theme]);
 
   const toggle = (event: React.MouseEvent) => {
-    if (!theme) {
-      return;
-    }
     const next: Theme = theme === "dark" ? "light" : "dark";
     const apply = () => {
       if (next === "dark") {
@@ -114,7 +108,7 @@ export default function CornerNotes() {
     }
   };
 
-  const lightsLabel = theme ? LABELS[theme] : "lights";
+  const lightsLabel = LABELS[theme];
   const soundLabel = muted ? "sound off" : "sound on";
   const swap = flipped ? "swap-in" : undefined;
 
@@ -129,7 +123,7 @@ export default function CornerNotes() {
         onClick={toggle}
         type="button"
       >
-        <span className={swap} key={lightsLabel}>
+        <span className={swap} key={lightsLabel} suppressHydrationWarning>
           {lightsLabel}
         </span>
       </button>
@@ -142,7 +136,7 @@ export default function CornerNotes() {
         onClick={toggleSound}
         type="button"
       >
-        <span className={swap} key={soundLabel}>
+        <span className={swap} key={soundLabel} suppressHydrationWarning>
           {soundLabel}
         </span>
       </button>{" "}
