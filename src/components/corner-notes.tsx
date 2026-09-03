@@ -25,7 +25,7 @@ function nudgeBarSampling() {
   });
 }
 
-// ( lights off · sound off ): paper and sound by default, both choices pinned
+// ( lights off · sound on ): paper and sound by default, both choices pinned
 export default function CornerNotes() {
   const [theme, setTheme] = useState<Theme | null>(null);
   const [muted, setMutedState] = useState(false);
@@ -120,7 +120,7 @@ export default function CornerNotes() {
   };
 
   const lightsLabel = theme ? LABELS[theme] : "lights";
-  const soundLabel = muted ? "sound on" : "sound off";
+  const soundLabel = muted ? "sound off" : "sound on";
   const swap = flipped ? "swap-in" : undefined;
 
   return (
