@@ -27,7 +27,11 @@ const hasActivation = () =>
   !navigator.userActivation || navigator.userActivation.hasBeenActive;
 
 const getAudio = () => {
-  if (typeof window === "undefined" || !hasActivation()) {
+  if (
+    typeof window === "undefined" ||
+    typeof AudioContext === "undefined" ||
+    !hasActivation()
+  ) {
     return null;
   }
   if (audio) {
@@ -38,7 +42,7 @@ const getAudio = () => {
   const output = context.createGain();
   output.gain.value = MASTER_GAIN;
   output.connect(context.destination);
-  audio = { context, output, noise: null };
+  audio = { context, noise: null, output };
   return audio;
 };
 
@@ -110,7 +114,9 @@ const hiss = (
   source.stop(at + attack + decay + 0.02);
 };
 
-const playSound: Record<Sound, (state: AudioState, pitch?: number) => void> = {
+type SoundPlayer = (state: AudioState, pitch?: number) => void;
+
+const playSound: Record<Sound, SoundPlayer> = {
   // a card landing, a toc step, and the sound that confirms a hover
   tick: (state, pitch = 950) =>
     tone(state, "triangle", pitch * 1.45, pitch, 0.34, 0.006, 0.12),
@@ -155,15 +161,15 @@ const playSound: Record<Sound, (state: AudioState, pitch?: number) => void> = {
     tone(state, "sine", 1980, 1976, 0.08, 0.01, 0.6);
   },
   // the rose waking from a doze
-  stir: (ctx) => tone(ctx, "sine", 260, 340, 0.16, 0.03, 0.22),
+  stir: (state) => tone(state, "sine", 260, 340, 0.16, 0.03, 0.22),
 };
 
-const stopUnlock = () => {
+function stopUnlock() {
   window.removeEventListener("pointerup", unlock);
   window.removeEventListener("keydown", unlock);
-};
+}
 
-const unlock = () => {
+function unlock() {
   if (muted) {
     return;
   }
@@ -183,7 +189,7 @@ const unlock = () => {
       }
     })
     .catch(() => undefined);
-};
+}
 
 export const sfx = (sound: Sound, pitch = 950) => {
   if (muted) {
