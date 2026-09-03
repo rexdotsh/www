@@ -37,9 +37,6 @@ const CAPTIONS: Record<SentenceWord, string> = {
   resume: "( pretending to be a document )",
 };
 
-// each lift is the card's offsetHeight − 4 at a 390px viewport, so the
-// caption clears the card by 12px. to re-measure, set data-peek-open on
-// the word's .peek-trigger and read .peek-card.offsetHeight.
 const LIFTS: Record<SentenceWord, string> = {
   name: "max-md:-translate-y-[53px]",
   builds: "max-md:-translate-y-[224px]",
@@ -69,8 +66,6 @@ function Home() {
   const onWordHover = (next: SentenceWord | null) => {
     setWord(next);
     if (next) {
-      // the sticky cover exists so the cursor can travel word -> rose;
-      // touch has no journey, and the card links out directly
       setCover(next === "music" && window.matchMedia("(hover: hover)").matches);
     }
   };
@@ -159,8 +154,6 @@ function Home() {
         </div>
 
         <div
-          // above the sentence on phones so the tap-catcher behind an open
-          // card cannot swallow a tap meant for the rose
           className="rise relative z-20 flex shrink-0 flex-col items-center md:z-auto"
           style={{ animationDelay: "200ms" }}
         >

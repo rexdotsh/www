@@ -12,8 +12,6 @@ const LABELS: Record<Theme, string> = {
   dark: "lights on",
 };
 
-// ios safari re-samples its bar colours only when a fixed element comes or
-// goes, never on a style change. see tint-strips.tsx
 function nudgeBarSampling() {
   const probe = document.createElement("div");
   probe.style.cssText =
@@ -24,10 +22,8 @@ function nudgeBarSampling() {
   });
 }
 
-// paper by default; only the dark choice is pinned
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme | null>(null);
-  // the label only animates for a flip, not for hydration filling it in
   const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
@@ -77,7 +73,6 @@ export default function ThemeToggle() {
       return;
     }
 
-    // circular reveal of the new palette, wiping out from the cursor
     const { clientX: x, clientY: y } = event;
     const radius = Math.hypot(
       Math.max(x, window.innerWidth - x),
