@@ -12,6 +12,20 @@ export type Sound =
 const MASTER_GAIN = 0.8;
 const STORAGE_KEY = "sound";
 const NOISE_SECONDS = 0.4;
+const UNLOCK_EVENTS = [
+  "pointerdown",
+  "pointerup",
+  "mousedown",
+  "mouseup",
+  "touchend",
+  "keydown",
+  "keyup",
+  "click",
+  "contextmenu",
+  "auxclick",
+  "dblclick",
+] as const;
+const UNLOCK_OPTIONS = { capture: true, passive: true };
 
 interface AudioState {
   context: AudioContext;
@@ -39,7 +53,7 @@ const syncMuted = () => {
   return muted;
 };
 
-const getAudio = () => {
+const createAudio = () => {
   if (typeof window === "undefined" || typeof AudioContext === "undefined") {
     return null;
   }
@@ -183,8 +197,9 @@ const playSound: Record<Sound, SoundPlayer> = {
 };
 
 function stopUnlock() {
-  window.removeEventListener("pointerdown", unlock);
-  window.removeEventListener("keydown", unlock);
+  for (const event of UNLOCK_EVENTS) {
+    window.removeEventListener(event, unlock, UNLOCK_OPTIONS);
+  }
 }
 
 function flush(state: AudioState) {
@@ -196,10 +211,7 @@ function flush(state: AudioState) {
 }
 
 function unlock() {
-  if (syncMuted()) {
-    return;
-  }
-  const state = getAudio();
+  const state = audio ?? createAudio();
   if (!state) {
     return;
   }
@@ -223,8 +235,9 @@ export const sfx = (sound: Sound, pitch = 720) => {
   if (syncMuted()) {
     return;
   }
-  const state = getAudio();
+  const state = audio;
   if (!state) {
+    pending = { pitch, sound };
     return;
   }
   if (state.context.state === "running") {
@@ -280,6 +293,7 @@ if (typeof window !== "undefined") {
   } catch {
     // private mode
   }
-  window.addEventListener("pointerdown", unlock, { passive: true });
-  window.addEventListener("keydown", unlock);
+  for (const event of UNLOCK_EVENTS) {
+    window.addEventListener(event, unlock, UNLOCK_OPTIONS);
+  }
 }
