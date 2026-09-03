@@ -1,6 +1,5 @@
 export type Sound =
   | "tick"
-  | "hover"
   | "pop"
   | "lightsOff"
   | "lightsOn"
@@ -22,9 +21,6 @@ interface AudioState {
 let audio: AudioState | null = null;
 let muted = false;
 const listeners = new Set<(muted: boolean) => void>();
-const debug = (message: string, details?: unknown) => {
-  console.info(`[sfx] ${message}`, details ?? "");
-};
 
 const syncMuted = () => {
   if (typeof window === "undefined") {
@@ -33,7 +29,6 @@ const syncMuted = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY) === "off";
     if (stored !== muted) {
-      debug("mute state synced", { from: muted, to: stored });
       muted = stored;
     }
   } catch {
@@ -42,18 +37,8 @@ const syncMuted = () => {
   return muted;
 };
 
-const hasActivation = () =>
-  !navigator.userActivation || navigator.userActivation.hasBeenActive;
-
 const getAudio = () => {
-  if (
-    typeof window === "undefined" ||
-    typeof AudioContext === "undefined" ||
-    !hasActivation()
-  ) {
-    if (typeof window !== "undefined" && typeof AudioContext === "undefined") {
-      debug("AudioContext unavailable");
-    }
+  if (typeof window === "undefined" || typeof AudioContext === "undefined") {
     return null;
   }
   if (audio) {
@@ -65,7 +50,6 @@ const getAudio = () => {
   output.gain.value = MASTER_GAIN;
   output.connect(context.destination);
   audio = { context, output, noise: null };
-  debug("context created", { state: context.state });
   return audio;
 };
 
@@ -141,7 +125,6 @@ const confirmation = (state: AudioState) =>
   tone(state, "sine", 520, 820, 0.32, 0.008, 0.1);
 
 const playSound: Record<Sound, (state: AudioState, pitch?: number) => void> = {
-  // a card landing, a toc step, and the sound that confirms a hover
   tick: (state, pitch = 720) =>
     tone(
       state,
@@ -152,7 +135,6 @@ const playSound: Record<Sound, (state: AudioState, pitch?: number) => void> = {
       0.008,
       0.16
     ),
-  hover: confirmation,
   pop: confirmation,
   lightsOff: (state) => {
     tone(state, "triangle", 320, 160, 0.4, 0.005, 0.13);
@@ -202,18 +184,12 @@ const stopUnlock = () => {
 
 const unlock = () => {
   if (syncMuted()) {
-    debug("unlock skipped because muted");
     return;
   }
   const state = getAudio();
   if (!state) {
-    debug("unlock skipped because no audio state");
     return;
   }
-  debug("unlock", {
-    active: navigator.userActivation?.isActive,
-    state: state.context.state,
-  });
   if (state.context.state === "running") {
     stopUnlock();
     return;
@@ -221,45 +197,34 @@ const unlock = () => {
   state.context
     .resume()
     .then(() => {
-      debug("resume finished", { state: state.context.state });
       if (state.context.state === "running") {
         stopUnlock();
       }
     })
-    .catch((error: unknown) => debug("resume failed", error));
+    .catch(() => undefined);
 };
 
 export const sfx = (sound: Sound, pitch = 720) => {
-  const currentMuted = syncMuted();
-  debug("request", { muted: currentMuted, pitch, sound });
-  if (currentMuted) {
+  if (syncMuted()) {
     return;
   }
   const state = getAudio();
   if (!state) {
-    debug("request dropped because no audio state", { sound });
     return;
   }
   if (state.context.state === "running") {
     playSound[sound](state, pitch);
-    debug("scheduled", { sound, state: state.context.state });
     return;
   }
 
-  debug("waiting for resume", { sound, state: state.context.state });
   state.context
     .resume()
     .then(() => {
-      debug("resume finished for request", {
-        sound,
-        state: state.context.state,
-      });
       if (!syncMuted() && state.context.state === "running") {
         playSound[sound](state, pitch);
-        debug("scheduled after resume", { sound });
       }
     })
-    .catch((error: unknown) => debug("request resume failed", error));
+    .catch(() => undefined);
 };
 
 export const isMuted = () => syncMuted();
@@ -275,7 +240,6 @@ export const setMuted = (next: boolean) => {
   } catch {
     // private mode; the choice just won't persist
   }
-  debug("mute state set", { muted, stored: syncMuted() });
   for (const listener of listeners) {
     listener(next);
   }

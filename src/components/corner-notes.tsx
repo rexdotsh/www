@@ -25,11 +25,9 @@ function nudgeBarSampling() {
   });
 }
 
-// ( lights off · sound on ): paper and sound by default, both choices pinned
 export default function CornerNotes() {
   const [theme, setTheme] = useState<Theme | null>(null);
   const [muted, setMutedState] = useState(false);
-  // labels only animate for a flip, not for hydration filling them in
   const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {

@@ -124,7 +124,6 @@ export function TheSentence({
     {
       key: "music",
       href: track?.url ?? LINKS.blog,
-      // decorations do not reach into atomic inlines: no underline stub past the g
       text: (
         <>
           somethin<span className="inline-block">g</span>
@@ -222,7 +221,7 @@ function Peek({
   tone = "link",
 }: {
   children: ReactNode;
-  hoverKey?: SentenceWord;
+  hoverKey: SentenceWord;
   href: string;
   onHover?: (word: SentenceWord | null) => void;
   peek: ReactNode;
@@ -234,13 +233,11 @@ function Peek({
   const external = href.startsWith("http");
 
   const report = (word: SentenceWord | null) => {
-    if (onHover && hoverKey) {
-      onHover(word);
-    }
+    onHover?.(word);
   };
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (hoverKey && window.matchMedia("(hover: none)").matches) {
+    if (window.matchMedia("(hover: none)").matches) {
       if (!armed) {
         event.preventDefault();
         setArmed(true);
@@ -252,7 +249,6 @@ function Peek({
       }
       setArmed(false);
     }
-    // internal links ride the router so view transitions apply
     if (!external) {
       event.preventDefault();
       router.navigate({ href });
@@ -278,12 +274,11 @@ function Peek({
     <span
       className="peek-trigger relative inline-block"
       data-peek-open={armed ? "" : undefined}
-      // touch devices only arm a card on click; real pointers get one sound
       onPointerEnter={(event) => {
         if (event.pointerType === "touch") {
           return;
         }
-        report(hoverKey ?? null);
+        report(hoverKey);
         if (!external) {
           router
             .preloadRoute({ href } as Parameters<typeof router.preloadRoute>[0])
@@ -309,14 +304,10 @@ function Peek({
           report(null);
         }}
         onClick={handleClick}
-        onFocus={() => report(hoverKey ?? null)}
+        onFocus={() => report(hoverKey)}
         onPointerEnter={(event) => {
-          console.info("[sfx-hover] pointerenter", {
-            pointerType: event.pointerType,
-            word: hoverKey ?? "unknown",
-          });
           if (event.pointerType !== "touch") {
-            sfx("hover");
+            sfx("pop");
           }
         }}
         rel={external ? "noopener noreferrer" : undefined}
@@ -343,7 +334,6 @@ function Peek({
   );
 }
 
-// a note pinned to a word: the label rides the top edge as a tab
 function PeekCard({
   center = false,
   children,

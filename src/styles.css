@@ -300,7 +300,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   z-index: 20;
 }
 
-/* a hairline from the card down to the word it annotates */
 .peek::after {
   content: "";
   position: absolute;
