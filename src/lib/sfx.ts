@@ -23,16 +23,23 @@ interface AudioState {
 let audio: AudioState | null = null;
 let muted = false;
 const listeners = new Set<(muted: boolean) => void>();
+const debug = (message: string, details?: unknown) => {
+  console.info(`[sfx] ${message}`, details ?? "");
+};
 
 const hasActivation = () =>
   !navigator.userActivation || navigator.userActivation.hasBeenActive;
 
 const getAudio = () => {
-  if (
-    typeof window === "undefined" ||
-    typeof AudioContext === "undefined" ||
-    !hasActivation()
-  ) {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  if (typeof AudioContext === "undefined") {
+    debug("AudioContext unavailable");
+    return null;
+  }
+  if (!hasActivation()) {
+    debug("blocked before user activation");
     return null;
   }
   if (audio) {
@@ -44,6 +51,7 @@ const getAudio = () => {
   output.gain.value = MASTER_GAIN;
   output.connect(context.destination);
   audio = { context, noise: null, output };
+  debug("context created", { state: context.state });
   return audio;
 };
 
@@ -184,12 +192,18 @@ function stopUnlock() {
 
 function unlock() {
   if (muted) {
+    debug("unlock skipped because muted");
     return;
   }
   const state = getAudio();
   if (!state) {
+    debug("unlock skipped because no audio state");
     return;
   }
+  debug("unlock", {
+    active: navigator.userActivation?.isActive,
+    state: state.context.state,
+  });
   if (state.context.state === "running") {
     stopUnlock();
     return;
@@ -197,34 +211,44 @@ function unlock() {
   state.context
     .resume()
     .then(() => {
+      debug("resume finished", { state: state.context.state });
       if (state.context.state === "running") {
         stopUnlock();
       }
     })
-    .catch(() => undefined);
+    .catch((error: unknown) => debug("resume failed", error));
 }
 
 export const sfx = (sound: Sound, pitch = 720) => {
+  debug("request", { muted, pitch, sound });
   if (muted) {
     return;
   }
   const state = getAudio();
   if (!state) {
+    debug("request dropped because no audio state", { sound });
     return;
   }
   if (state.context.state === "running") {
     playSound[sound](state, pitch);
+    debug("scheduled", { sound, state: state.context.state });
     return;
   }
 
+  debug("waiting for resume", { sound, state: state.context.state });
   state.context
     .resume()
     .then(() => {
+      debug("resume finished for request", {
+        sound,
+        state: state.context.state,
+      });
       if (!muted && state.context.state === "running") {
         playSound[sound](state, pitch);
+        debug("scheduled after resume", { sound });
       }
     })
-    .catch(() => undefined);
+    .catch((error: unknown) => debug("request resume failed", error));
 };
 
 // c pentatonic, one note per word of the sentence, so reading it left to
