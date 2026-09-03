@@ -39,10 +39,7 @@ const syncMuted = () => {
 };
 
 const getAudio = () => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  if (typeof AudioContext === "undefined") {
+  if (typeof window === "undefined" || typeof AudioContext === "undefined") {
     return null;
   }
   if (audio) {
@@ -53,7 +50,7 @@ const getAudio = () => {
   const output = context.createGain();
   output.gain.value = MASTER_GAIN;
   output.connect(context.destination);
-  audio = { context, noise: null, output };
+  audio = { context, output, noise: null };
   return audio;
 };
 
