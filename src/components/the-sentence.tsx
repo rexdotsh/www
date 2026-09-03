@@ -185,7 +185,7 @@ export function TheSentence({
             >
               hi back
             </Peek>
-            <FullStop />
+            <span className="full-stop text-rose">.</span>
           </>
         )}
       </h1>
@@ -219,36 +219,6 @@ export function TheSentence({
         </p>
       ) : null}
     </>
-  );
-}
-
-function FullStop() {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [fallen, setFallen] = useState(false);
-
-  const knock = () => {
-    const stop = ref.current;
-    if (fallen || !stop) {
-      return;
-    }
-    const rect = stop.getBoundingClientRect();
-    const floor = window.innerHeight - 24;
-    stop.style.setProperty("--drop", `${floor - rect.bottom}px`);
-    setFallen(true);
-    setTimeout(() => sfx("tick", 392), 620);
-  };
-
-  return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: the period is content first, a toy second
-    // biome-ignore lint/a11y/useKeyWithClickEvents: pointer-only whimsy
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: pointer-only whimsy
-    <span
-      className={`full-stop text-rose${fallen ? " full-stop-fallen" : ""}`}
-      onClick={knock}
-      ref={ref}
-    >
-      .
-    </span>
   );
 }
 
