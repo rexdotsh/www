@@ -260,7 +260,7 @@ export const sfx = (sound: Sound, pitch = 720) => {
         sound,
         state: state.context.state,
       });
-      if (!muted && state.context.state === "running") {
+      if (!syncMuted() && state.context.state === "running") {
         playSound[sound](state, pitch);
         debug("scheduled after resume", { sound });
       }
