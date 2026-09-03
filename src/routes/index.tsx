@@ -1,10 +1,10 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { useAudioPlayer } from "react-use-audio-player";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
 import { useNowPlaying } from "@/lib/use-now-playing";
+import { usePreview } from "@/lib/use-preview";
 
 const rootRoute = getRouteApi("__root__");
 
@@ -56,20 +56,15 @@ const VOLUME = 0.5;
 function Home() {
   const { hostname } = rootRoute.useLoaderData();
   const { track, previewUrl } = useNowPlaying();
-  const {
-    load,
-    isPlaying,
-    play,
-    pause,
-    fade,
-    getPosition,
-    duration,
-    setVolume,
-  } = useAudioPlayer();
   const [word, setWord] = useState<SentenceWord | null>(null);
   const [cover, setCover] = useState(false);
   const [artFade, setArtFade] = useState(0);
   const fadedOutRef = useRef(false);
+  const { isPlaying, play, pause, fade, getPosition, duration, setVolume } =
+    usePreview(previewUrl, () => {
+      setArtFade(0);
+      setCover(false);
+    });
 
   const onWordHover = (next: SentenceWord | null) => {
     setWord(next);
@@ -79,19 +74,6 @@ function Home() {
       setCover(next === "music" && window.matchMedia("(hover: hover)").matches);
     }
   };
-
-  useEffect(() => {
-    if (previewUrl) {
-      load(previewUrl, {
-        html5: true,
-        initialVolume: 0,
-        onend: () => {
-          setArtFade(0);
-          setCover(false);
-        },
-      });
-    }
-  }, [load, previewUrl]);
 
   useEffect(() => {
     if (!isPlaying) {
