@@ -21,6 +21,7 @@ interface AudioState {
 
 let audio: AudioState | null = null;
 let muted = false;
+let pending: { pitch: number; sound: Sound } | null = null;
 const listeners = new Set<(muted: boolean) => void>();
 
 const syncMuted = () => {
@@ -182,8 +183,16 @@ const playSound: Record<Sound, SoundPlayer> = {
 };
 
 function stopUnlock() {
-  window.removeEventListener("pointerup", unlock);
+  window.removeEventListener("pointerdown", unlock);
   window.removeEventListener("keydown", unlock);
+}
+
+function flush(state: AudioState) {
+  const request = pending;
+  pending = null;
+  if (request && !syncMuted() && state.context.state === "running") {
+    playSound[request.sound](state, request.pitch);
+  }
 }
 
 function unlock() {
@@ -195,6 +204,7 @@ function unlock() {
     return;
   }
   if (state.context.state === "running") {
+    flush(state);
     stopUnlock();
     return;
   }
@@ -202,6 +212,7 @@ function unlock() {
     .resume()
     .then(() => {
       if (state.context.state === "running") {
+        flush(state);
         stopUnlock();
       }
     })
@@ -217,15 +228,17 @@ export const sfx = (sound: Sound, pitch = 720) => {
     return;
   }
   if (state.context.state === "running") {
+    pending = null;
     playSound[sound](state, pitch);
     return;
   }
 
+  pending = { pitch, sound };
   state.context
     .resume()
     .then(() => {
-      if (!syncMuted() && state.context.state === "running") {
-        playSound[sound](state, pitch);
+      if (state.context.state === "running") {
+        flush(state);
       }
     })
     .catch(() => undefined);
@@ -246,6 +259,9 @@ export const setMuted = (next: boolean) => {
   } catch {
     // private mode; the choice just won't persist
   }
+  if (next) {
+    pending = null;
+  }
   for (const listener of listeners) {
     listener(next);
   }
@@ -264,6 +280,6 @@ if (typeof window !== "undefined") {
   } catch {
     // private mode
   }
-  window.addEventListener("pointerup", unlock, { passive: true });
+  window.addEventListener("pointerdown", unlock, { passive: true });
   window.addEventListener("keydown", unlock);
 }
