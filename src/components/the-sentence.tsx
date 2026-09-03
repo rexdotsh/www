@@ -275,13 +275,14 @@ function Peek({
   }, [armed, onHover]);
 
   return (
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: the wrapper owns the anchored card hover
+    // biome-ignore lint/a11y/noStaticElementInteractions: the wrapper owns the anchored card hover
     <span
       className="peek-trigger relative inline-block"
       data-peek-open={armed ? "" : undefined}
-      // a finger fires enter, leave, then click; only the click counts, or the
-      // rose lifts, drops and lifts again on every tap
-      onPointerEnter={(event) => {
-        if (event.pointerType === "touch") {
+      // touch devices only arm a card on click; hover devices get one sound
+      onMouseEnter={() => {
+        if (!window.matchMedia("(hover: hover)").matches) {
           return;
         }
         report(hoverKey ?? null);
@@ -294,8 +295,8 @@ function Peek({
             .catch(() => undefined);
         }
       }}
-      onPointerLeave={(event) => {
-        if (event.pointerType !== "touch" && !armed) {
+      onMouseLeave={() => {
+        if (window.matchMedia("(hover: hover)").matches && !armed) {
           report(null);
         }
       }}

@@ -109,9 +109,18 @@ const hiss = (
   source.stop(at + attack + decay + 0.02);
 };
 
-const playSound: Record<Sound, (state: AudioState) => void> = {
+const playSound: Record<Sound, (state: AudioState, pitch?: number) => void> = {
   // a card landing, a toc step, and the sound that confirms a hover
-  tick: (state) => tone(state, "triangle", 900, 1250, 0.34, 0.006, 0.12),
+  tick: (state, pitch = 720) =>
+    tone(
+      state,
+      "sine",
+      Math.max(360, pitch * 0.8),
+      pitch * 1.15,
+      0.42,
+      0.008,
+      0.16
+    ),
   pop: (state) => tone(state, "sine", 520, 820, 0.32, 0.008, 0.1),
   lightsOff: (state) => {
     tone(state, "triangle", 320, 160, 0.4, 0.005, 0.13);
@@ -181,7 +190,7 @@ const unlock = () => {
     .catch(() => undefined);
 };
 
-export const sfx = (sound: Sound) => {
+export const sfx = (sound: Sound, pitch = 720) => {
   if (muted) {
     return;
   }
@@ -190,7 +199,7 @@ export const sfx = (sound: Sound) => {
     return;
   }
   if (state.context.state === "running") {
-    playSound[sound](state);
+    playSound[sound](state, pitch);
     return;
   }
 
@@ -198,7 +207,7 @@ export const sfx = (sound: Sound) => {
     .resume()
     .then(() => {
       if (!muted && state.context.state === "running") {
-        playSound[sound](state);
+        playSound[sound](state, pitch);
       }
     })
     .catch(() => undefined);
