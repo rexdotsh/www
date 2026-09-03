@@ -36,11 +36,9 @@ export default function CornerNotes() {
   useEffect(() => onMuteChange(setMutedState), []);
 
   useEffect(() => {
-    if (theme) {
-      document
-        .querySelector('meta[name="theme-color"]')
-        ?.setAttribute("content", THEME_COLORS[theme]);
-    }
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", THEME_COLORS[theme]);
   }, [theme]);
 
   const toggle = (event: React.MouseEvent) => {
@@ -138,7 +136,7 @@ export default function CornerNotes() {
         onClick={toggleSound}
         type="button"
       >
-        <span className={swap} key={soundLabel}>
+        <span className={swap} key={soundLabel} suppressHydrationWarning>
           {soundLabel}
         </span>
       </button>{" "}
