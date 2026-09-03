@@ -275,8 +275,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   padding-bottom: 0.5rem;
   left: 50%;
   width: max-content;
-  translate: -50% 0;
-  transform: scale(0.92) translateY(6px);
+  transform: translateX(-50%) scale(0.92) translateY(6px);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -320,7 +319,7 @@ html[data-vt="theme"]::view-transition-new(root) {
 }
 
 .peek-trigger[data-peek-open] .peek {
-  transform: scale(1) translateY(0);
+  transform: translateX(-50%) scale(1) translateY(0);
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -335,7 +334,7 @@ html[data-vt="theme"]::view-transition-new(root) {
 @media (hover: hover) and (pointer: fine) {
   .peek-trigger:hover .peek,
   .peek-trigger:focus-within .peek {
-    transform: scale(1) translateY(0);
+    transform: translateX(-50%) scale(1) translateY(0);
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
@@ -1212,7 +1211,6 @@ html[data-vt="theme"]::view-transition-new(root) {
     bottom: max(1.5rem, env(safe-area-inset-bottom));
     left: 50%;
     padding-bottom: 0;
-    translate: -50% 0;
     transform-origin: bottom center;
     z-index: 40;
   }
