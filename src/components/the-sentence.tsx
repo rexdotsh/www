@@ -354,8 +354,8 @@ function Peek({
         onClick={handleClick}
         onFocus={() => report(hoverKey ?? null)}
         onPointerEnter={(event) => {
-          if (peek && event.pointerType !== "touch") {
-            sfx("tick", hoverKey ? NOTES[hoverKey] : undefined);
+          if (event.pointerType !== "touch") {
+            sfx("hover");
           }
         }}
         rel={external ? "noopener noreferrer" : undefined}
