@@ -64,7 +64,6 @@ function Home() {
       setArtFade(0);
       setCover(false);
     });
-  const [holding, setHolding] = useState(false);
   const idle = useIdle(40_000);
   const dozing = idle && !(word || isPlaying || cover);
   const wasDozingRef = useRef(false);
@@ -147,9 +146,6 @@ function Home() {
     if (word) {
       return CAPTIONS[word];
     }
-    if (holding) {
-      return "( opening up )";
-    }
     if (dozing) {
       return "( dozing )";
     }
@@ -188,7 +184,6 @@ function Home() {
               className="w-[min(64vw,300px)] md:w-[min(34vw,440px)]"
               doze={dozing}
               mode={mode}
-              onHold={setHolding}
               onTap={onRoseTap}
               tappable={Boolean(
                 previewUrl && (isPlaying || cover || word === "music")
