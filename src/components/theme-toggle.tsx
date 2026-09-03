@@ -23,14 +23,13 @@ function nudgeBarSampling() {
 }
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme | null>(null);
+  const [theme, setTheme] = useState<Theme>(() =>
+    typeof document !== "undefined" &&
+    document.documentElement.dataset.theme === "dark"
+      ? "dark"
+      : "light"
+  );
   const [flipped, setFlipped] = useState(false);
-
-  useEffect(() => {
-    setTheme(
-      document.documentElement.dataset.theme === "dark" ? "dark" : "light"
-    );
-  }, []);
 
   useEffect(() => {
     if (theme) {
@@ -41,9 +40,6 @@ export default function ThemeToggle() {
   }, [theme]);
 
   const toggle = (event: React.MouseEvent) => {
-    if (!theme) {
-      return;
-    }
     const next: Theme = theme === "dark" ? "light" : "dark";
     const apply = () => {
       if (next === "dark") {
@@ -112,7 +108,11 @@ export default function ThemeToggle() {
       <span aria-hidden="true" className="paren">
         (
       </span>{" "}
-      <span className={flipped ? "swap-in" : undefined} key={label}>
+      <span
+        className={flipped ? "swap-in" : undefined}
+        key={label}
+        suppressHydrationWarning
+      >
         {label}
       </span>{" "}
       <span aria-hidden="true" className="paren">
