@@ -328,7 +328,7 @@ function Peek({
           return;
         }
         report(hoverKey ?? null);
-        if (peek && event.pointerType === "mouse") {
+        if (peek) {
           sfx("tick", hoverKey ? NOTES[hoverKey] : undefined);
         }
         if (!external) {
