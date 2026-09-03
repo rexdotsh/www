@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 
 const ACTIVITY = ["pointermove", "pointerdown", "keydown", "wheel", "scroll"];
 
-// true once the visitor has left the page alone for `after` ms
 export function useIdle(after: number) {
   const [idle, setIdle] = useState(false);
 

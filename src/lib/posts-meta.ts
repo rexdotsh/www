@@ -4,8 +4,6 @@ export interface PostMeta {
   description: string;
   draft?: boolean;
   meta: string[];
-  // what the post page computes from the mdx, copied here by hand so the
-  // index can show it without loading the post
   readingMinutes: number;
   slug: string;
   title: string;

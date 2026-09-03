@@ -1,6 +1,5 @@
 export type Sound =
   | "tick"
-  | "hover"
   | "pop"
   | "lightsOff"
   | "lightsOn"
@@ -23,9 +22,6 @@ interface AudioState {
 let audio: AudioState | null = null;
 let muted = false;
 const listeners = new Set<(muted: boolean) => void>();
-const debug = (message: string, details?: unknown) => {
-  console.info(`[sfx] ${message}`, details ?? "");
-};
 
 const syncMuted = () => {
   if (typeof window === "undefined") {
@@ -34,7 +30,6 @@ const syncMuted = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY) === "off";
     if (stored !== muted) {
-      debug("mute state synced", { from: muted, to: stored });
       muted = stored;
     }
   } catch {
@@ -43,19 +38,11 @@ const syncMuted = () => {
   return muted;
 };
 
-const hasActivation = () =>
-  !navigator.userActivation || navigator.userActivation.hasBeenActive;
-
 const getAudio = () => {
   if (typeof window === "undefined") {
     return null;
   }
   if (typeof AudioContext === "undefined") {
-    debug("AudioContext unavailable");
-    return null;
-  }
-  if (!hasActivation()) {
-    debug("blocked before user activation");
     return null;
   }
   if (audio) {
@@ -67,7 +54,6 @@ const getAudio = () => {
   output.gain.value = MASTER_GAIN;
   output.connect(context.destination);
   audio = { context, noise: null, output };
-  debug("context created", { state: context.state });
   return audio;
 };
 
@@ -145,7 +131,6 @@ const confirmation = (state: AudioState) =>
   tone(state, "sine", 520, 820, 0.32, 0.008, 0.1);
 
 const playSound: Record<Sound, SoundPlayer> = {
-  // a card landing, a toc step, and the sound that confirms a hover
   tick: (state, pitch = 720) =>
     tone(
       state,
@@ -156,7 +141,6 @@ const playSound: Record<Sound, SoundPlayer> = {
       0.008,
       0.16
     ),
-  hover: confirmation,
   pop: confirmation,
   lightsOff: (state) => {
     tone(state, "triangle", 320, 160, 0.4, 0.005, 0.13);
@@ -197,7 +181,6 @@ const playSound: Record<Sound, SoundPlayer> = {
     tone(state, "sine", 1320, 1318, 0.2, 0.01, 0.9);
     tone(state, "sine", 1980, 1976, 0.08, 0.01, 0.6);
   },
-  // the rose waking from a doze
   stir: (state) => tone(state, "sine", 260, 340, 0.16, 0.03, 0.22),
 };
 
@@ -208,18 +191,12 @@ function stopUnlock() {
 
 function unlock() {
   if (syncMuted()) {
-    debug("unlock skipped because muted");
     return;
   }
   const state = getAudio();
   if (!state) {
-    debug("unlock skipped because no audio state");
     return;
   }
-  debug("unlock", {
-    active: navigator.userActivation?.isActive,
-    state: state.context.state,
-  });
   if (state.context.state === "running") {
     stopUnlock();
     return;
@@ -227,49 +204,36 @@ function unlock() {
   state.context
     .resume()
     .then(() => {
-      debug("resume finished", { state: state.context.state });
       if (state.context.state === "running") {
         stopUnlock();
       }
     })
-    .catch((error: unknown) => debug("resume failed", error));
+    .catch(() => undefined);
 }
 
 export const sfx = (sound: Sound, pitch = 720) => {
-  const currentMuted = syncMuted();
-  debug("request", { muted: currentMuted, pitch, sound });
-  if (currentMuted) {
+  if (syncMuted()) {
     return;
   }
   const state = getAudio();
   if (!state) {
-    debug("request dropped because no audio state", { sound });
     return;
   }
   if (state.context.state === "running") {
     playSound[sound](state, pitch);
-    debug("scheduled", { sound, state: state.context.state });
     return;
   }
 
-  debug("waiting for resume", { sound, state: state.context.state });
   state.context
     .resume()
     .then(() => {
-      debug("resume finished for request", {
-        sound,
-        state: state.context.state,
-      });
       if (!syncMuted() && state.context.state === "running") {
         playSound[sound](state, pitch);
-        debug("scheduled after resume", { sound });
       }
     })
-    .catch((error: unknown) => debug("request resume failed", error));
+    .catch(() => undefined);
 };
 
-// c pentatonic, one note per word of the sentence, so reading it left to
-// right hums a scale
 export const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
 
 export const isMuted = () => syncMuted();
@@ -285,7 +249,6 @@ export const setMuted = (next: boolean) => {
   } catch {
     // private mode; the choice just won't persist
   }
-  debug("mute state set", { muted, stored: syncMuted() });
   for (const listener of listeners) {
     listener(next);
   }

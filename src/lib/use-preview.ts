@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-// a fade is walked by hand: the element knows a volume, not a ramp. timed
-// from the clock so a throttled tab still lands on the right value
 const FADE_STEP_MS = 30;
 
-// the thirty-second preview, played through a plain audio element. nothing
-// here needs web audio, so no context is ever created for it
 export function usePreview(url: string | null, onEnd: () => void) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeRef = useRef<ReturnType<typeof setInterval>>(undefined);
@@ -72,8 +68,6 @@ export function usePreview(url: string | null, onEnd: () => void) {
   }, []);
 
   const play = useCallback(() => {
-    // refused when the browser wants a gesture it did not get; the tap that
-    // asked is the gesture, so this only trips in odd corners
     audioRef.current?.play().catch(() => undefined);
   }, []);
 

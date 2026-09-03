@@ -155,26 +155,6 @@ body {
   transition: transform 260ms var(--ease-strong);
 }
 
-/* the clock unfolds leftward on hover; touch never sees it */
-.corner-time {
-  display: inline-block;
-  max-width: 0;
-  opacity: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  vertical-align: bottom;
-  transition:
-    max-width 380ms var(--ease-strong),
-    opacity 220ms var(--ease-strong);
-}
-
-@media (hover: hover) {
-  .corner-notes:hover .corner-time {
-    max-width: 22ch;
-    opacity: 1;
-  }
-}
-
 .corner-notes:hover .paren:first-child {
   transform: translateX(-3px);
 }
@@ -1299,7 +1279,6 @@ a.peek-name:hover {
   animation: petal-sway 1.5s ease-in-out 2 alternate both;
 }
 
-/* reading time on the index: a petal a minute */
 .petal-count {
   color: var(--rose);
   opacity: 0.55;

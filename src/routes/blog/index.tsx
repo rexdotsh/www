@@ -6,7 +6,6 @@ import { preloadFont, RSS_LINK } from "@/lib/head";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 
 const DESCRIPTION = "occasional writeups and notes.";
-// one petal a minute; anything longer is just a long read
 const MAX_PETALS = 12;
 
 export const Route = createFileRoute("/blog/")({

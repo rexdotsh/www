@@ -5,8 +5,6 @@ const MIN_CHARS = 12;
 const MAX_CHARS = 600;
 const EDGE_WORDS = 4;
 
-// a text fragment that lands a reader on the passage. dashes are escaped
-// because a bare one means prefix/suffix to the fragment parser
 const fragment = (text: string) => {
   const words = text.split(" ");
   const part = (list: string[]) =>
@@ -34,9 +32,6 @@ const selectedPassage = () => {
   return { range, text };
 };
 
-// select a passage in a post and a small note offers to copy it as a quote,
-// with a link that opens on the very words. pointer devices only: touch has
-// its own selection furniture right where this would sit
 export default function QuoteBubble({ title }: { title: string }) {
   const [spot, setSpot] = useState<{ x: number; y: number } | null>(null);
   const [copied, setCopied] = useState(false);
@@ -102,7 +97,6 @@ export default function QuoteBubble({ title }: { title: string }) {
       className="quote-bubble"
       key={copied ? "copied" : "quote"}
       onClick={copy}
-      // the click must not clear the selection before we read it
       onMouseDown={(event) => event.preventDefault()}
       ref={bubbleRef}
       style={{ left: spot.x, top: spot.y }}

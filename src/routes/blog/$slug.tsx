@@ -237,7 +237,6 @@ function Toc({
       }`}
       href={`#${entry.id}`}
       key={entry.id}
-      // walking down the contents walks down the scale
       onClick={() =>
         sfx("tick", SCALE.at(-1 - (entries.indexOf(entry) % SCALE.length)))
       }
