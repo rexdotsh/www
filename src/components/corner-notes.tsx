@@ -135,7 +135,7 @@ export default function CornerNotes() {
   };
 
   const toggleSound = () => {
-    const next = !muted;
+    const next = !isMuted();
     setMuted(next);
     setFlipped(true);
     if (!next) {

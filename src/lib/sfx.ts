@@ -27,6 +27,22 @@ const debug = (message: string, details?: unknown) => {
   console.info(`[sfx] ${message}`, details ?? "");
 };
 
+const syncMuted = () => {
+  if (typeof window === "undefined") {
+    return muted;
+  }
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY) === "off";
+    if (stored !== muted) {
+      debug("mute state synced", { from: muted, to: stored });
+      muted = stored;
+    }
+  } catch {
+    // private mode; keep the in-memory choice
+  }
+  return muted;
+};
+
 const hasActivation = () =>
   !navigator.userActivation || navigator.userActivation.hasBeenActive;
 
@@ -191,7 +207,7 @@ function stopUnlock() {
 }
 
 function unlock() {
-  if (muted) {
+  if (syncMuted()) {
     debug("unlock skipped because muted");
     return;
   }
@@ -220,8 +236,9 @@ function unlock() {
 }
 
 export const sfx = (sound: Sound, pitch = 720) => {
-  debug("request", { muted, pitch, sound });
-  if (muted) {
+  const currentMuted = syncMuted();
+  debug("request", { muted: currentMuted, pitch, sound });
+  if (currentMuted) {
     return;
   }
   const state = getAudio();
@@ -255,7 +272,7 @@ export const sfx = (sound: Sound, pitch = 720) => {
 // right hums a scale
 export const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
 
-export const isMuted = () => muted;
+export const isMuted = () => syncMuted();
 
 export const setMuted = (next: boolean) => {
   muted = next;
@@ -268,6 +285,7 @@ export const setMuted = (next: boolean) => {
   } catch {
     // private mode; the choice just won't persist
   }
+  debug("mute state set", { muted, stored: syncMuted() });
   for (const listener of listeners) {
     listener(next);
   }
