@@ -238,6 +238,14 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation-delay: inherit;
 }
 
+/* italic tails overhang their box; while the sentence is composited (the intro,
+   a card blurring in or out) safari clips at the box edge, so give the ink room
+   inside it. the margin hands the space back, so nothing moves */
+.peek-trigger {
+  padding-inline: 0.15em;
+  margin-inline: -0.15em;
+}
+
 .sentence-link {
   text-decoration-line: underline;
   text-decoration-thickness: 0.04em;
