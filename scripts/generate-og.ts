@@ -233,7 +233,7 @@ const render = async (node: Node, file: string) => {
     fonts,
   });
   const png = new Resvg(svg, {
-    fitTo: { mode: "width", value: WIDTH * 2 },
+    fitTo: { mode: "width", value: WIDTH },
   }).render();
   fs.writeFileSync(file, png.asPng());
 };
