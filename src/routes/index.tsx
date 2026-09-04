@@ -5,7 +5,7 @@ import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
 import { sfx } from "@/lib/sfx";
 import { useIdle } from "@/lib/use-idle";
-import { useNowPlaying } from "@/lib/use-now-playing";
+import { type SpotifyTrack, useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
 
 const rootRoute = getRouteApi("__root__");
@@ -56,21 +56,30 @@ const VOLUME_TOUCH = 0.28;
 
 const isTouch = () => window.matchMedia("(hover: none)").matches;
 
+interface Preview {
+  track: SpotifyTrack;
+  url: string;
+}
+
 function Home() {
   const { hostname } = rootRoute.useLoaderData();
-  const { track, previewUrl } = useNowPlaying();
+  const live = useNowPlaying();
   const [word, setWord] = useState<SentenceWord | null>(null);
-  const [cover, setCover] = useState(false);
+  // while a preview is on, the page keeps to the track it started with; the
+  // poll may catch me changing songs, and that must not cut the preview off
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const track = preview?.track ?? live.track;
+  const previewUrl = preview?.url ?? live.previewUrl;
   const [artFade, setArtFade] = useState(0);
   const fadedOutRef = useRef(false);
   const volumeRef = useRef(VOLUME);
   const { isPlaying, play, pause, fade, getPosition, duration, setVolume } =
     usePreview(previewUrl, () => {
       setArtFade(0);
-      setCover(false);
+      setPreview(null);
     });
   const idle = useIdle(40_000);
-  const dozing = idle && !(word || isPlaying || cover);
+  const dozing = idle && !(word || preview);
   const wasDozingRef = useRef(false);
 
   useEffect(() => {
@@ -108,19 +117,21 @@ function Home() {
   }, [isPlaying, track]);
 
   // the rose wears the cover while the word is held (that comes from the
-  // word's own mode) and while a preview runs; `cover` is only the latter,
-  // so letting go of the word or stopping the preview undresses it
+  // word's own mode) and while a preview is on
   const togglePreview = () => {
-    if (isPlaying || cover) {
+    if (preview) {
       pause();
       setArtFade(0);
-      setCover(false);
+      setPreview(null);
+      return;
+    }
+    if (!(live.track && live.previewUrl)) {
       return;
     }
     fadedOutRef.current = false;
     volumeRef.current = isTouch() ? VOLUME_TOUCH : VOLUME;
     setArtFade(0);
-    setCover(true);
+    setPreview({ track: live.track, url: live.previewUrl });
     setVolume(0);
     play();
     fade(0, volumeRef.current, 2000);
@@ -131,11 +142,11 @@ function Home() {
     track?.image.find((image) => image.size === "medium")?.["#text"] ??
     null;
 
-  const mode = word ? MODES[word] : isPlaying || cover ? "art" : "rest";
+  const mode = word ? MODES[word] : preview ? "art" : "rest";
 
   const caption = (() => {
-    if (word === "music" || (!word && (isPlaying || cover))) {
-      if (isPlaying || cover) {
+    if (word === "music" || (!word && preview)) {
+      if (preview) {
         return "( humming along )";
       }
       if (albumArt) {
@@ -172,7 +183,7 @@ function Home() {
             hostname={hostname}
             onPreviewToggle={previewUrl ? togglePreview : undefined}
             onWordHover={setWord}
-            previewPlaying={isPlaying || cover}
+            previewPlaying={preview !== null}
             track={track}
             wordStagger
           />

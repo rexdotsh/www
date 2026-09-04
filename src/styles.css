@@ -453,7 +453,7 @@ a.peek-name:hover {
 
 @media (hover: hover) and (pointer: fine) {
   .peek-trigger:hover .peek,
-  .peek-trigger:focus-within .peek {
+  .peek-trigger:has(:focus-visible) .peek {
     transform: translateX(-50%);
     opacity: 1;
     visibility: visible;
@@ -465,12 +465,12 @@ a.peek-name:hover {
   }
 
   .peek-trigger:hover .peek::after,
-  .peek-trigger:focus-within .peek::after {
+  .peek-trigger:has(:focus-visible) .peek::after {
     transform: scaleY(1);
   }
 
   .peek-trigger:hover .peek-card > *,
-  .peek-trigger:focus-within .peek-card > * {
+  .peek-trigger:has(:focus-visible) .peek-card > * {
     opacity: 1;
     translate: 0 0;
   }
