@@ -393,7 +393,7 @@ function TextPeek({
   return (
     <PeekCard center={center} compact label={label}>
       <a
-        className={`peek-name block whitespace-nowrap${align}`}
+        className={`block whitespace-nowrap text-ink text-xs transition-colors duration-150 hover:text-rose${align}`}
         href={href}
         rel="noopener noreferrer"
         target="_blank"
@@ -490,8 +490,10 @@ function ProjectsPeek() {
           rel="noopener noreferrer"
           target="_blank"
         >
-          <span className="peek-name block">{project.name}</span>
-          <span className="block truncate text-muted text-[10.5px]">
+          <span className="block font-bold text-ink text-xs group-hover:text-rose">
+            {project.name}
+          </span>
+          <span className="block truncate text-muted text-[11px]">
             {project.description}
           </span>
         </a>
@@ -517,7 +519,9 @@ function PostsPeek() {
               router.navigate({ href });
             }}
           >
-            <span className="peek-name block truncate">{post.title}</span>
+            <span className="block truncate text-ink text-xs group-hover:text-rose">
+              {post.title}
+            </span>
             <span className="block text-muted text-[10px] tabular-nums">
               {post.date.slice(0, 7)}
             </span>
@@ -633,8 +637,10 @@ function MusicPeek({
           target="_blank"
         >
           <span className="min-w-0 flex-1">
-            <span className="peek-name block truncate">{track.name}</span>
-            <span className="block truncate text-muted text-[10.5px]">
+            <span className="block truncate font-bold text-ink text-xs group-hover:text-rose">
+              {track.name}
+            </span>
+            <span className="block truncate text-muted text-[11px]">
               {track.artist}
             </span>
           </span>

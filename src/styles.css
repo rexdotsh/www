@@ -397,20 +397,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   transform: translate(-50%, -50%);
 }
 
-.peek-name {
-  font-family: "Instrument Serif", Georgia, serif;
-  font-style: italic;
-  font-size: 15px;
-  line-height: 1.15;
-  color: var(--ink);
-  transition: color 150ms;
-}
-
-.group:hover .peek-name,
-a.peek-name:hover {
-  color: var(--rose);
-}
-
 /* the album art doubles as the play button. the cue sits on it faintly so the
    card says it can be listened to, and firms up under the pointer */
 .peek-play {
