@@ -1,9 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isMuted, onMuteChange, setMuted, sfx } from "@/lib/sfx";
 
 type Theme = "light" | "dark";
 
+interface Ripple {
+  id: number;
+  on: boolean;
+  x: number;
+  y: number;
+}
+
 const REVEAL_MS = 550;
+const RIPPLE_MS = 900;
 const THEME_COLORS: Record<Theme, string> = {
   light: "#faf8f2",
   dark: "#131315",
@@ -32,8 +40,11 @@ export default function CornerNotes() {
   );
   const [muted, setMutedState] = useState(isMuted);
   const [flipped, setFlipped] = useState(false);
+  const [ripple, setRipple] = useState<Ripple | null>(null);
+  const rippleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => onMuteChange(setMutedState), []);
+  useEffect(() => () => clearTimeout(rippleTimer.current), []);
 
   useEffect(() => {
     document
@@ -99,13 +110,25 @@ export default function CornerNotes() {
     });
   };
 
-  const toggleSound = () => {
+  const toggleSound = (event: React.MouseEvent<HTMLButtonElement>) => {
     const next = !isMuted();
     setMuted(next);
     setFlipped(true);
     if (!next) {
       sfx("pop");
     }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+    const rect = event.currentTarget.getBoundingClientRect();
+    setRipple({
+      id: Date.now(),
+      on: !next,
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    });
+    clearTimeout(rippleTimer.current);
+    rippleTimer.current = setTimeout(() => setRipple(null), RIPPLE_MS);
   };
 
   const lightsLabel = LABELS[theme];
@@ -113,36 +136,51 @@ export default function CornerNotes() {
   const swap = flipped ? "swap-in" : undefined;
 
   return (
-    <span className="corner-notes">
-      <span aria-hidden="true" className="paren">
-        (
-      </span>{" "}
-      <button
-        aria-label="toggle color theme"
-        className="corner-button"
-        onClick={toggle}
-        type="button"
-      >
-        <span className={swap} key={lightsLabel} suppressHydrationWarning>
-          {lightsLabel}
+    <>
+      {ripple ? (
+        <span
+          aria-hidden="true"
+          className="sound-ripple"
+          data-off={ripple.on ? undefined : ""}
+          key={ripple.id}
+          style={{ left: ripple.x, top: ripple.y }}
+        >
+          <span />
+          <span />
+          <span />
         </span>
-      </button>
-      <span aria-hidden="true" className="text-faint">
-        {" · "}
-      </span>
-      <button
-        aria-label="toggle sound effects"
-        className="corner-button"
-        onClick={toggleSound}
-        type="button"
-      >
-        <span className={swap} key={soundLabel} suppressHydrationWarning>
-          {soundLabel}
+      ) : null}
+      <span className="corner-notes">
+        <span aria-hidden="true" className="paren">
+          (
+        </span>{" "}
+        <button
+          aria-label="toggle color theme"
+          className="corner-button"
+          onClick={toggle}
+          type="button"
+        >
+          <span className={swap} key={lightsLabel} suppressHydrationWarning>
+            {lightsLabel}
+          </span>
+        </button>
+        <span aria-hidden="true" className="text-faint">
+          {" · "}
         </span>
-      </button>{" "}
-      <span aria-hidden="true" className="paren">
-        )
+        <button
+          aria-label="toggle sound effects"
+          className="corner-button"
+          onClick={toggleSound}
+          type="button"
+        >
+          <span className={swap} key={soundLabel} suppressHydrationWarning>
+            {soundLabel}
+          </span>
+        </button>{" "}
+        <span aria-hidden="true" className="paren">
+          )
+        </span>
       </span>
-    </span>
+    </>
   );
 }
