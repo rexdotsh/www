@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { ASCII_ROSE } from "@/lib/ascii-rose";
-import { sfx } from "@/lib/sfx";
 
 export type RoseMode =
   | "rest"
@@ -623,7 +622,6 @@ export default function ParticleRose({
           p.vy += (dy / dist) * force;
         }
       }
-      sfx("puff");
     };
 
     let cancelled = false;
