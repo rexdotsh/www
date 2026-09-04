@@ -1,4 +1,5 @@
 import { type PointerEvent, useEffect, useRef, useState } from "react";
+import { sfx } from "@/lib/sfx";
 
 type State = "idle" | "playing" | "paused" | "ended";
 
@@ -76,6 +77,7 @@ export default function VideoPlayer({
     }
     if (video.paused || video.ended) {
       video.play().catch(() => undefined);
+      sfx("play");
       if (window.matchMedia("(hover: none)").matches) {
         setFlash(true);
         clearTimeout(flashTimer.current);
@@ -83,6 +85,7 @@ export default function VideoPlayer({
       }
     } else {
       video.pause();
+      sfx("pause");
     }
   };
 

@@ -2,6 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
 import { getIdentity, LINKS, PROJECTS } from "@/lib/content";
 import { PUBLISHED_META } from "@/lib/posts-meta";
+import { SCALE, sfx } from "@/lib/sfx";
 import type { SpotifyTrack } from "@/lib/use-now-playing";
 
 export type SentenceWord =
@@ -12,6 +13,16 @@ export type SentenceWord =
   | "music"
   | "hi"
   | "resume";
+
+const NOTES: Record<SentenceWord, number> = {
+  name: SCALE[0],
+  builds: SCALE[1],
+  writes: SCALE[2],
+  garden: SCALE[3],
+  music: SCALE[4],
+  hi: SCALE[5],
+  resume: SCALE[5],
+};
 
 export function TheSentence({
   className = "",
@@ -88,7 +99,7 @@ export function TheSentence({
       peek: (
         <TextPeek
           href={identity.otherDomain}
-          label="also known as"
+          label={identity.isMridul ? "aka" : "also known as"}
           line={`${identity.otherName} → ${identity.otherDomain.replace("https://", "")}`}
         />
       ),
@@ -111,6 +122,7 @@ export function TheSentence({
         <TextPeek
           center
           href={LINKS.flora}
+          label="the workshop"
           line="flora"
           sub={
             <>
@@ -171,6 +183,7 @@ export function TheSentence({
                 <TextPeek
                   center
                   href={LINKS.twitter}
+                  label="over on x"
                   line={`@${identity.handle}`}
                   sub="strangers welcome"
                 />
@@ -245,6 +258,9 @@ function Peek({
         event.preventDefault();
         setArmed(true);
         report(hoverKey);
+        if (peek) {
+          sfx("tick", NOTES[hoverKey]);
+        }
         return;
       }
       setArmed(false);
@@ -297,6 +313,11 @@ function Peek({
         }`}
         href={href}
         onClick={handleClick}
+        onPointerEnter={(event) => {
+          if (event.pointerType !== "touch") {
+            sfx("pop");
+          }
+        }}
         rel={external ? "noopener noreferrer" : undefined}
         target={external ? "_blank" : undefined}
       >
@@ -324,23 +345,32 @@ function Peek({
 }
 
 function PeekCard({
+  center = false,
   children,
   compact = false,
   fit = false,
+  label,
 }: {
+  center?: boolean;
   children: ReactNode;
   compact?: boolean;
   fit?: boolean;
+  label?: string;
 }) {
   const size = compact
-    ? "w-fit max-w-60 p-3"
+    ? "w-fit max-w-64 px-3.5 pt-4 pb-3"
     : fit
-      ? "w-fit max-w-60 p-4"
-      : "w-60 p-4";
+      ? "w-fit max-w-64 px-4 pt-4 pb-4"
+      : "w-60 px-4 pt-4 pb-4";
   return (
     <span
       className={`peek-card block rounded-xl border border-ink/10 bg-card text-left font-mono not-italic ${size}`}
     >
+      {label ? (
+        <span className={`peek-tab${center ? " peek-tab-center" : ""}`}>
+          {label}
+        </span>
+      ) : null}
       {children}
     </span>
   );
@@ -361,16 +391,9 @@ function TextPeek({
 }) {
   const align = center ? " text-center" : "";
   return (
-    <PeekCard compact>
-      {label ? (
-        <span
-          className={`block whitespace-nowrap text-faint text-[9px] uppercase tracking-[0.25em]${align}`}
-        >
-          {label}
-        </span>
-      ) : null}
+    <PeekCard center={center} compact label={label}>
       <a
-        className={`block whitespace-nowrap text-ink text-xs transition-colors duration-150 hover:text-rose ${label ? "mt-1" : ""}${align}`}
+        className={`block whitespace-nowrap text-ink text-xs transition-colors duration-150 hover:text-rose${align}`}
         href={href}
         rel="noopener noreferrer"
         target="_blank"
@@ -458,19 +481,16 @@ function Heatmap({ total, weeks }: Contributions) {
 function ProjectsPeek() {
   const graph = useContributions();
   return (
-    <PeekCard>
-      <span className="block text-faint text-[9px] uppercase tracking-[0.25em]">
-        lately
-      </span>
-      {PROJECTS.map((project) => (
+    <PeekCard label="lately">
+      {PROJECTS.map((project, index) => (
         <a
-          className="group mt-2 block"
+          className={`group block ${index > 0 ? "mt-2.5" : ""}`}
           href={project.href}
           key={project.name}
           rel="noopener noreferrer"
           target="_blank"
         >
-          <span className="block font-bold text-ink text-xs group-hover:text-rose">
+          <span className="block font-medium text-ink text-xs group-hover:text-rose">
             {project.name}
           </span>
           <span className="block truncate text-muted text-[11px]">
@@ -486,15 +506,12 @@ function ProjectsPeek() {
 function PostsPeek() {
   const router = useRouter();
   return (
-    <PeekCard fit>
-      <span className="block text-faint text-[9px] uppercase tracking-[0.25em]">
-        recent writing
-      </span>
-      {PUBLISHED_META.map((post) => {
+    <PeekCard fit label="recent writing">
+      {PUBLISHED_META.map((post, index) => {
         const href = `/blog/${post.slug}`;
         return (
           <a
-            className="group mt-2 block"
+            className={`group block ${index > 0 ? "mt-2.5" : ""}`}
             href={href}
             key={post.slug}
             onClick={(event) => {
@@ -579,25 +596,31 @@ function MusicPeek({
   const albumArt =
     track.image.find((image) => image.size === "medium")?.["#text"] ?? "";
   return (
-    <PeekCard compact={!isPlaying}>
+    <PeekCard
+      compact={!isPlaying}
+      label={isPlaying ? "right now" : "last played"}
+    >
       <span className={`flex items-center ${isPlaying ? "gap-3" : "gap-2.5"}`}>
         {albumArt ? (
           <span className="relative shrink-0">
             <img
               alt=""
-              className={`block rounded-md object-cover ${isPlaying ? "h-12 w-12" : "h-9 w-9"}`}
-              height={isPlaying ? 48 : 36}
+              className={`block rounded-md object-cover ${isPlaying ? "h-12 w-12" : "h-10 w-10"}`}
+              height={isPlaying ? 48 : 40}
               loading="lazy"
               referrerPolicy="no-referrer"
               src={albumArt}
-              width={isPlaying ? 48 : 36}
+              width={isPlaying ? 48 : 40}
             />
             {onToggle ? (
               <button
                 aria-label={playing ? "pause the preview" : "play a preview"}
                 className="peek-play"
                 data-playing={playing ? "" : undefined}
-                onClick={onToggle}
+                onClick={() => {
+                  sfx(playing ? "pause" : "play");
+                  onToggle();
+                }}
                 type="button"
               >
                 <span>
@@ -614,10 +637,7 @@ function MusicPeek({
           target="_blank"
         >
           <span className="min-w-0 flex-1">
-            <span className="block whitespace-nowrap text-faint text-[9px] uppercase tracking-[0.2em]">
-              {isPlaying ? "right now" : "last played"}
-            </span>
-            <span className="block truncate font-bold text-ink text-xs group-hover:text-rose">
+            <span className="block truncate font-medium text-ink text-xs group-hover:text-rose">
               {track.name}
             </span>
             <span className="block truncate text-muted text-[11px]">

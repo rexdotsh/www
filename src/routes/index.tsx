@@ -38,15 +38,15 @@ const CAPTIONS: Record<SentenceWord, string> = {
 };
 
 const LIFTS: Record<SentenceWord, string> = {
-  name: "max-md:-translate-y-[53px]",
-  builds: "max-md:-translate-y-[224px]",
-  writes: "max-md:-translate-y-[77px]",
-  garden: "max-md:-translate-y-[66px]",
-  music: "max-md:-translate-y-[78px]",
-  hi: "max-md:-translate-y-[54px]",
-  resume: "max-md:-translate-y-[54px]",
+  name: "max-md:-translate-y-[50px]",
+  builds: "max-md:-translate-y-[218px]",
+  writes: "max-md:-translate-y-[66px]",
+  garden: "max-md:-translate-y-[79px]",
+  music: "max-md:-translate-y-[85px]",
+  hi: "max-md:-translate-y-[66px]",
+  resume: "max-md:-translate-y-[50px]",
 };
-const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[64px]";
+const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[73px]";
 
 // phones sit closer to the ear and get no room tone; keep the preview softer
 const VOLUME = 0.5;
@@ -156,9 +156,6 @@ function Home() {
   return (
     <main className="fixed inset-0 overflow-y-auto paper paper-lit font-serif-display text-ink selection:bg-rose selection:text-paper">
       <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-12 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:px-12 md:py-16">
-        {/* no z-index here on purpose: the cards and their tap-catcher are
-            fixed and must stack above the rose, so they belong to main's
-            context rather than being trapped under the sentence's */}
         <div className="sentence-root relative max-w-2xl md:flex-1">
           <TheSentence
             className="text-[clamp(1.9rem,8.6vw,2.5rem)] leading-[1.22] tracking-[-0.01em] md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"

@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import VideoPlayer from "@/components/video-player";
+import { sfx } from "@/lib/sfx";
 
 const COPIED_MS = 1600;
 
@@ -27,6 +28,7 @@ function Pre({ children, ...props }: ComponentProps<"pre">) {
               .writeText(code)
               .then(() => {
                 setCopied(true);
+                sfx("pop");
                 setTimeout(() => setCopied(false), COPIED_MS);
               })
               .catch(() => undefined);

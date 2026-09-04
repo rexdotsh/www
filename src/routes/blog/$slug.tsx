@@ -7,6 +7,7 @@ import { PostBody } from "@/components/post-body";
 import { preloadFont, RSS_LINK } from "@/lib/head";
 import { getPost, type TocEntry } from "@/lib/posts";
 import { getPostMeta } from "@/lib/posts-meta";
+import { SCALE, sfx } from "@/lib/sfx";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
 
@@ -235,6 +236,9 @@ function Toc({
       }`}
       href={`#${entry.id}`}
       key={entry.id}
+      onClick={() =>
+        sfx("tick", SCALE.at(-1 - (entries.indexOf(entry) % SCALE.length)))
+      }
     >
       {entry.text}
     </a>
@@ -293,6 +297,7 @@ function FallingPetal() {
     const observer = new IntersectionObserver((entries) => {
       if (entries.some((entry) => entry.isIntersecting)) {
         setDrop(true);
+        sfx("chime");
         observer.disconnect();
       }
     });
