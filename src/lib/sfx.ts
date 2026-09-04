@@ -3,6 +3,7 @@ export type Sound =
   | "pop"
   | "lightsOff"
   | "lightsOn"
+  | "bloom"
   | "play"
   | "pause"
   | "chime";
@@ -160,6 +161,7 @@ const playSound: Record<Sound, SoundPlayer> = {
     tone(state, "triangle", 170, 340, 0.4, 0.005, 0.13);
     hiss(state, 400, 3000, 0.14, 0.003, 0.05);
   },
+  bloom: (state) => tone(state, "sine", 300, 900, 0.4, 0.01, 0.1),
   play: (state) => {
     tone(state, "sine", 620, 640, 0.25, 0.006, 0.07);
     tone(
