@@ -50,6 +50,7 @@ export function usePreview(url: string | null, onEnd: () => void) {
     // would only output silence then, so it is skipped for this element
     const onError = () => {
       if (plainRef.current || graphRef.current) {
+        onEndRef.current();
         return;
       }
       plainRef.current = true;
@@ -152,7 +153,7 @@ export function usePreview(url: string | null, onEnd: () => void) {
     if (graphRef.current && context?.state !== "running") {
       context?.resume().catch(() => undefined);
     }
-    audio.play().catch(() => undefined);
+    audio.play().catch(() => onEndRef.current());
   }, []);
 
   const pause = useCallback(() => {

@@ -31,7 +31,11 @@ export function useNowPlaying() {
         });
         if (response.ok) {
           const data = (await response.json()) as SpotifyTrack | null;
-          setTrack(data);
+          setTrack((current) =>
+            current?.id === data?.id && current?.isPlaying === data?.isPlaying
+              ? current
+              : data
+          );
           if (data && data.id !== previewId) {
             previewId = data.id;
             setPreviewUrl(null);

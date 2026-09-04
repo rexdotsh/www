@@ -40,10 +40,14 @@ export default function CornerNotes() {
   );
   const [muted, setMutedState] = useState(isMuted);
   const [flipped, setFlipped] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [ripple, setRipple] = useState<Ripple | null>(null);
   const rippleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => onMuteChange(setMutedState), []);
+  useEffect(() => {
+    setMounted(true);
+    return onMuteChange(setMutedState);
+  }, []);
   useEffect(() => () => clearTimeout(rippleTimer.current), []);
 
   useEffect(() => {
@@ -131,8 +135,8 @@ export default function CornerNotes() {
     rippleTimer.current = setTimeout(() => setRipple(null), RIPPLE_MS);
   };
 
-  const lightsLabel = LABELS[theme];
-  const soundLabel = muted ? "sound off" : "sound on";
+  const lightsLabel = LABELS[mounted ? theme : "light"];
+  const soundLabel = mounted && muted ? "sound off" : "sound on";
   const swap = flipped ? "swap-in" : undefined;
 
   return (
@@ -160,7 +164,7 @@ export default function CornerNotes() {
           onClick={toggle}
           type="button"
         >
-          <span className={swap} key={lightsLabel} suppressHydrationWarning>
+          <span className={swap} key={lightsLabel}>
             {lightsLabel}
           </span>
         </button>
@@ -173,7 +177,7 @@ export default function CornerNotes() {
           onClick={toggleSound}
           type="button"
         >
-          <span className={swap} key={soundLabel} suppressHydrationWarning>
+          <span className={swap} key={soundLabel}>
             {soundLabel}
           </span>
         </button>{" "}

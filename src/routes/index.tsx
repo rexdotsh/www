@@ -1,5 +1,5 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
@@ -106,7 +106,7 @@ function Home() {
 
   // the rose wears the cover while the word is held (that comes from the
   // word's own mode) and while a preview is on
-  const togglePreview = () => {
+  const togglePreview = useCallback(() => {
     if (preview) {
       pause();
       setArtFade(0);
@@ -123,7 +123,7 @@ function Home() {
     setVolume(0);
     play();
     fade(0, volumeRef.current, 2000);
-  };
+  }, [preview, live.track, live.previewUrl, pause, play, setVolume, fade]);
 
   const albumArt =
     track?.image.find((image) => image.size === "large")?.["#text"] ??

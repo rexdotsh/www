@@ -209,6 +209,9 @@ function flush(state: AudioState) {
 }
 
 function unlock() {
+  if (syncMuted()) {
+    return;
+  }
   const state = audio ?? createAudio();
   if (!state) {
     return;
@@ -272,6 +275,8 @@ export const setMuted = (next: boolean) => {
   }
   if (next) {
     pending = null;
+  } else {
+    unlock();
   }
   for (const listener of listeners) {
     listener(next);

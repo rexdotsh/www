@@ -1,5 +1,12 @@
 import { useRouter } from "@tanstack/react-router";
-import { Fragment, type ReactNode, useEffect, useRef, useState } from "react";
+import {
+  Fragment,
+  memo,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { getIdentity, LINKS, PROJECTS } from "@/lib/content";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
@@ -24,7 +31,7 @@ const NOTES: Record<SentenceWord, number> = {
   resume: SCALE[5],
 };
 
-export function TheSentence({
+export const TheSentence = memo(function TheSentence({
   className = "",
   hostname,
   onPreviewToggle,
@@ -226,7 +233,7 @@ export function TheSentence({
       ) : null}
     </>
   );
-}
+});
 
 function Peek({
   children,
