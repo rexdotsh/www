@@ -296,9 +296,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation-delay: inherit;
 }
 
-/* italic tails overhang their box; while the sentence is composited (the intro,
-   a card blurring in or out) safari clips at the box edge, so give the ink room
-   inside it. the margin hands the space back, so nothing moves */
+/* Prevent Safari from clipping italic link tails during transitions. */
 .peek-trigger {
   padding-inline: 0.15em;
   margin-inline: -0.15em;
@@ -346,12 +344,10 @@ html[data-vt="theme"]::view-transition-new(root) {
   visibility: hidden;
   pointer-events: none;
   transform-origin: bottom center;
-  /* the closing curve; the bounce lives on the open states so it never runs backwards */
   transition:
     transform 220ms var(--ease-strong),
     opacity 150ms var(--ease-strong),
     visibility 0s 220ms;
-  /* above the touch tap-catcher (30) and the rose (20) */
   z-index: 40;
 }
 
@@ -374,8 +370,6 @@ html[data-vt="theme"]::view-transition-new(root) {
     0 1px 0 0 color-mix(in oklab, var(--ink) 4%, transparent) inset,
     0 2px 6px -2px rgb(23 20 15 / 0.12),
     0 20px 48px -20px color-mix(in oklab, var(--rose) 30%, rgb(23 20 15 / 0.45)),
-    /* dark mode gets its halo from the rose-tinted drop shadow above; on paper
-       that reads as a plain shadow, so light mode adds a soft rose bloom */
     0 0 36px -4px
       light-dark(color-mix(in oklab, var(--rose) 26%, transparent), transparent);
 }
@@ -401,8 +395,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   transform: translate(-50%, -50%);
 }
 
-/* the album art doubles as the play button. the cue sits on it faintly so the
-   card says it can be listened to, and firms up under the pointer */
 .peek-play {
   position: absolute;
   inset: 0;
@@ -446,7 +438,6 @@ html[data-vt="theme"]::view-transition-new(root) {
   height: 9px;
 }
 
-/* the triangle reads centred a hair to the right */
 .peek-play:not([data-playing]) svg {
   translate: 0.5px 0;
 }
@@ -1377,8 +1368,7 @@ html[data-vt="theme"]::view-transition-new(root) {
     position: absolute;
   }
 
-  /* pinned to the bottom edge, so it rises from there rather than popping;
-     the closing curve is a touch quicker so the rose can settle right after */
+  /* Keep mobile cards anchored to the bottom edge. */
   .peek {
     position: fixed;
     top: auto;

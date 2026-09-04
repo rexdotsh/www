@@ -71,7 +71,7 @@ export default function CornerNotes() {
           localStorage.removeItem("theme");
         }
       } catch {
-        // private mode; the choice just won't persist
+        // Ignore storage errors.
       }
       setTheme(next);
       setFlipped(true);

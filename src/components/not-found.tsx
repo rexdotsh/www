@@ -169,7 +169,7 @@ export default function NotFoundPage() {
   };
 
   return (
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: passive visual effect on page container
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: visual effect
     <main
       className="fixed inset-0 overflow-hidden paper text-ink selection:bg-rose selection:text-paper"
       onMouseMove={(e) => setPointer(e.clientX, e.clientY)}

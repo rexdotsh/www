@@ -96,8 +96,8 @@ function Figure({ alt = "", src }: { alt?: string; src: string }) {
   }, []);
 
   return (
-    // biome-ignore lint/correctness/useImageSize: intrinsic sizes vary per post
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: onLoad only tracks the fade-in
+    // biome-ignore lint/correctness/useImageSize: post images vary
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: tracks fade-in
     <img
       alt={alt}
       className="post-media"

@@ -1,7 +1,4 @@
-/*
-  Generates the site cards (public/social-card*.png) and per-post OG cards
-  (public/og/<slug>.png). Usage: bun run og:gen (rerun when adding posts)
-*/
+// Generates OG cards; run `bun run og:gen` when posts change.
 
 import fs from "node:fs";
 import path from "node:path";

@@ -47,7 +47,7 @@ const syncMuted = () => {
       muted = stored;
     }
   } catch {
-    // private mode; keep the in-memory choice
+    // Ignore storage errors.
   }
   return muted;
 };
@@ -271,7 +271,7 @@ export const setMuted = (next: boolean) => {
       localStorage.removeItem(STORAGE_KEY);
     }
   } catch {
-    // private mode; the choice just won't persist
+    // Ignore storage errors.
   }
   if (next) {
     pending = null;
@@ -294,7 +294,7 @@ if (typeof window !== "undefined") {
   try {
     muted = localStorage.getItem(STORAGE_KEY) === "off";
   } catch {
-    // private mode
+    // Ignore storage errors.
   }
   for (const event of UNLOCK_EVENTS) {
     window.addEventListener(event, unlock, UNLOCK_OPTIONS);

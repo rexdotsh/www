@@ -49,14 +49,14 @@ export function useNowPlaying() {
           }
         }
       } catch {
-        // ignore aborts and network hiccups; next poll retries
+        // Retry on the next poll.
       }
       if (!abortController.signal.aborted) {
         timeout = setTimeout(poll, POLL_INTERVAL);
       }
     };
 
-    // pause polling while the tab is hidden; resume fresh on return
+    // Pause polling while hidden.
     const onVisibility = () => {
       clearTimeout(timeout);
       if (!document.hidden) {

@@ -48,7 +48,7 @@ const LIFTS: Record<SentenceWord, string> = {
 };
 const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[73px]";
 
-// phones sit closer to the ear and get no room tone; keep the preview softer
+// Keep previews quieter on touch devices.
 const VOLUME = 0.5;
 const VOLUME_TOUCH = 0.28;
 
@@ -63,8 +63,6 @@ function Home() {
   const { hostname } = rootRoute.useLoaderData();
   const live = useNowPlaying();
   const [word, setWord] = useState<SentenceWord | null>(null);
-  // while a preview is on, the page keeps to the track it started with; the
-  // poll may catch me changing songs, and that must not cut the preview off
   const [preview, setPreview] = useState<Preview | null>(null);
   const track = preview?.track ?? live.track;
   const previewUrl = preview?.url ?? live.previewUrl;
@@ -104,8 +102,6 @@ function Home() {
     };
   }, [isPlaying, track]);
 
-  // the rose wears the cover while the word is held (that comes from the
-  // word's own mode) and while a preview is on
   const togglePreview = useCallback(() => {
     if (preview) {
       pause();

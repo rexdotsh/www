@@ -14,7 +14,6 @@ const DEFAULT_BASE_URL = "https://rex.wf";
 export const Route = createFileRoute("/blog/$slug")({
   component: PostPage,
   notFoundComponent: BlogNotFound,
-  // meta only, so the compiled post body stays out of the loader chunk
   loader: ({ params }) => {
     const post = getPostMeta(params.slug);
     if (!post) {
@@ -27,7 +26,6 @@ export const Route = createFileRoute("/blog/$slug")({
     if (!loaderData) {
       return { meta: [{ title: "writing" }] };
     }
-    // the root match carries the resolved site info
     const baseUrl =
       (matches[0]?.loaderData as { baseUrl?: string } | undefined)?.baseUrl ??
       DEFAULT_BASE_URL;
@@ -99,7 +97,6 @@ function BlogNotFound() {
 function ReadingProgress() {
   const barRef = useRef<HTMLDivElement>(null);
 
-  // written straight to the node so scrolling never re-renders
   useEffect(() => {
     let frame = 0;
     const update = () => {
@@ -132,7 +129,6 @@ function ReadingProgress() {
 
 type TocRow = TocEntry | { children: TocEntry[]; parent: string };
 
-// consecutive h4s become one foldable group under their h3
 function groupChildren(entries: TocEntry[]): TocRow[] {
   const rows: TocRow[] = [];
   for (const entry of entries) {
@@ -161,7 +157,6 @@ function Toc({
   const rows = useMemo(() => groupChildren(entries), [entries]);
   const activeParent = entries.find((entry) => entry.id === active)?.parent;
 
-  // the column's back link only appears once the header's has scrolled away
   useEffect(() => {
     const anchor = backRef.current;
     if (!anchor) {
@@ -174,8 +169,6 @@ function Toc({
     return () => observer.disconnect();
   }, [backRef]);
 
-  // current = last heading above the reading line, so hash jumps and scroll
-  // restoration land on the right entry too
   useEffect(() => {
     const headings = entries.flatMap(
       (entry) => document.getElementById(entry.id) ?? []

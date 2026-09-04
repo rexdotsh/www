@@ -38,10 +38,6 @@ function Icon({ name }: { name: "play" | "pause" | "expand" }) {
   );
 }
 
-// silent screen recordings. the picture is the play/pause surface with one
-// cue on it: play when stopped, pause while the pointer is awake over it.
-// touch has no hover, so it gets a strip button instead and a flash on tap.
-// no volume: nothing to hear
 export default function VideoPlayer({
   duration: knownDuration = 0,
   poster,
@@ -129,12 +125,12 @@ export default function VideoPlayer({
     } else if (frame?.requestFullscreen) {
       frame.requestFullscreen();
     } else {
-      // ios only offers the native fullscreen player
+      // iOS uses the native fullscreen player.
       video?.webkitEnterFullscreen?.();
     }
   };
 
-  // the rail is written straight to a css var while playing, no re-renders
+  // Update progress without React renders.
   useEffect(() => {
     if (state !== "playing") {
       return;
@@ -154,7 +150,7 @@ export default function VideoPlayer({
     return () => cancelAnimationFrame(raf);
   }, [state]);
 
-  // while any control has focus. space and enter are left to the buttons
+  // Keyboard shortcuts apply while the player is focused.
   const onKeyDown = (event: React.KeyboardEvent) => {
     const video = videoRef.current;
     switch (event.key) {
@@ -180,7 +176,7 @@ export default function VideoPlayer({
   const cueVisible = !playing || awake;
 
   return (
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: shortcuts for whichever control has focus
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: keyboard shortcuts
     <div
       aria-label="video"
       className="player post-media"
@@ -190,7 +186,7 @@ export default function VideoPlayer({
       role="group"
     >
       <div className="player-stage" onPointerLeave={sleep} onPointerMove={wake}>
-        {/* biome-ignore lint/a11y/useMediaCaption: silent screen recordings */}
+        {/* biome-ignore lint/a11y/useMediaCaption: silent video */}
         <video
           className="player-video"
           onClick={toggle}

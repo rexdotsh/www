@@ -2,8 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const FADE_STEP_MS = 30;
 
-// ios leaves the element's volume under the user's physical control, so the
-// sound is routed through a gain node instead; one context serves every track
+// Route preview volume through one shared gain context on iOS.
 let context: AudioContext | null = null;
 
 const getContext = () => {
@@ -46,8 +45,7 @@ export function usePreview(url: string | null, onEnd: () => void) {
     const onEnded = () => onEndRef.current();
     const onMetadata = () =>
       setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
-    // if the host ever stops allowing cors, reload plainly; the gain graph
-    // would only output silence then, so it is skipped for this element
+    // Retry without CORS if the gain graph cannot read the media.
     const onError = () => {
       if (plainRef.current || graphRef.current) {
         onEndRef.current();
@@ -128,7 +126,6 @@ export function usePreview(url: string | null, onEnd: () => void) {
     [applyLevel]
   );
 
-  // called from a real tap, which is also when the context is allowed to run
   const play = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) {
@@ -146,7 +143,7 @@ export function usePreview(url: string | null, onEnd: () => void) {
           graphRef.current = { gain, source };
           audio.volume = 1;
         } catch {
-          // already wired, or the element refused; the volume property remains
+          // Keep native playback if graph setup fails.
         }
       }
     }

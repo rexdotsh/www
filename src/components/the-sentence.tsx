@@ -279,8 +279,6 @@ function Peek({
   };
 
   return (
-    // focus moving between the word and its card stays inside the wrapper,
-    // so only a blur that leaves it lets go of the word
     // biome-ignore lint/a11y/noStaticElementInteractions: relays focus state of the link and card inside it
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same; the interactive elements are the children
     <span
@@ -332,8 +330,6 @@ function Peek({
       </a>
       {peek ? <span className="peek">{peek}</span> : null}
       {armed ? (
-        // armed only ever happens on touch, so this is the one way a card
-        // closes there; the card itself stacks above it
         // biome-ignore lint/a11y/noStaticElementInteractions: tap-catcher; dismissal also works via focus loss
         // biome-ignore lint/a11y/useKeyWithClickEvents: touch-only affordance
         // biome-ignore lint/a11y/noNoninteractiveElementInteractions: touch-only tap-catcher
@@ -434,7 +430,6 @@ const HEAT_COLORS = [
 function useContributions() {
   const [data, setData] = useState<Contributions | null>(null);
   useEffect(() => {
-    // deferred to idle time; the heatmap is only visible on peek anyway
     const load = () =>
       fetch("/api/github/contributions")
         .then((response) =>
@@ -589,7 +584,6 @@ function PlayGlyph({ playing }: { playing: boolean }) {
   );
 }
 
-// the album art is the play surface; the title stays a link to the track
 function MusicPeek({
   onToggle,
   playing = false,

@@ -46,7 +46,6 @@ const DAMPING = 0.86;
 const REPEL_FORCE = 3.4;
 const TAU = Math.PI * 2;
 
-// canvas is BLEED× its layout box so waves/bursts overflow instead of clip
 const BLEED = 1.24;
 
 const BLUSH_RADIUS_RATIO = 0.26;
@@ -62,7 +61,6 @@ const GARDEN_SCALE = 0.34;
 
 const RAMP_GLYPHS = ["@#S", "%?", "*+", ";:"];
 
-// fallbacks for the css palette
 const PALETTE_VARS: [string, Rgb][] = [
   ["--rose-0", [124, 16, 48]],
   ["--rose-1", [163, 18, 60]],
@@ -79,7 +77,6 @@ const rampFor = (ch: string) => {
 };
 const toCss = ([r, g, b]: Rgb) => `rgb(${r},${g},${b})`;
 
-// a probe element resolves the custom properties, light-dark() included
 function readPalette(host: HTMLElement): Rgb[] {
   const probe = document.createElement("span");
   probe.style.cssText =
@@ -160,7 +157,6 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
     p.gridY = gridOffset + (Math.floor(index / g) + 0.5) * gridCell;
   });
 
-  // "paper": a page outline with ruled lines inside
   const c = size / 2;
   const pageW = inner * 0.58;
   const pageH = inner * 0.8;
@@ -192,14 +188,12 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
       const i = index - outlineCount;
       const line = Math.min(Math.floor(i / perLine), rules.length - 1);
       const pos = (i % perLine) / perLine;
-      // the last line ends short, like a paragraph
       const width = pageW * (line === rules.length - 1 ? 0.5 : 0.8);
       p.docX = x0 + pageW * 0.1 + pos * width;
       p.docY = y0 + pageH * rules[line];
     }
   });
 
-  // "caret": a giant i-beam text cursor
   const stemH = inner * 0.56;
   const stemW = inner * 0.055;
   const barW = inner * 0.17;
@@ -238,7 +232,6 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
     }
   });
 
-  // "cube": distribute along the 12 edges of a unit cube
   const corners: [number, number, number][] = [];
   for (const x of [-1, 1]) {
     for (const y of [-1, 1]) {
@@ -273,7 +266,6 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
     p.cubeZ = corners[ai][2] + (corners[bi][2] - corners[ai][2]) * s;
   });
 
-  // "hi": sample the word off a scratch canvas, like the album art trick
   const sampler = document.createElement("canvas");
   sampler.width = 240;
   sampler.height = 160;
@@ -377,7 +369,6 @@ export default function ParticleRose({
         });
         hasArt = true;
       } catch {
-        // canvas tainted — art mode falls back to a pulse
         for (const p of particles) {
           p.art = undefined;
         }
@@ -433,7 +424,6 @@ export default function ParticleRose({
 
       switch (modeRef.current) {
         case "cube": {
-          // spin around y, fixed isometric tilt, orthographic projection
           const angle = t * 0.7;
           const cos = Math.cos(angle);
           const sin = Math.sin(angle);
@@ -471,7 +461,6 @@ export default function ParticleRose({
       }
     };
 
-    // idle life: a petal shed now and then
     let petal: {
       p: Particle;
       phase: "fall" | "return";

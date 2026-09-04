@@ -110,7 +110,7 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
-// applied before paint so a pinned dark never flashes paper first
+// Apply the saved theme before first paint.
 const THEME_SCRIPT = `try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
 
 function RootDocument({ children }: { children: ReactNode }) {
