@@ -99,7 +99,7 @@ export function TheSentence({
       peek: (
         <TextPeek
           href={identity.otherDomain}
-          label="also known as"
+          label={identity.isMridul ? "aka" : "also known as"}
           line={`${identity.otherName} → ${identity.otherDomain.replace("https://", "")}`}
         />
       ),
