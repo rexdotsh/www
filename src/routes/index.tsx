@@ -44,7 +44,7 @@ const LIFTS: Record<SentenceWord, string> = {
   garden: "max-md:-translate-y-[79px]",
   music: "max-md:-translate-y-[85px]",
   hi: "max-md:-translate-y-[66px]",
-  resume: "max-md:-translate-y-[54px]",
+  resume: "max-md:-translate-y-[50px]",
 };
 const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[73px]";
 
