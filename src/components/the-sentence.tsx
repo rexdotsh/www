@@ -266,19 +266,30 @@ function Peek({
       return;
     }
     const onDocumentPointerDown = ({ target }: PointerEvent) => {
-      if (!wrapperRef.current?.contains(target as Node)) {
-        setArmed(false);
-        const tappedRose =
-          target instanceof Element && target.closest("[data-rose]");
-        if (!tappedRose || hoverKey !== "music") {
-          onHover?.(null);
-        }
+      if (wrapperRef.current?.contains(target as Node)) {
+        return;
       }
+      setArmed(false);
+      const tappedRose =
+        target instanceof Element && target.closest("[data-rose]");
+      if (!tappedRose) {
+        onHover?.(null);
+        return;
+      }
+      // the rose reads the word when the finger lifts; let go right after,
+      // whether or not the press turned out to be a tap
+      const release = () => {
+        window.removeEventListener("pointerup", release);
+        window.removeEventListener("pointercancel", release);
+        onHover?.(null);
+      };
+      window.addEventListener("pointerup", release);
+      window.addEventListener("pointercancel", release);
     };
     document.addEventListener("pointerdown", onDocumentPointerDown);
     return () =>
       document.removeEventListener("pointerdown", onDocumentPointerDown);
-  }, [armed, hoverKey, onHover]);
+  }, [armed, onHover]);
 
   return (
     <span

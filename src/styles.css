@@ -284,10 +284,11 @@ html[data-vt="theme"]::view-transition-new(root) {
   visibility: hidden;
   pointer-events: none;
   transform-origin: bottom center;
+  /* the closing curve; the bounce lives on the open states so it never runs backwards */
   transition:
-    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    opacity 160ms var(--ease-strong),
-    visibility 0s 280ms;
+    transform 220ms var(--ease-strong),
+    opacity 150ms var(--ease-strong),
+    visibility 0s 220ms;
   z-index: 20;
 }
 
@@ -376,7 +377,10 @@ a.peek-name:hover {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transition-delay: 0s;
+  transition:
+    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 160ms var(--ease-strong),
+    visibility 0s;
 }
 
 .peek-trigger[data-peek-open] .peek::after {
@@ -395,7 +399,10 @@ a.peek-name:hover {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transition-delay: 0s;
+    transition:
+      transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 160ms var(--ease-strong),
+      visibility 0s;
   }
 
   .peek-trigger:hover .peek::after,
@@ -1309,14 +1316,29 @@ a.peek-name:hover {
     position: absolute;
   }
 
+  /* pinned to the bottom edge, so it rises from there rather than popping;
+     the closing curve is a touch quicker so the rose can settle right after */
   .peek {
     position: fixed;
     top: auto;
     bottom: max(1.5rem, env(safe-area-inset-bottom));
     left: 50%;
     padding-bottom: 0;
+    transform: translateX(-50%) translateY(14px) scale(0.96);
     transform-origin: bottom center;
+    transition:
+      transform 240ms var(--ease-strong),
+      opacity 180ms var(--ease-strong),
+      visibility 0s 240ms;
     z-index: 40;
+  }
+
+  .peek-trigger[data-peek-open] .peek {
+    transform: translateX(-50%);
+    transition:
+      transform 420ms var(--ease-strong),
+      opacity 240ms var(--ease-strong),
+      visibility 0s;
   }
 
   .peek::after {
