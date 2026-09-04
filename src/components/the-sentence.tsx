@@ -490,7 +490,7 @@ function ProjectsPeek() {
           rel="noopener noreferrer"
           target="_blank"
         >
-          <span className="block font-bold text-ink text-xs group-hover:text-rose">
+          <span className="block font-medium text-ink text-xs group-hover:text-rose">
             {project.name}
           </span>
           <span className="block truncate text-muted text-[11px]">
@@ -637,7 +637,7 @@ function MusicPeek({
           target="_blank"
         >
           <span className="min-w-0 flex-1">
-            <span className="block truncate font-bold text-ink text-xs group-hover:text-rose">
+            <span className="block truncate font-medium text-ink text-xs group-hover:text-rose">
               {track.name}
             </span>
             <span className="block truncate text-muted text-[11px]">
