@@ -396,7 +396,7 @@ html[data-vt="theme"]::view-transition-new(root) {
 
 @media (hover: hover) and (pointer: fine) {
   .peek-trigger:hover .peek,
-  .peek-trigger:focus-within .peek {
+  .peek-trigger:has(:focus-visible) .peek {
     transform: translateX(-50%) scale(1) translateY(0);
     opacity: 1;
     visibility: visible;
@@ -408,7 +408,7 @@ html[data-vt="theme"]::view-transition-new(root) {
   }
 
   .peek-trigger:hover .peek-card > *,
-  .peek-trigger:focus-within .peek-card > * {
+  .peek-trigger:has(:focus-visible) .peek-card > * {
     opacity: 1;
     translate: 0 0;
   }
