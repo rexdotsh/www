@@ -373,7 +373,11 @@ html[data-vt="theme"]::view-transition-new(root) {
   box-shadow:
     0 1px 0 0 color-mix(in oklab, var(--ink) 4%, transparent) inset,
     0 2px 6px -2px rgb(23 20 15 / 0.12),
-    0 20px 48px -20px color-mix(in oklab, var(--rose) 30%, rgb(23 20 15 / 0.45));
+    0 20px 48px -20px color-mix(in oklab, var(--rose) 30%, rgb(23 20 15 / 0.45)),
+    /* dark mode gets its halo from the rose-tinted drop shadow above; on paper
+       that reads as a plain shadow, so light mode adds a soft rose bloom */
+    0 0 36px -4px
+      light-dark(color-mix(in oklab, var(--rose) 26%, transparent), transparent);
 }
 
 .peek-tab {
