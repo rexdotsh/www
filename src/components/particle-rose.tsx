@@ -43,8 +43,6 @@ interface Particle {
 const SPRING = 0.028;
 const DAMPING = 0.86;
 const REPEL_FORCE = 3.4;
-const TAP_MS = 350;
-const TAP_SLOP = 12;
 const TAU = Math.PI * 2;
 
 // canvas is BLEED× its layout box so waves/bursts overflow instead of clip
@@ -312,15 +310,11 @@ export default function ParticleRose({
   artUrl = null,
   className = "",
   mode = "rest",
-  onTap,
-  tappable = false,
 }: {
   artFade?: number;
   artUrl?: string | null;
   className?: string;
   mode?: RoseMode;
-  onTap?: () => void;
-  tappable?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -328,8 +322,6 @@ export default function ParticleRose({
   modeRef.current = mode;
   const artFadeRef = useRef(artFade);
   artFadeRef.current = artFade;
-  const onTapRef = useRef(onTap);
-  onTapRef.current = onTap;
   const loadArtRef = useRef<(url: string | null) => void>(() => undefined);
 
   useEffect(() => {
@@ -617,10 +609,6 @@ export default function ParticleRose({
       pointer.y = -9999;
     };
 
-    // the burst is immediate; the tap itself is called on release, because a
-    // finger touching down is not yet a gesture the browser will play audio for
-    let press: { at: number; x: number; y: number } | null = null;
-
     const onPointerDown = (event: PointerEvent) => {
       const local = toLocal(event);
       const burstRadius = size * 0.38;
@@ -634,24 +622,6 @@ export default function ParticleRose({
           p.vy += (dy / dist) * force;
         }
       }
-      press = { at: performance.now(), x: event.clientX, y: event.clientY };
-    };
-
-    const onPointerUp = (event: PointerEvent) => {
-      if (!press) {
-        return;
-      }
-      const quick = performance.now() - press.at < TAP_MS;
-      const still =
-        Math.hypot(event.clientX - press.x, event.clientY - press.y) < TAP_SLOP;
-      press = null;
-      if (quick && still) {
-        onTapRef.current?.();
-      }
-    };
-
-    const onPointerCancel = () => {
-      press = null;
     };
 
     let cancelled = false;
@@ -670,8 +640,6 @@ export default function ParticleRose({
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     canvas.addEventListener("pointerdown", onPointerDown);
     canvas.addEventListener("pointerleave", onPointerLeave);
-    window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("pointercancel", onPointerCancel);
 
     const onThemeChange = () => {
       palette = readPalette(container);
@@ -694,8 +662,6 @@ export default function ParticleRose({
       window.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointerleave", onPointerLeave);
-      window.removeEventListener("pointerup", onPointerUp);
-      window.removeEventListener("pointercancel", onPointerCancel);
     };
   }, []);
 
@@ -707,8 +673,7 @@ export default function ParticleRose({
 
   return (
     <div
-      className={`relative aspect-square ${tappable ? "cursor-pointer" : "cursor-crosshair"} ${className}`}
-      data-rose=""
+      className={`relative aspect-square cursor-crosshair ${className}`}
       ref={containerRef}
     >
       <canvas

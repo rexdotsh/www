@@ -68,18 +68,6 @@ function Home() {
       setCover(false);
     });
 
-  // the caption points at the card's play cue on a mouse and at the rose on
-  // a finger; read once after mount so the server render stays neutral
-  const [fine, setFine] = useState(false);
-
-  useEffect(() => {
-    setFine(window.matchMedia("(hover: hover)").matches);
-  }, []);
-
-  const onWordHover = (next: SentenceWord | null) => {
-    setWord(next);
-  };
-
   useEffect(() => {
     if (!isPlaying) {
       return;
@@ -110,7 +98,13 @@ function Home() {
   // the rose wears the cover while the word is held (that comes from the
   // word's own mode) and while a preview runs; `cover` is only the latter,
   // so letting go of the word or stopping the preview undresses it
-  const startPreview = () => {
+  const togglePreview = () => {
+    if (isPlaying || cover) {
+      pause();
+      setArtFade(0);
+      setCover(false);
+      return;
+    }
     fadedOutRef.current = false;
     volumeRef.current = isTouch() ? VOLUME_TOUCH : VOLUME;
     setArtFade(0);
@@ -118,33 +112,6 @@ function Home() {
     setVolume(0);
     play();
     fade(0, volumeRef.current, 2000);
-  };
-
-  const stopPreview = () => {
-    pause();
-    setArtFade(0);
-    setCover(false);
-  };
-
-  const onPreviewToggle = () => {
-    if (isPlaying || cover) {
-      stopPreview();
-    } else {
-      startPreview();
-    }
-  };
-
-  // on a phone the card closes and the word lets go as the tap lands, so the
-  // rose settles back into place and wears the cover only while it plays
-  const onRoseTap = () => {
-    if (!previewUrl) {
-      return;
-    }
-    if (isPlaying || cover) {
-      stopPreview();
-    } else if (word === "music") {
-      startPreview();
-    }
   };
 
   const albumArt =
@@ -160,12 +127,9 @@ function Home() {
         return "( humming along )";
       }
       if (albumArt) {
-        if (!previewUrl) {
-          return "( dressed as the album cover )";
-        }
-        return fine
+        return previewUrl
           ? "( dressed as the cover, press play )"
-          : "( dressed as the cover, tap to listen )";
+          : "( dressed as the album cover )";
       }
       return CAPTIONS.music;
     }
@@ -181,12 +145,15 @@ function Home() {
   return (
     <main className="fixed inset-0 overflow-y-auto paper paper-lit font-serif-display text-ink selection:bg-rose selection:text-paper">
       <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-12 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:px-12 md:py-16">
-        <div className="sentence-root relative z-10 max-w-2xl md:flex-1">
+        {/* no z-index here on purpose: the cards and their tap-catcher are
+            fixed and must stack above the rose, so they belong to main's
+            context rather than being trapped under the sentence's */}
+        <div className="sentence-root relative max-w-2xl md:flex-1">
           <TheSentence
             className="text-[clamp(1.9rem,8.6vw,2.5rem)] leading-[1.22] tracking-[-0.01em] md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"
             hostname={hostname}
-            onPreviewToggle={previewUrl ? onPreviewToggle : undefined}
-            onWordHover={onWordHover}
+            onPreviewToggle={previewUrl ? togglePreview : undefined}
+            onWordHover={setWord}
             previewPlaying={isPlaying || cover}
             track={track}
             wordStagger
@@ -205,10 +172,6 @@ function Home() {
               artUrl={albumArt}
               className="w-[min(64vw,300px)] md:w-[min(34vw,440px)]"
               mode={mode}
-              onTap={onRoseTap}
-              tappable={Boolean(
-                previewUrl && (isPlaying || cover || word === "music")
-              )}
             />
             <p
               aria-hidden="true"

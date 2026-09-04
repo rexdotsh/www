@@ -255,36 +255,6 @@ function Peek({
     }
   };
 
-  useEffect(() => {
-    if (!armed) {
-      return;
-    }
-    const onDocumentPointerDown = ({ target }: PointerEvent) => {
-      if (wrapperRef.current?.contains(target as Node)) {
-        return;
-      }
-      setArmed(false);
-      const tappedRose =
-        target instanceof Element && target.closest("[data-rose]");
-      if (!tappedRose) {
-        onHover?.(null);
-        return;
-      }
-      // the rose reads the word when the finger lifts; let go right after,
-      // whether or not the press turned out to be a tap
-      const release = () => {
-        window.removeEventListener("pointerup", release);
-        window.removeEventListener("pointercancel", release);
-        onHover?.(null);
-      };
-      window.addEventListener("pointerup", release);
-      window.addEventListener("pointercancel", release);
-    };
-    document.addEventListener("pointerdown", onDocumentPointerDown);
-    return () =>
-      document.removeEventListener("pointerdown", onDocumentPointerDown);
-  }, [armed, onHover]);
-
   return (
     // focus moving between the word and its card stays inside the wrapper,
     // so only a blur that leaves it lets go of the word
@@ -334,11 +304,13 @@ function Peek({
       </a>
       {peek ? <span className="peek">{peek}</span> : null}
       {armed ? (
+        // armed only ever happens on touch, so this is the one way a card
+        // closes there; the card itself stacks above it
         // biome-ignore lint/a11y/noStaticElementInteractions: tap-catcher; dismissal also works via focus loss
         // biome-ignore lint/a11y/useKeyWithClickEvents: touch-only affordance
         // biome-ignore lint/a11y/noNoninteractiveElementInteractions: touch-only tap-catcher
         <span
-          className="fixed inset-0 z-30 md:hidden"
+          className="fixed inset-0 z-30"
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();

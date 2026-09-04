@@ -293,7 +293,8 @@ html[data-vt="theme"]::view-transition-new(root) {
     transform 220ms var(--ease-strong),
     opacity 150ms var(--ease-strong),
     visibility 0s 220ms;
-  z-index: 20;
+  /* above the touch tap-catcher (30) and the rose (20) */
+  z-index: 40;
 }
 
 .peek-card {
