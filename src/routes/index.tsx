@@ -48,7 +48,11 @@ const LIFTS: Record<SentenceWord, string> = {
 };
 const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[64px]";
 
+// phones sit closer to the ear and get no room tone; keep the preview softer
 const VOLUME = 0.5;
+const VOLUME_TOUCH = 0.28;
+
+const isTouch = () => window.matchMedia("(hover: none)").matches;
 
 function Home() {
   const { hostname } = rootRoute.useLoaderData();
@@ -57,6 +61,7 @@ function Home() {
   const [cover, setCover] = useState(false);
   const [artFade, setArtFade] = useState(0);
   const fadedOutRef = useRef(false);
+  const volumeRef = useRef(VOLUME);
   const { isPlaying, play, pause, fade, getPosition, duration, setVolume } =
     usePreview(previewUrl, () => {
       setArtFade(0);
@@ -80,7 +85,7 @@ function Home() {
       setArtFade(Math.min(1, position / total));
       if (total - position < 6 && !fadedOutRef.current) {
         fadedOutRef.current = true;
-        fade(VOLUME, 0, 5500);
+        fade(volumeRef.current, 0, 5500);
       }
     }, 250);
     return () => clearInterval(interval);
@@ -97,18 +102,27 @@ function Home() {
     };
   }, [isPlaying, track]);
 
+  // on a phone the card closes and the word lets go as the tap lands, so the
+  // rose settles back into place and wears the cover only while it plays
   const onRoseTap = () => {
     if (!previewUrl) {
       return;
     }
+    const touch = isTouch();
     if (isPlaying) {
       pause();
+      if (touch) {
+        setArtFade(0);
+        setCover(false);
+      }
     } else if (word === "music" || cover) {
       fadedOutRef.current = false;
+      volumeRef.current = touch ? VOLUME_TOUCH : VOLUME;
       setArtFade(0);
+      setCover(true);
       setVolume(0);
       play();
-      fade(0, VOLUME, 2000);
+      fade(0, volumeRef.current, 2000);
     }
   };
 
@@ -154,7 +168,7 @@ function Home() {
         </div>
 
         <div
-          className={`rise relative z-20 flex shrink-0 flex-col items-center md:z-auto ${word === "music" ? "max-md:z-40" : ""}`}
+          className="rise relative z-20 flex shrink-0 flex-col items-center md:z-auto"
           style={{ animationDelay: "200ms" }}
         >
           <div
