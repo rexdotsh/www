@@ -27,13 +27,17 @@ const NOTES: Record<SentenceWord, number> = {
 export function TheSentence({
   className = "",
   hostname,
+  onPreviewToggle,
   onWordHover,
+  previewPlaying = false,
   track,
   wordStagger = false,
 }: {
   className?: string;
   hostname: string;
+  onPreviewToggle?: () => void;
   onWordHover?: (word: SentenceWord | null) => void;
+  previewPlaying?: boolean;
   track: SpotifyTrack | null;
   wordStagger?: boolean;
 }) {
@@ -135,7 +139,13 @@ export function TheSentence({
       key: "music",
       href: track?.url ?? LINKS.blog,
       text: "something",
-      peek: track ? <MusicPeek track={track} /> : null,
+      peek: track ? (
+        <MusicPeek
+          onToggle={onPreviewToggle}
+          playing={previewPlaying}
+          track={track}
+        />
+      ) : null,
     },
     " on. ",
   ];
@@ -292,9 +302,21 @@ function Peek({
   }, [armed, onHover]);
 
   return (
+    // focus moving between the word and its card stays inside the wrapper,
+    // so only a blur that leaves it lets go of the word
+    // biome-ignore lint/a11y/noStaticElementInteractions: relays focus state of the link and card inside it
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same; the interactive elements are the children
     <span
       className="peek-trigger relative inline-block"
       data-peek-open={armed ? "" : undefined}
+      onBlur={(event) => {
+        if (wrapperRef.current?.contains(event.relatedTarget)) {
+          return;
+        }
+        setArmed(false);
+        report(null);
+      }}
+      onFocus={() => report(hoverKey)}
       onPointerEnter={(event) => {
         if (event.pointerType === "touch") {
           return;
@@ -320,12 +342,7 @@ function Peek({
             : "text-rose italic decoration-rose/30 hover:decoration-rose"
         }`}
         href={href}
-        onBlur={() => {
-          setArmed(false);
-          report(null);
-        }}
         onClick={handleClick}
-        onFocus={() => report(hoverKey)}
         onPointerEnter={(event) => {
           if (event.pointerType !== "touch") {
             sfx("pop");
@@ -571,7 +588,34 @@ function WaveEq() {
   );
 }
 
-function MusicPeek({ track }: { track: SpotifyTrack }) {
+function PlayGlyph({ playing }: { playing: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      viewBox="0 0 12 12"
+    >
+      {playing ? (
+        <path d="M3.4 2v8M8.6 2v8" strokeWidth="2.2" />
+      ) : (
+        <path d="M3 1.8v8.4L10 6z" fill="currentColor" stroke="none" />
+      )}
+    </svg>
+  );
+}
+
+// the album art is the play surface; the title stays a link to the track
+function MusicPeek({
+  onToggle,
+  playing = false,
+  track,
+}: {
+  onToggle?: () => void;
+  playing?: boolean;
+  track: SpotifyTrack;
+}) {
   const { isPlaying } = track;
   const albumArt =
     track.image.find((image) => image.size === "medium")?.["#text"] ?? "";
@@ -580,31 +624,51 @@ function MusicPeek({ track }: { track: SpotifyTrack }) {
       compact={!isPlaying}
       label={isPlaying ? "right now" : "last played"}
     >
-      <a
-        className={`group flex items-center ${isPlaying ? "gap-3" : "gap-2.5"}`}
-        href={track.url}
-        rel="noopener noreferrer"
-        target="_blank"
-      >
+      <span className={`flex items-center ${isPlaying ? "gap-3" : "gap-2.5"}`}>
         {albumArt ? (
-          <img
-            alt=""
-            className={`rounded-md object-cover ${isPlaying ? "h-12 w-12" : "h-10 w-10"}`}
-            height={isPlaying ? 48 : 40}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            src={albumArt}
-            width={isPlaying ? 48 : 40}
-          />
-        ) : null}
-        <span className={`min-w-0 ${isPlaying ? "flex-1" : ""}`}>
-          <span className="peek-name block truncate">{track.name}</span>
-          <span className="block truncate text-muted text-[10.5px]">
-            {track.artist}
+          <span className="relative shrink-0">
+            <img
+              alt=""
+              className={`block rounded-md object-cover ${isPlaying ? "h-12 w-12" : "h-10 w-10"}`}
+              height={isPlaying ? 48 : 40}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              src={albumArt}
+              width={isPlaying ? 48 : 40}
+            />
+            {onToggle ? (
+              <button
+                aria-label={playing ? "pause the preview" : "play a preview"}
+                className="peek-play"
+                data-playing={playing ? "" : undefined}
+                onClick={() => {
+                  sfx(playing ? "pause" : "play");
+                  onToggle();
+                }}
+                type="button"
+              >
+                <span>
+                  <PlayGlyph playing={playing} />
+                </span>
+              </button>
+            ) : null}
           </span>
-        </span>
-        {isPlaying ? <WaveEq /> : null}
-      </a>
+        ) : null}
+        <a
+          className={`group flex min-w-0 items-center ${isPlaying ? "flex-1 gap-3" : "gap-2.5"}`}
+          href={track.url}
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="peek-name block truncate">{track.name}</span>
+            <span className="block truncate text-muted text-[10.5px]">
+              {track.artist}
+            </span>
+          </span>
+          {isPlaying ? <WaveEq /> : null}
+        </a>
+      </span>
     </PeekCard>
   );
 }
