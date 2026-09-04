@@ -3,8 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
-import { sfx } from "@/lib/sfx";
-import { useIdle } from "@/lib/use-idle";
 import { type SpotifyTrack, useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
 
@@ -78,16 +76,6 @@ function Home() {
       setArtFade(0);
       setPreview(null);
     });
-  const idle = useIdle(40_000);
-  const dozing = idle && !(word || preview);
-  const wasDozingRef = useRef(false);
-
-  useEffect(() => {
-    if (wasDozingRef.current && !dozing) {
-      sfx("stir");
-    }
-    wasDozingRef.current = dozing;
-  }, [dozing]);
 
   useEffect(() => {
     if (!isPlaying) {
@@ -156,13 +144,7 @@ function Home() {
       }
       return CAPTIONS.music;
     }
-    if (word) {
-      return CAPTIONS[word];
-    }
-    if (dozing) {
-      return "( dozing )";
-    }
-    return "( alive, technically )";
+    return word ? CAPTIONS[word] : "( alive, technically )";
   })();
 
   const liftClass = word
@@ -174,9 +156,6 @@ function Home() {
   return (
     <main className="fixed inset-0 overflow-y-auto paper paper-lit font-serif-display text-ink selection:bg-rose selection:text-paper">
       <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-12 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:px-12 md:py-16">
-        {/* no z-index here on purpose: the cards and their tap-catcher are
-            fixed and must stack above the rose, so they belong to main's
-            context rather than being trapped under the sentence's */}
         <div className="sentence-root relative max-w-2xl md:flex-1">
           <TheSentence
             className="text-[clamp(1.9rem,8.6vw,2.5rem)] leading-[1.22] tracking-[-0.01em] md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"
@@ -200,7 +179,6 @@ function Home() {
               artFade={artFade}
               artUrl={albumArt}
               className="w-[min(64vw,300px)] md:w-[min(34vw,440px)]"
-              doze={dozing}
               mode={mode}
             />
             <p

@@ -4,7 +4,6 @@ import newsreaderItalicWoff2 from "@fontsource-variable/newsreader/files/newsrea
 import newsreaderWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2?url";
 import BackLink from "@/components/back-link";
 import { PostBody } from "@/components/post-body";
-import QuoteBubble from "@/components/quote-bubble";
 import { preloadFont, RSS_LINK } from "@/lib/head";
 import { getPost, type TocEntry } from "@/lib/posts";
 import { getPostMeta } from "@/lib/posts-meta";
@@ -329,7 +328,6 @@ function PostPage() {
   return (
     <main className="min-h-dvh paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
       <ReadingProgress />
-      <QuoteBubble title={post.title} />
       <div className="mx-auto w-full max-w-xl">
         <header className="post-header">
           <BackLink

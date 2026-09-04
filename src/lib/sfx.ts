@@ -6,8 +6,7 @@ export type Sound =
   | "puff"
   | "play"
   | "pause"
-  | "chime"
-  | "stir";
+  | "chime";
 
 const MASTER_GAIN = 0.8;
 const STORAGE_KEY = "sound";
@@ -193,7 +192,6 @@ const playSound: Record<Sound, SoundPlayer> = {
     tone(state, "sine", 1320, 1318, 0.2, 0.01, 0.9);
     tone(state, "sine", 1980, 1976, 0.08, 0.01, 0.6);
   },
-  stir: (state) => tone(state, "sine", 260, 340, 0.16, 0.03, 0.22),
 };
 
 function stopUnlock() {

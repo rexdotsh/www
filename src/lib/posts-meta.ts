@@ -4,7 +4,6 @@ export interface PostMeta {
   description: string;
   draft?: boolean;
   meta: string[];
-  readingMinutes: number;
   slug: string;
   title: string;
 }
@@ -17,7 +16,6 @@ export const POSTS_META: PostMeta[] = [
     dateLabel: "nov 27, 2024",
     description: "a gameboy reverse engineering challenge.",
     meta: ["reverse engineering", "500 pts", "1 solve"],
-    readingMinutes: 9,
   },
 ];
 
