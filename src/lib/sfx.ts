@@ -138,8 +138,10 @@ const hiss = (
 
 type SoundPlayer = (state: AudioState, pitch?: number) => void;
 
-const confirmation = (state: AudioState) =>
-  tone(state, "sine", 520, 820, 0.32, 0.008, 0.1);
+const confirmation = (state: AudioState) => {
+  const detune = 1 + (Math.random() - 0.5) * 0.06;
+  tone(state, "sine", 520 * detune, 820 * detune, 0.32, 0.008, 0.1);
+};
 
 const playSound: Record<Sound, SoundPlayer> = {
   tick: (state, pitch = 720) =>

@@ -131,13 +131,7 @@ export const TheSentence = memo(function TheSentence({
           href={LINKS.flora}
           label="the workshop"
           line="flora"
-          sub={
-            <>
-              random things for the web,
-              <br />
-              two people, several flowers
-            </>
-          }
+          sub="random things for the web"
         />
       ),
     },
