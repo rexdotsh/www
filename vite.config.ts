@@ -1,9 +1,26 @@
+import mdx from "@mdx-js/rollup";
+import rehypeShiki from "@shikijs/rehype";
+import rehypeExtractToc from "@stefanprobst/rehype-extract-toc";
+import rehypeExtractTocExport from "@stefanprobst/rehype-extract-toc/mdx";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
+import rehypeSlug from "rehype-slug";
+import remarkGfm from "remark-gfm";
+import remarkReadingTime from "remark-reading-time";
+import remarkReadingTimeExport from "remark-reading-time/mdx.js";
+import type { ShikiTransformer } from "shiki";
 import { defineConfig } from "vite";
 import { SITE_HEADERS } from "./src/lib/headers.ts";
+import { PAPER, PAPER_DARK } from "./src/lib/shiki-themes.ts";
+
+const rawCodeTransformer: ShikiTransformer = {
+  pre(node) {
+    node.properties["data-code"] = this.source;
+    node.properties["data-lang"] = this.options.lang;
+  },
+};
 
 const STATIC_ASSET_HEADERS = {
   headers: {
@@ -26,6 +43,26 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   plugins: [
+    {
+      enforce: "pre",
+      ...mdx({
+        rehypePlugins: [
+          rehypeSlug,
+          rehypeExtractToc,
+          [rehypeExtractTocExport, { name: "tableOfContents" }],
+          [
+            rehypeShiki,
+            {
+              // tokens baked at build time; the client ships zero highlighter
+              themes: { light: PAPER, dark: PAPER_DARK },
+              defaultColor: false,
+              transformers: [rawCodeTransformer],
+            },
+          ],
+        ],
+        remarkPlugins: [remarkGfm, remarkReadingTime, remarkReadingTimeExport],
+      }),
+    },
     tailwindcss(),
     tanstackStart(),
     viteReact(),
@@ -37,12 +74,9 @@ export default defineConfig({
         },
         "/favicon.ico": STATIC_ASSET_HEADERS,
         "/image.png": STATIC_ASSET_HEADERS,
-        "/rose.avif": STATIC_ASSET_HEADERS,
         "/social-card.png": STATIC_ASSET_HEADERS,
         "/social-card-mridul.png": STATIC_ASSET_HEADERS,
-        "/blog": {
-          redirect: { to: "https://blog.rex.wf", status: 308 },
-        },
+        "/og/**": STATIC_ASSET_HEADERS,
         "/twitter": {
           redirect: { to: "https://x.com/rexmkv", status: 308 },
         },

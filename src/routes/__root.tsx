@@ -1,11 +1,13 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
-import ThemeToggle from "@/components/theme-toggle";
 import NotFoundPage from "@/components/not-found";
+import CornerNotes from "@/components/corner-notes";
+import { preloadFont } from "@/lib/head";
 import { SITE_HEADERS } from "@/lib/headers";
 import { getSiteInfo } from "@/lib/site";
 import geistMonoWoff2 from "@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url";
+import instrumentItalicWoff2 from "@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2?url";
+import instrumentWoff2 from "@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2?url";
 import appCss from "../styles.css?url";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
@@ -35,7 +37,7 @@ export const Route = createRootRoute({
         { charSet: "utf-8" },
         {
           name: "viewport",
-          content: "width=device-width, initial-scale=1",
+          content: "width=device-width, initial-scale=1, viewport-fit=cover",
         },
         { title },
         { name: "description", content: description },
@@ -64,13 +66,9 @@ export const Route = createRootRoute({
       ],
       links: [
         { rel: "stylesheet", href: appCss },
-        {
-          rel: "preload",
-          href: geistMonoWoff2,
-          as: "font",
-          type: "font/woff2",
-          crossOrigin: "anonymous",
-        },
+        preloadFont(instrumentWoff2),
+        preloadFont(instrumentItalicWoff2),
+        preloadFont(geistMonoWoff2),
         { rel: "icon", href: "/favicon.ico" },
         { rel: "apple-touch-icon", href: "/image.png" },
         { rel: "canonical", href: canonicalUrl },
@@ -112,31 +110,21 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
+// Apply the saved theme before first paint.
+const THEME_SCRIPT = `try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
+
 function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta
-          content="#f2ecdf"
-          media="(prefers-color-scheme: light)"
-          name="theme-color"
-        />
-        <meta
-          content="#030303"
-          media="(prefers-color-scheme: dark)"
-          name="theme-color"
-        />
+        <meta content="#faf8f2" name="theme-color" />
+        {/** biome-ignore lint/security/noDangerouslySetInnerHtml: static first-paint theme script */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <HeadContent />
       </head>
       <body className="antialiased">
-        <ThemeProvider
-          attribute="data-theme"
-          defaultTheme="system"
-          enableSystem
-        >
-          {children}
-          <ThemeToggle />
-        </ThemeProvider>
+        <CornerNotes />
+        {children}
         <Scripts />
       </body>
     </html>
