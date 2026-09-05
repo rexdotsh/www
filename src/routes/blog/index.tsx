@@ -43,7 +43,7 @@ function BlogIndex() {
           className="rise mt-3 font-mono text-faint text-[11px] italic"
           style={{ animationDelay: "150ms" }}
         >
-          ( occasionally, about things worth the words )
+          ( infrequent. long. )
         </p>
 
         <ul className="post-list mt-14">
