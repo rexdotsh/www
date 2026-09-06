@@ -599,6 +599,12 @@ export default function ParticleRose({
       pointer.y = -9999;
     };
 
+    const onPointerLift = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") {
+        onPointerLeave();
+      }
+    };
+
     const onPointerDown = (event: PointerEvent) => {
       const local = toLocal(event);
       const burstRadius = size * 0.38;
@@ -629,6 +635,8 @@ export default function ParticleRose({
     });
     resizeObserver.observe(container);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerup", onPointerLift, { passive: true });
+    window.addEventListener("pointercancel", onPointerLift, { passive: true });
     canvas.addEventListener("pointerdown", onPointerDown);
     canvas.addEventListener("pointerleave", onPointerLeave);
 
@@ -651,6 +659,8 @@ export default function ParticleRose({
       resizeObserver.disconnect();
       themeObserver.disconnect();
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerLift);
+      window.removeEventListener("pointercancel", onPointerLift);
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointerleave", onPointerLeave);
     };
