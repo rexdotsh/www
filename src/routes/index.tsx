@@ -1,8 +1,10 @@
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
+import { createFileRoute, getRouteApi, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
+import PortfolioSections from "@/components/portfolio-sections";
+import { getIdentity, LINKS } from "@/lib/content";
 import { type SpotifyTrack, useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
 
@@ -37,16 +39,11 @@ const CAPTIONS: Record<SentenceWord, string> = {
   resume: "( pretending to be a document )",
 };
 
-const LIFTS: Record<SentenceWord, string> = {
-  name: "max-md:-translate-y-[50px]",
-  builds: "max-md:-translate-y-[218px]",
-  writes: "max-md:-translate-y-[66px]",
-  garden: "max-md:-translate-y-[79px]",
-  music: "max-md:-translate-y-[85px]",
-  hi: "max-md:-translate-y-[66px]",
-  resume: "max-md:-translate-y-[50px]",
-};
-const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[73px]";
+const SPECIMENS = [
+  { mode: "rest", label: "rose", note: "a little controlled chaos" },
+  { mode: "cube", label: "structure", note: "everything in its right place" },
+  { mode: "garden", label: "garden", note: "room for something to grow" },
+] as const;
 
 // Keep previews quieter on touch devices.
 const VOLUME = 0.5;
@@ -61,6 +58,10 @@ interface Preview {
 
 function Home() {
   const { hostname } = rootRoute.useLoaderData();
+  const identity = getIdentity(hostname);
+  const [specimen, setSpecimen] = useState<(typeof SPECIMENS)[number]>(
+    SPECIMENS[0]
+  );
   const live = useNowPlaying();
   const [word, setWord] = useState<SentenceWord | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -126,7 +127,7 @@ function Home() {
     track?.image.find((image) => image.size === "medium")?.["#text"] ??
     null;
 
-  const mode = word ? MODES[word] : preview ? "art" : "rest";
+  const mode = word ? MODES[word] : preview ? "art" : specimen.mode;
 
   const caption = (() => {
     if (word === "music" || (!word && preview)) {
@@ -140,55 +141,145 @@ function Home() {
       }
       return CAPTIONS.music;
     }
-    return word ? CAPTIONS[word] : "( alive, technically )";
+    return word ? CAPTIONS[word] : specimen.note;
   })();
 
-  const liftClass = word
-    ? word === "music" && !track?.isPlaying
-      ? MUSIC_COMPACT_LIFT
-      : LIFTS[word]
-    : "";
-
   return (
-    <main className="fixed inset-0 overflow-y-auto paper paper-lit font-serif-display text-ink selection:bg-rose selection:text-paper">
-      <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-12 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:px-12 md:py-16">
-        <div className="sentence-root relative max-w-2xl md:flex-1">
-          <TheSentence
-            className="text-[clamp(1.9rem,8.6vw,2.5rem)] leading-[1.22] tracking-[-0.01em] md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"
-            hostname={hostname}
-            onPreviewToggle={previewUrl ? togglePreview : undefined}
-            onWordHover={setWord}
-            previewPlaying={preview !== null}
-            track={track}
-            wordStagger
-          />
-        </div>
-
-        <div
-          className="rise relative z-20 flex shrink-0 flex-col items-center md:z-auto"
-          style={{ animationDelay: "200ms" }}
+    <div
+      className="portfolio paper paper-lit text-ink selection:bg-rose selection:text-paper"
+      id="top"
+    >
+      <a className="skip-link" href="#main">
+        skip to content
+      </a>
+      <header className="masthead portfolio-width">
+        <a
+          aria-label={`${identity.name}, home`}
+          className="wordmark"
+          href="#top"
         >
-          <div
-            className={`flex flex-col items-center transition-transform duration-300 ease-strong ${liftClass}`}
-          >
-            <ParticleRose
-              artFade={artFade}
-              artUrl={albumArt}
-              className="w-[min(64vw,300px)] md:w-[min(34vw,440px)]"
-              mode={mode}
-            />
-            <p
-              aria-hidden="true"
-              className="mt-2.5 h-4 font-mono text-faint text-[10px] italic"
-            >
-              <span className="swap-in" key={caption}>
-                {caption}
-              </span>
+          {identity.name}
+          <span aria-hidden="true">✳</span>
+        </a>
+        <span className="masthead-note">a personal corner of the internet</span>
+        <nav aria-label="Main navigation" className="main-nav">
+          <a href="#work">
+            work <span>01</span>
+          </a>
+          <Link to="/blog">
+            writing <span>02</span>
+          </Link>
+          <a href="#contact">
+            say hi <span>↗</span>
+          </a>
+        </nav>
+      </header>
+
+      <main className="portfolio-width" id="main">
+        <section aria-labelledby="intro-title" className="home-hero">
+          <div className="hero-copy rise">
+            <p className="eyebrow">
+              <span className="status-dot" /> code / curiosity / other things
             </p>
+            <h1 id="intro-title">
+              A work in
+              <br />
+              <em>progress.</em>
+              <span className="hero-asterisk" aria-hidden="true">
+                *
+              </span>
+            </h1>
+            <div className="sentence-root hero-intro">
+              <TheSentence
+                className="intro-sentence"
+                hostname={hostname}
+                onPreviewToggle={previewUrl ? togglePreview : undefined}
+                onWordHover={setWord}
+                previewPlaying={preview !== null}
+                track={track}
+              />
+            </div>
+            <a className="text-link hero-link" href="#work">
+              explore the work <span aria-hidden="true">↓</span>
+            </a>
           </div>
-        </div>
-      </div>
+          <figure className="specimen rise" style={{ animationDelay: "160ms" }}>
+            <div className="specimen-header eyebrow">
+              <span>fig. 001 — living pixels</span>
+              <span aria-hidden="true">+ +</span>
+            </div>
+            <div className="specimen-stage">
+              <span aria-hidden="true" className="specimen-orbit" />
+              <ParticleRose
+                artFade={artFade}
+                artUrl={albumArt}
+                className="specimen-rose"
+                mode={mode}
+              />
+              <span className="specimen-axis" aria-hidden="true">
+                x / y / a little entropy
+              </span>
+            </div>
+            <figcaption>
+              <p className="specimen-caption">
+                <span className="swap-in" key={caption}>
+                  {caption}
+                </span>
+              </p>
+              <div
+                aria-label="Particle shape"
+                className="specimen-controls"
+                role="group"
+              >
+                {SPECIMENS.map((item, index) => (
+                  <button
+                    aria-pressed={specimen.mode === item.mode}
+                    key={item.mode}
+                    onClick={() => setSpecimen(item)}
+                    type="button"
+                  >
+                    <span>0{index + 1}</span> {item.label}
+                  </button>
+                ))}
+              </div>
+              <p className="specimen-hint">
+                move a little closer. it responds.
+              </p>
+            </figcaption>
+          </figure>
+        </section>
+        <PortfolioSections />
+        <footer className="home-footer" id="contact">
+          <div className="footer-invitation">
+            <p className="eyebrow">03 / leave a little hello</p>
+            <a href={LINKS.twitter} rel="noopener noreferrer" target="_blank">
+              Good things start
+              <br />
+              with <em>a conversation.</em>
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+          <div className="footer-bottom">
+            <span>
+              {identity.domain}{" "}
+              <span className="footer-star" aria-hidden="true">
+                ✳
+              </span>{" "}
+              always in progress
+            </span>
+            <div>
+              <a href={LINKS.github} rel="noopener noreferrer" target="_blank">
+                github ↗
+              </a>
+              <a href={LINKS.twitter} rel="noopener noreferrer" target="_blank">
+                x / twitter ↗
+              </a>
+              <a href="#top">back to top ↑</a>
+            </div>
+          </div>
+        </footer>
+      </main>
       <TintStrips />
-    </main>
+    </div>
   );
 }

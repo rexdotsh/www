@@ -160,6 +160,7 @@ export default function CornerNotes() {
         </span>{" "}
         <button
           aria-label="toggle color theme"
+          aria-pressed={mounted && theme === "dark"}
           className="corner-button"
           onClick={toggle}
           type="button"
@@ -173,6 +174,7 @@ export default function CornerNotes() {
         </span>
         <button
           aria-label="toggle sound effects"
+          aria-pressed={mounted && !muted}
           className="corner-button"
           onClick={toggleSound}
           type="button"

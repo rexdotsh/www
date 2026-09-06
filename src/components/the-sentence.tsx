@@ -153,7 +153,7 @@ export const TheSentence = memo(function TheSentence({
 
   return (
     <>
-      <h1 className={className}>
+      <p className={className}>
         {parts.map((part) =>
           typeof part === "string" ? (
             <Fragment key={part}>{w(part)}</Fragment>
@@ -195,7 +195,7 @@ export const TheSentence = memo(function TheSentence({
             <span className="full-stop text-rose">.</span>
           </>
         )}
-      </h1>
+      </p>
       {identity.isMridul ? (
         <p
           className={`mt-6 text-muted text-[clamp(1rem,1.7vw,1.3rem)] italic leading-snug ${wordStagger ? "word-in" : ""}`}

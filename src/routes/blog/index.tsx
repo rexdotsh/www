@@ -27,26 +27,38 @@ export const Route = createFileRoute("/blog/")({
 
 function BlogIndex() {
   return (
-    <main className="min-h-dvh paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
-      <div className="mx-auto w-full max-w-xl">
+    <main className="writing-page min-h-dvh paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
+      <div className="mx-auto w-full max-w-3xl">
         <BackLink className="rise font-mono text-muted text-xs" to="/">
           home
         </BackLink>
 
-        <h1
-          className="rise mt-10 text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
-          style={{ animationDelay: "80ms" }}
-        >
-          writing<span className="full-stop text-rose">.</span>
-        </h1>
-        <p
-          className="rise mt-3 font-mono text-faint text-[11px] italic"
-          style={{ animationDelay: "150ms" }}
-        >
-          ( infrequent. long. )
-        </p>
+        <div className="writing-heading">
+          <p className="eyebrow rise">the notebook / occasional entries</p>
+          <h1 className="rise" style={{ animationDelay: "80ms" }}>
+            Notes in
+            <br />
+            the <em>margin.</em>
+          </h1>
+          <p
+            className="rise writing-description"
+            style={{ animationDelay: "150ms" }}
+          >
+            Things built, puzzles taken apart, and what I learned along the way.
+          </p>
+          <span aria-hidden="true" className="writing-mark">
+            *
+          </span>
+        </div>
 
-        <ul className="post-list mt-14">
+        <div className="writing-index-label eyebrow">
+          <span>the entries</span>
+          <span>
+            {String(PUBLISHED_META.length).padStart(2, "0")} filed / more
+            eventually
+          </span>
+        </div>
+        <ul className="post-list writing-list">
           {PUBLISHED_META.map((post, index) => (
             <li
               className="rise"
@@ -54,26 +66,29 @@ function BlogIndex() {
               style={{ animationDelay: `${230 + index * 70}ms` }}
             >
               <Link
-                className="group block py-4"
+                className="group block py-7"
                 params={{ slug: post.slug }}
                 to="/blog/$slug"
               >
-                <span className="block font-mono text-faint text-[11px] tabular-nums transition-colors duration-200 group-hover:text-muted">
+                <time
+                  dateTime={post.date}
+                  className="block font-mono text-muted text-[10px] tabular-nums transition-colors duration-200 group-hover:text-rose"
+                >
                   {post.dateLabel}
-                </span>
+                </time>
                 <span
-                  className="mt-1 block text-[clamp(1.4rem,4.5vw,1.8rem)] leading-tight transition-colors duration-200 group-hover:text-rose"
+                  className="mt-3 flex items-baseline justify-between gap-3 text-[clamp(1.8rem,4.5vw,2.5rem)] leading-tight transition-colors duration-200 group-hover:text-rose"
                   style={{ viewTransitionName: `post-${post.slug}` }}
                 >
-                  {post.title}
+                  <span>{post.title}</span>
                   <span
                     aria-hidden="true"
-                    className="ml-2 inline-block text-rose transition-transform duration-200 ease-strong group-hover:translate-x-1"
+                    className="inline-block shrink-0 text-rose transition-transform duration-200 ease-strong group-hover:translate-x-1"
                   >
                     →
                   </span>
                 </span>
-                <span className="mt-1.5 block font-serif-body text-muted text-[15px] italic">
+                <span className="mt-2 block font-serif-body text-muted text-[18px] italic">
                   {post.description}
                 </span>
               </Link>
@@ -82,7 +97,7 @@ function BlogIndex() {
         </ul>
 
         <footer
-          className="rise mt-16 border-ink/10 border-t pt-6"
+          className="rise writing-footer"
           style={{ animationDelay: "360ms" }}
         >
           <a
@@ -92,6 +107,9 @@ function BlogIndex() {
             target="_blank"
           >
             older ctf writeups live on github →
+          </a>
+          <a className="text-link" href="/blog/rss.xml">
+            subscribe via rss <span aria-hidden="true">↗</span>
           </a>
         </footer>
       </div>
