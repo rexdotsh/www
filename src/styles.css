@@ -395,6 +395,62 @@ html[data-vt="theme"]::view-transition-new(root) {
   transform: translate(-50%, -50%);
 }
 
+@keyframes hi-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.hi-caret {
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 0.15em;
+  vertical-align: -0.15em;
+  background: var(--rose);
+  animation: hi-blink 1.1s steps(1) infinite;
+}
+
+.hi-caret[data-done] {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes hi-select {
+  0% {
+    background-size: 0% 100%;
+    background-position: 0 0;
+  }
+  18% {
+    background-size: 100% 100%;
+    background-position: 0 0;
+  }
+  70% {
+    background-size: 100% 100%;
+    background-position: 100% 0;
+  }
+  100% {
+    background-size: 0% 100%;
+    background-position: 100% 0;
+  }
+}
+
+.hi-email {
+  padding-inline: 0.1em;
+  margin-inline: -0.1em;
+  border-radius: 2px;
+  background-image: linear-gradient(
+    color-mix(in oklab, var(--rose) 22%, transparent),
+    color-mix(in oklab, var(--rose) 22%, transparent)
+  );
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+}
+
+.hi-email[data-done] {
+  animation: hi-select 1.6s var(--ease-strong) both;
+}
+
 
 .peek-play {
   position: absolute;

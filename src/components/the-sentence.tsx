@@ -434,7 +434,14 @@ function HiPeek({ handle }: { handle: string }) {
     <PeekCard fit label="say hi">
       <a className="group block" href={LINKS.email} onClick={copy}>
         <span className="block whitespace-nowrap text-ink text-xs group-hover:text-rose">
-          {EMAIL}
+          <span className="hi-email" data-done={copied ? "" : undefined}>
+            {EMAIL}
+          </span>
+          <span
+            aria-hidden="true"
+            className="hi-caret"
+            data-done={copied ? "" : undefined}
+          />
         </span>
         <span className="block whitespace-nowrap text-[10px] text-muted">
           <span className="swap-in" key={String(copied)}>
@@ -452,7 +459,7 @@ function HiPeek({ handle }: { handle: string }) {
           @{handle}
         </span>
         <span className="block whitespace-nowrap text-[10px] text-muted">
-          over on x, strangers welcome
+          strangers welcome
         </span>
       </a>
     </PeekCard>
@@ -575,6 +582,14 @@ function PostsPeek() {
           </a>
         );
       })}
+      <span className="mt-2.5 block">
+        <span className="block whitespace-nowrap text-faint text-xs italic">
+          it&apos;s been a while
+        </span>
+        <span className="block text-[10px] text-faint tabular-nums">
+          2026-??
+        </span>
+      </span>
     </PeekCard>
   );
 }
