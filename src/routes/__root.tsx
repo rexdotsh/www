@@ -11,6 +11,7 @@ import instrumentWoff2 from "@fontsource/instrument-serif/files/instrument-serif
 import appCss from "../styles.css?url";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
+const OG_IMAGE_VERSION = "2";
 
 export const Route = createRootRoute({
   headers: () => ({
@@ -32,7 +33,7 @@ export const Route = createRootRoute({
     const description = "projects, writing, and whatever's playing.";
     const canonicalUrl = new URL("/", baseUrl).href;
     const imageUrl = new URL(
-      name === "mridul" ? "/social-card-mridul.png" : "/social-card-rex.png",
+      `${name === "mridul" ? "/social-card-mridul.png" : "/social-card-rex.png"}?v=${OG_IMAGE_VERSION}`,
       baseUrl
     ).href;
 
