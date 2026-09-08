@@ -3,12 +3,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
+import RoomDialog from "@/components/room-dialog";
+import { getIdentity, type Room, ROOMS } from "@/lib/content";
+import { sfx } from "@/lib/sfx";
 import { type SpotifyTrack, useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
 
 const rootRoute = getRouteApi("__root__");
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { room?: Room } => ({
+    room: ROOMS.find((item) => item.id === search.room)?.id,
+  }),
   component: Home,
   headers: () => ({
     "Cache-Control": "public, max-age=0",
@@ -37,16 +43,21 @@ const CAPTIONS: Record<SentenceWord, string> = {
   resume: "( pretending to be a document )",
 };
 
-const LIFTS: Record<SentenceWord, string> = {
-  name: "max-md:-translate-y-[50px]",
-  builds: "max-md:-translate-y-[218px]",
-  writes: "max-md:-translate-y-[66px]",
-  garden: "max-md:-translate-y-[79px]",
-  music: "max-md:-translate-y-[85px]",
-  hi: "max-md:-translate-y-[66px]",
-  resume: "max-md:-translate-y-[50px]",
+const WORD_ROOMS: Record<SentenceWord, Room> = {
+  name: "about",
+  builds: "work",
+  writes: "writing",
+  garden: "garden",
+  music: "listening",
+  hi: "about",
+  resume: "about",
 };
-const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[73px]";
+const SCULPTURES = [
+  { mode: "rest", label: "rose", caption: "( alive, technically )" },
+  { mode: "cube", label: "structure", caption: "( a little more together )" },
+  { mode: "garden", label: "garden", caption: "( better with company )" },
+  { mode: "orbit", label: "orbit", caption: "( somewhere else entirely )" },
+] as const;
 
 // Keep previews quieter on touch devices.
 const VOLUME = 0.5;
@@ -61,6 +72,49 @@ interface Preview {
 
 function Home() {
   const { hostname } = rootRoute.useLoaderData();
+  const identity = getIdentity(hostname);
+  const { room: searchRoom } = Route.useSearch();
+  const room = searchRoom ?? null;
+  const navigate = Route.useNavigate();
+  const [sculpture, setSculpture] = useState(0);
+  const openRoom = useCallback(
+    (next: Room) => {
+      sfx("pop");
+      navigate({ search: { room: next }, viewTransition: false });
+    },
+    [navigate]
+  );
+  const closeRoom = useCallback(() => {
+    navigate({ search: {}, viewTransition: false });
+  }, [navigate]);
+  const exploreWord = useCallback(
+    (next: SentenceWord) => openRoom(WORD_ROOMS[next]),
+    [openRoom]
+  );
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const command =
+        (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k";
+      const typing =
+        event.target instanceof HTMLElement &&
+        (event.target.isContentEditable ||
+          /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName));
+      if (
+        command ||
+        (event.key === "/" &&
+          !typing &&
+          !event.metaKey &&
+          !event.ctrlKey &&
+          !event.altKey)
+      ) {
+        event.preventDefault();
+        if (room === "index") closeRoom();
+        else openRoom("index");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [room, openRoom, closeRoom]);
   const live = useNowPlaying();
   const [word, setWord] = useState<SentenceWord | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -126,7 +180,14 @@ function Home() {
     track?.image.find((image) => image.size === "medium")?.["#text"] ??
     null;
 
-  const mode = word ? MODES[word] : preview ? "art" : "rest";
+  const mode =
+    room === "listening" && track
+      ? "art"
+      : word && !room
+        ? MODES[word]
+        : preview
+          ? "art"
+          : SCULPTURES[sculpture].mode;
 
   const caption = (() => {
     if (word === "music" || (!word && preview)) {
@@ -140,54 +201,117 @@ function Home() {
       }
       return CAPTIONS.music;
     }
-    return word ? CAPTIONS[word] : "( alive, technically )";
+    return word ? CAPTIONS[word] : SCULPTURES[sculpture].caption;
   })();
 
-  const liftClass = word
-    ? word === "music" && !track?.isPlaying
-      ? MUSIC_COMPACT_LIFT
-      : LIFTS[word]
-    : "";
-
   return (
-    <main className="fixed inset-0 overflow-y-auto paper paper-lit font-serif-display text-ink selection:bg-rose selection:text-paper">
-      <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-12 pb-[max(2.5rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:px-12 md:py-16">
-        <div className="sentence-root relative max-w-2xl md:flex-1">
+    <main className="living-room fixed inset-0 overflow-hidden paper paper-lit font-serif-display text-ink selection:bg-rose selection:text-paper">
+      <div className="home-signature">
+        <button onClick={() => openRoom("about")} type="button">
+          {identity.domain}
+          <span aria-hidden="true">✳</span>
+        </button>
+        <span>a place for things</span>
+      </div>
+      <div className="living-composition">
+        <div className="sentence-root living-sentence">
+          <p className="living-eyebrow rise">
+            software, security, and side quests.
+          </p>
           <TheSentence
-            className="text-[clamp(1.9rem,8.6vw,2.5rem)] leading-[1.22] tracking-[-0.01em] md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"
+            className="living-introduction"
             hostname={hostname}
             onPreviewToggle={previewUrl ? togglePreview : undefined}
             onWordHover={setWord}
+            onExplore={exploreWord}
             previewPlaying={preview !== null}
             track={track}
             wordStagger
           />
+          <p className="living-invitation rise">
+            <span className="hint-desktop">
+              hover to peek. click to stay a little.
+            </span>
+            <span className="hint-touch">
+              the words are little doors. tap one.
+            </span>
+          </p>
         </div>
 
-        <div
-          className="rise relative z-20 flex shrink-0 flex-col items-center md:z-auto"
-          style={{ animationDelay: "200ms" }}
-        >
-          <div
-            className={`flex flex-col items-center transition-transform duration-300 ease-strong ${liftClass}`}
-          >
+        <div className="living-art rise" style={{ animationDelay: "200ms" }}>
+          <div className="living-rose-stage">
+            <span className="rose-halo" aria-hidden="true" />
             <ParticleRose
               artFade={artFade}
               artUrl={albumArt}
-              className="w-[min(64vw,300px)] md:w-[min(34vw,440px)]"
+              className="living-rose"
               mode={mode}
+              paused={room !== null && room !== "listening"}
             />
-            <p
-              aria-hidden="true"
-              className="mt-2.5 h-4 font-mono text-faint text-[10px] italic"
-            >
+            <p aria-hidden="true" className="rose-caption">
               <span className="swap-in" key={caption}>
                 {caption}
               </span>
             </p>
+            <div
+              className="rose-shapes"
+              role="group"
+              aria-label="Play with the rose"
+            >
+              {SCULPTURES.map((item, index) => (
+                <button
+                  aria-label={`Shape: ${item.label}`}
+                  aria-pressed={sculpture === index}
+                  key={item.mode}
+                  onClick={() => {
+                    setSculpture(index);
+                    sfx("tick");
+                  }}
+                  type="button"
+                >
+                  <span aria-hidden="true">{["✳", "◇", "⁙", "◎"][index]}</span>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
+      <footer className="living-footer">
+        <span className="living-footer-note">
+          made of code & a little curiosity
+        </span>
+        <nav aria-label="Explore this space" className="home-dock">
+          {ROOMS.map((item) => (
+            <button
+              aria-label={`Open ${item.label}`}
+              key={item.id}
+              onClick={() => openRoom(item.id)}
+              type="button"
+            >
+              <span aria-hidden="true">{item.glyph}</span>
+              <span>{item.short}</span>
+            </button>
+          ))}
+        </nav>
+        <button
+          className="index-shortcut"
+          onClick={() => openRoom("index")}
+          type="button"
+        >
+          take a look around <kbd>⌘ K</kbd>
+        </button>
+      </footer>
+      <RoomDialog
+        hostname={hostname}
+        onClose={closeRoom}
+        onOpen={openRoom}
+        onPreview={previewUrl ? togglePreview : undefined}
+        playing={isPlaying}
+        progress={artFade}
+        room={room}
+        track={track}
+      />
       <TintStrips />
     </main>
   );

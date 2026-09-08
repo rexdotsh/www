@@ -36,7 +36,10 @@ export function useNowPlaying() {
               ? current
               : data
           );
-          if (data && data.id !== previewId) {
+          if (!data) {
+            previewId = undefined;
+            setPreviewUrl(null);
+          } else if (data.id !== previewId) {
             previewId = data.id;
             setPreviewUrl(null);
             const preview = await fetch(`/api/spotify/preview/${data.id}`, {

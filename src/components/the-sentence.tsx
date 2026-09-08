@@ -36,6 +36,7 @@ export const TheSentence = memo(function TheSentence({
   hostname,
   onPreviewToggle,
   onWordHover,
+  onExplore,
   previewPlaying = false,
   track,
   wordStagger = false,
@@ -44,6 +45,7 @@ export const TheSentence = memo(function TheSentence({
   hostname: string;
   onPreviewToggle?: () => void;
   onWordHover?: (word: SentenceWord | null) => void;
+  onExplore?: (word: SentenceWord) => void;
   previewPlaying?: boolean;
   track: SpotifyTrack | null;
   wordStagger?: boolean;
@@ -164,6 +166,7 @@ export const TheSentence = memo(function TheSentence({
                   hoverKey={part.key}
                   href={part.href}
                   onHover={onWordHover}
+                  onExplore={onExplore}
                   peek={part.peek}
                   tone={part.tone}
                 >
@@ -180,6 +183,7 @@ export const TheSentence = memo(function TheSentence({
               hoverKey="hi"
               href={LINKS.twitter}
               onHover={onWordHover}
+              onExplore={onExplore}
               peek={
                 <TextPeek
                   center
@@ -234,6 +238,7 @@ function Peek({
   hoverKey,
   href,
   onHover,
+  onExplore,
   peek,
   tone = "link",
 }: {
@@ -241,6 +246,7 @@ function Peek({
   hoverKey: SentenceWord;
   href: string;
   onHover?: (word: SentenceWord | null) => void;
+  onExplore?: (word: SentenceWord) => void;
   peek: ReactNode;
   tone?: "link" | "name";
 }) {
@@ -254,6 +260,15 @@ function Peek({
   };
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+      return;
+    if (onExplore && hoverKey !== "resume") {
+      event.preventDefault();
+      setArmed(false);
+      report(null);
+      onExplore(hoverKey);
+      return;
+    }
     if (window.matchMedia("(hover: none)").matches) {
       if (!armed) {
         event.preventDefault();
@@ -305,6 +320,12 @@ function Peek({
       ref={wrapperRef}
     >
       <a
+        aria-haspopup={
+          onExplore && hoverKey !== "resume" ? "dialog" : undefined
+        }
+        aria-controls={
+          onExplore && hoverKey !== "resume" ? "space-room" : undefined
+        }
         className={`sentence-link ${
           tone === "name"
             ? "text-ink decoration-dotted decoration-ink/30 hover:decoration-ink/70"
@@ -478,7 +499,7 @@ function ProjectsPeek() {
   const graph = useContributions();
   return (
     <PeekCard label="lately">
-      {PROJECTS.map((project, index) => (
+      {PROJECTS.slice(0, 3).map((project, index) => (
         <a
           className={`group block ${index > 0 ? "mt-2.5" : ""}`}
           href={project.href}

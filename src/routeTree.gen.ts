@@ -16,6 +16,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as BlogRssDotxmlRouteImport } from './routes/blog/rss[.]xml'
 import { Route as ApiGithubContributionsRouteImport } from './routes/api/github/contributions'
+import { Route as ApiGithubDeskRouteImport } from './routes/api/github/desk'
 import { Route as ApiSpotifyPlayingRouteImport } from './routes/api/spotify/playing'
 import { Route as ApiSpotifyPreviewIdRouteImport } from './routes/api/spotify/preview/$id'
 
@@ -54,6 +55,11 @@ const ApiGithubContributionsRoute = ApiGithubContributionsRouteImport.update({
   path: '/api/github/contributions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGithubDeskRoute = ApiGithubDeskRouteImport.update({
+  id: '/api/github/desk',
+  path: '/api/github/desk',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSpotifyPlayingRoute = ApiSpotifyPlayingRouteImport.update({
   id: '/api/spotify/playing',
   path: '/api/spotify/playing',
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog/': typeof BlogIndexRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
+  '/api/github/desk': typeof ApiGithubDeskRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog': typeof BlogIndexRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
+  '/api/github/desk': typeof ApiGithubDeskRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog/': typeof BlogIndexRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
+  '/api/github/desk': typeof ApiGithubDeskRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/blog/rss.xml'
     | '/blog/'
     | '/api/github/contributions'
+    | '/api/github/desk'
     | '/api/spotify/playing'
     | '/api/spotify/preview/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/blog/rss.xml'
     | '/blog'
     | '/api/github/contributions'
+    | '/api/github/desk'
     | '/api/spotify/playing'
     | '/api/spotify/preview/$id'
   id:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/blog/rss.xml'
     | '/blog/'
     | '/api/github/contributions'
+    | '/api/github/desk'
     | '/api/spotify/playing'
     | '/api/spotify/preview/$id'
   fileRoutesById: FileRoutesById
@@ -143,6 +155,7 @@ export interface RootRouteChildren {
   BlogRssDotxmlRoute: typeof BlogRssDotxmlRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ApiGithubContributionsRoute: typeof ApiGithubContributionsRoute
+  ApiGithubDeskRoute: typeof ApiGithubDeskRoute
   ApiSpotifyPlayingRoute: typeof ApiSpotifyPlayingRoute
   ApiSpotifyPreviewIdRoute: typeof ApiSpotifyPreviewIdRoute
 }
@@ -198,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubContributionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/github/desk': {
+      id: '/api/github/desk'
+      path: '/api/github/desk'
+      fullPath: '/api/github/desk'
+      preLoaderRoute: typeof ApiGithubDeskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/spotify/playing': {
       id: '/api/spotify/playing'
       path: '/api/spotify/playing'
@@ -223,6 +243,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRssDotxmlRoute: BlogRssDotxmlRoute,
   BlogIndexRoute: BlogIndexRoute,
   ApiGithubContributionsRoute: ApiGithubContributionsRoute,
+  ApiGithubDeskRoute: ApiGithubDeskRoute,
   ApiSpotifyPlayingRoute: ApiSpotifyPlayingRoute,
   ApiSpotifyPreviewIdRoute: ApiSpotifyPreviewIdRoute,
 }

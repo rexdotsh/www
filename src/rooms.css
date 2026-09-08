@@ -1,0 +1,1491 @@
+/* biome-ignore-all lint/style/noDescendingSpecificity: selectors are grouped by independent, class-scoped components */
+/* One room, a few doors. The page stays still; the details unfold. */
+.living-room {
+  --room-rule: color-mix(in oklab, var(--ink) 12%, transparent);
+  --room-wash: color-mix(in oklab, var(--ink) 3%, var(--background));
+  --garden-ink: light-dark(#5c7052, #adbf9f);
+}
+
+.home-signature {
+  position: absolute;
+  top: max(25px, env(safe-area-inset-top));
+  left: max(35px, env(safe-area-inset-left));
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font: 10px var(--font-mono);
+  color: var(--faint);
+}
+.home-signature button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink);
+  cursor: pointer;
+  padding-block: 8px;
+}
+.home-signature button > span {
+  font-size: 18px;
+  color: var(--rose);
+  transition: rotate 600ms var(--ease-strong);
+}
+.home-signature button:hover > span {
+  rotate: 90deg;
+}
+.home-signature > span {
+  font-size: 9px;
+  font-style: italic;
+}
+.living-composition {
+  position: absolute;
+  inset: 105px 7% 125px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(30px, 5vw, 90px);
+  max-width: 1130px;
+  margin-inline: auto;
+}
+.living-sentence {
+  flex: 1;
+  min-width: 0;
+  max-width: 615px;
+}
+.living-eyebrow {
+  margin-bottom: 24px;
+  font: 9px var(--font-mono);
+  color: var(--faint);
+  letter-spacing: 0.08em;
+  animation-delay: 60ms;
+}
+.living-introduction {
+  font-size: clamp(34px, 3.8vw, 53px);
+  line-height: 1.22;
+  letter-spacing: -0.015em;
+}
+.living-invitation {
+  margin-top: 28px;
+  font: italic 10px var(--font-mono);
+  color: var(--faint);
+  animation-delay: 1150ms;
+}
+.hint-touch {
+  display: none;
+}
+.living-art {
+  flex: 0 0 35%;
+  min-width: 0;
+  position: relative;
+}
+.living-rose-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.living-rose {
+  width: 100%;
+}
+.rose-halo {
+  position: absolute;
+  width: 105%;
+  aspect-ratio: 1;
+  top: -3%;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--rose) 5%, transparent),
+    transparent 68%
+  );
+}
+.rose-caption {
+  margin-top: 14px;
+  min-height: 15px;
+  font: italic 10px var(--font-mono);
+  color: var(--faint);
+  text-align: center;
+}
+.rose-shapes {
+  display: flex;
+  gap: 5px;
+  margin-top: 17px;
+}
+.rose-shapes button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  font: 15px var(--font-mono);
+  color: var(--faint);
+  cursor: pointer;
+  transition:
+    color 180ms,
+    border-color 180ms,
+    transform 300ms var(--ease-strong);
+}
+.rose-shapes button:hover {
+  color: var(--rose);
+  transform: translateY(-3px);
+}
+.rose-shapes button[aria-pressed="true"] {
+  color: var(--rose);
+  border-color: color-mix(in oklab, var(--rose) 25%, transparent);
+}
+.rose-shapes button > span:last-child {
+  position: absolute;
+  top: calc(100% + 7px);
+  font: 8px var(--font-mono);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms;
+}
+.rose-shapes button:hover > span:last-child,
+.rose-shapes button:focus-visible > span:last-child {
+  opacity: 1;
+}
+.living-footer {
+  position: absolute;
+  left: 35px;
+  right: 35px;
+  bottom: max(26px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+.living-footer-note,
+.index-shortcut {
+  flex: 1;
+  font: italic 9px var(--font-mono);
+  color: var(--faint);
+}
+.index-shortcut {
+  text-align: right;
+  cursor: pointer;
+}
+.index-shortcut:hover {
+  color: var(--rose);
+}
+kbd {
+  font: 9px var(--font-mono);
+  border: 1px solid var(--room-rule);
+  border-radius: 4px;
+  padding: 3px 5px;
+}
+.index-shortcut kbd {
+  margin-left: 8px;
+}
+.home-dock {
+  display: flex;
+  align-items: center;
+  padding: 5px 8px;
+  border: 1px solid var(--room-rule);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--card) 50%, var(--background));
+  box-shadow: 0 3px 16px -10px color-mix(in oklab, var(--ink) 18%, transparent);
+  animation: rise-in 700ms var(--ease-strong) 900ms backwards;
+}
+.home-dock button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 13px;
+  border-radius: 999px;
+  color: var(--muted);
+  font: 10px var(--font-mono);
+  cursor: pointer;
+  transition:
+    color 160ms,
+    background 200ms,
+    transform 220ms var(--ease-strong);
+}
+.home-dock button > span:first-child {
+  color: var(--rose);
+  font-size: 15px;
+  transition: transform 280ms var(--ease-strong);
+}
+.home-dock button:hover {
+  background: color-mix(in oklab, var(--rose) 6%, transparent);
+  color: var(--rose);
+}
+.home-dock button:hover > span:first-child {
+  transform: translateY(-3px) rotate(-8deg);
+}
+
+.room-dialog {
+  margin: auto;
+  padding: 0;
+  width: min(850px, calc(100vw - 60px));
+  max-width: none;
+  max-height: min(740px, calc(100dvh - 80px));
+  overflow: visible;
+  color: var(--ink);
+  background: var(--background);
+  background-image: var(--paper-grain);
+  background-blend-mode: overlay;
+  border: 1px solid color-mix(in oklab, var(--ink) 15%, transparent);
+  border-radius: 15px;
+  box-shadow:
+    0 35px 100px -25px rgb(0 0 0 / 0.28),
+    0 3px 12px rgb(0 0 0 / 0.05);
+  font-family: var(--font-mono);
+}
+.room-dialog[open] {
+  animation: room-arrive 420ms var(--ease-strong) both;
+}
+.room-dialog::backdrop {
+  background: light-dark(rgb(74 59 43 / 0.15), rgb(0 0 0 / 0.4));
+  backdrop-filter: blur(8px);
+  animation: backdrop-arrive 300ms ease-out both;
+}
+@keyframes room-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.965) rotate(-0.5deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes backdrop-arrive {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.room-shell {
+  display: flex;
+  flex-direction: column;
+  max-height: min(740px, calc(100dvh - 80px));
+}
+.room-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 18px 23px 15px 30px;
+}
+.room-header > div {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.room-number {
+  font-size: 9px;
+  color: var(--rose);
+}
+.room-header h2 {
+  font: italic 20px var(--font-serif-display);
+  outline: none;
+}
+.room-close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  font: 25px var(--font-serif-display);
+  cursor: pointer;
+  color: var(--muted);
+  border-radius: 50%;
+  transition:
+    rotate 250ms,
+    background 150ms;
+}
+.room-close:hover {
+  rotate: 90deg;
+  background: var(--room-wash);
+  color: var(--rose);
+}
+.room-tabs {
+  display: flex;
+  flex-shrink: 0;
+  gap: 6px;
+  padding: 0 25px 12px;
+  border-bottom: 1px solid var(--room-rule);
+}
+.room-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  padding: 8px 11px;
+  color: var(--muted);
+  cursor: pointer;
+  border-radius: 5px;
+  transition:
+    color 150ms,
+    background 150ms;
+}
+.room-tabs button > span {
+  font-size: 14px;
+}
+.room-tabs button[aria-current],
+.room-tabs button:hover {
+  background: color-mix(in oklab, var(--rose) 7%, transparent);
+  color: var(--rose);
+}
+.room-body {
+  min-height: 0;
+  height: 478px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 25px 30px;
+  scrollbar-width: thin;
+  animation: room-page-in 320ms var(--ease-strong) both;
+}
+@keyframes room-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.room-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 15px;
+  border-top: 1px solid var(--room-rule);
+  padding: 9px 30px;
+  font-size: 8px;
+  color: var(--faint);
+}
+.room-copy {
+  cursor: pointer;
+  font: 9px var(--font-mono);
+  color: var(--muted);
+  padding-block: 9px;
+}
+.room-copy:hover {
+  color: var(--rose);
+}
+.room-kicker {
+  font: 9px / 1.5 var(--font-mono);
+  color: var(--faint);
+}
+.room-display {
+  font: 47px / 1.03 var(--font-serif-display);
+  letter-spacing: -0.025em;
+}
+.room-display em {
+  color: var(--rose);
+}
+.room-prose {
+  font: 18px / 1.5 var(--font-serif-body);
+  color: var(--muted);
+}
+.room-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  font: 10px / 1.5 var(--font-mono);
+  padding-block: 9px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.room-link > span:last-child {
+  color: var(--rose);
+  transition: translate 180ms;
+}
+.room-link:hover {
+  color: var(--rose);
+}
+.room-link:hover > span:last-child {
+  translate: 2px -2px;
+}
+.room-empty {
+  padding-block: 35px;
+  font: 14px / 1.7 var(--font-serif-body);
+  color: var(--muted);
+}
+.room-intro-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 23px;
+}
+.room-segment {
+  display: flex;
+  border: 1px solid var(--room-rule);
+  padding: 3px;
+  border-radius: 6px;
+  gap: 3px;
+}
+.room-segment button {
+  padding: 6px 9px;
+  border-radius: 3px;
+  font-size: 9px;
+  color: var(--faint);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.room-segment button[aria-pressed="true"] {
+  background: var(--room-wash);
+  color: var(--ink);
+}
+.live-dot,
+.quiet-dot {
+  display: inline-block;
+  vertical-align: 1px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--garden-ink);
+  margin-left: 4px;
+}
+.quiet-dot {
+  background: var(--faint);
+}
+.project-dossier {
+  display: grid;
+  grid-template-columns: 205px 1fr;
+  gap: 30px;
+}
+.dossier-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dossier-list button {
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font: 16px var(--font-serif-display);
+  transition:
+    background 160ms,
+    color 160ms;
+}
+.dossier-list button > span:nth-child(2) {
+  flex: 1;
+}
+.dossier-list small {
+  display: block;
+  margin-top: 4px;
+  font: 8px var(--font-mono);
+  color: var(--faint);
+}
+.dossier-index {
+  font: 8px var(--font-mono);
+  color: var(--faint);
+}
+.dossier-list button > span:last-child {
+  font: 11px var(--font-mono);
+  opacity: 0;
+  color: var(--rose);
+}
+.dossier-list button[aria-pressed="true"] {
+  background: color-mix(in oklab, var(--rose) 6%, transparent);
+  color: var(--rose);
+}
+.dossier-list button[aria-pressed="true"] > span:last-child {
+  opacity: 1;
+}
+.dossier-list button:hover {
+  background: var(--room-wash);
+}
+.dossier-detail {
+  min-width: 0;
+  animation: room-page-in 300ms var(--ease-strong) both;
+}
+.dossier-art {
+  position: relative;
+  height: 118px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--room-rule);
+  border-radius: 4px;
+  background:
+    radial-gradient(
+      color-mix(in oklab, var(--ink) 15%, transparent) 0.5px,
+      transparent 0.5px
+    )
+    0 0 / 12px 12px;
+}
+.dossier-art > span {
+  position: relative;
+  z-index: 1;
+  font: 73px var(--font-serif-display);
+  color: var(--rose);
+  animation: dossier-glyph 550ms var(--ease-strong) both;
+}
+.dossier-art i {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border: 1px solid color-mix(in oklab, var(--rose) 15%, transparent);
+  border-radius: 50%;
+}
+.dossier-art small {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  color: var(--faint);
+  font-size: 7px;
+}
+@keyframes dossier-glyph {
+  from {
+    transform: scale(0.7) rotate(-12deg);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.dossier-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin: 15px 0 8px;
+}
+.dossier-title h3 {
+  font: 35px / 1 var(--font-serif-display);
+  letter-spacing: -0.02em;
+}
+.repo-stars {
+  font-size: 10px;
+  color: var(--rose);
+}
+.dossier-detail .room-prose {
+  font-size: 16px;
+  line-height: 1.5;
+}
+.dossier-stack {
+  font-size: 8px;
+  color: var(--faint);
+  margin-block: 14px 5px;
+}
+.dossier-footnote {
+  font: italic 10px / 1.5 var(--font-serif-body);
+  color: var(--faint);
+  margin-top: 12px;
+}
+.activity-room .room-display {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+.activity-room > .room-prose {
+  font-size: 16px;
+}
+.activity-list {
+  margin-block: 24px 10px;
+}
+.activity-list li {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding-block: 10px;
+  position: relative;
+}
+.activity-node {
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--rose);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.activity-list li:not(:last-child)::after {
+  content: "";
+  width: 1px;
+  height: 100%;
+  background: var(--room-rule);
+  position: absolute;
+  top: calc(50% + 4px);
+  left: 2.5px;
+}
+.activity-list li > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.activity-list li > div > span {
+  font-size: 9px;
+  color: var(--faint);
+}
+.activity-list .room-link {
+  font-size: 11px;
+  padding-block: 0;
+  overflow-wrap: anywhere;
+}
+.activity-list time {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 8px;
+  color: var(--faint);
+}
+
+.notebook-heading {
+  position: relative;
+}
+.notebook-heading .room-display {
+  margin-top: 13px;
+}
+.notebook-heading > span {
+  position: absolute;
+  right: 25px;
+  top: 10px;
+  font: italic 105px var(--font-serif-display);
+  color: color-mix(in oklab, var(--rose) 22%, transparent);
+  rotate: 12deg;
+}
+.notebook-entry {
+  display: block;
+  border-block: 1px solid var(--room-rule);
+  margin-top: 28px;
+  padding-block: 20px;
+}
+.notebook-entry .room-kicker {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.notebook-entry h4 {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  font: 29px var(--font-serif-display);
+  margin-top: 12px;
+}
+.notebook-entry h4 > span {
+  color: var(--rose);
+}
+.notebook-entry:hover h4 {
+  color: var(--rose);
+}
+.notebook-entry .room-prose {
+  margin-top: 7px;
+  font-size: 17px;
+}
+.notebook-tags {
+  display: block;
+  font-size: 8px;
+  color: var(--faint);
+  margin-top: 15px;
+}
+.notebook-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.listening-room {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: center;
+  min-height: 100%;
+}
+.record-player {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 17px;
+  border: 1px solid var(--room-rule);
+  border-radius: 8px;
+  background: var(--room-wash);
+}
+.record-grooves {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: repeating-radial-gradient(
+    circle,
+    #252526 0px,
+    #252526 1px,
+    #303031 2px,
+    #202021 3px
+  );
+  box-shadow: 0 8px 15px rgb(0 0 0 / 0.13);
+  display: grid;
+  place-items: center;
+  animation: record-spin 12s linear infinite;
+  animation-play-state: paused;
+}
+.record-player[data-playing] .record-grooves {
+  animation-play-state: running;
+}
+.record-grooves::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    transparent 0deg,
+    #ffffff18 45deg,
+    transparent 70deg,
+    transparent 180deg,
+    #ffffff18 225deg,
+    transparent 250deg
+  );
+  pointer-events: none;
+}
+.record-label {
+  display: grid;
+  place-items: center;
+  width: 39%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--rose);
+  overflow: hidden;
+}
+.record-label::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #19191b;
+  border: 2px solid #ffffff44;
+  border-radius: 50%;
+}
+.record-label img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.record-label > span {
+  font: 40px var(--font-serif-display);
+  color: var(--background);
+}
+.record-needle {
+  position: absolute;
+  width: 4px;
+  height: 65%;
+  top: 13px;
+  right: 17px;
+  border: 1px solid var(--faint);
+  background: var(--muted);
+  transform-origin: 50% 8px;
+  rotate: -7deg;
+  transition: rotate 650ms var(--ease-strong);
+  border-radius: 4px;
+}
+.record-needle::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 23px;
+  background: var(--ink);
+  bottom: -5px;
+  left: -4px;
+  border-radius: 2px;
+}
+.record-player[data-playing] .record-needle {
+  rotate: 22deg;
+}
+.record-caption {
+  position: absolute;
+  bottom: -25px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 8px;
+  color: var(--faint);
+}
+@keyframes record-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+.listening-copy {
+  min-width: 0;
+}
+.listening-copy .room-kicker {
+  font-size: 8px;
+}
+.listening-copy .room-display {
+  font-size: clamp(30px, 4vw, 45px);
+  margin-top: 16px;
+  overflow-wrap: anywhere;
+}
+.record-artist {
+  margin-top: 10px;
+  font: italic 21px / 1.3 var(--font-serif-body);
+  color: var(--muted);
+}
+.record-album {
+  margin-top: 10px;
+  font: 9px / 1.5 var(--font-mono);
+  color: var(--faint);
+}
+.listen-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 25px;
+  padding: 9px 16px 9px 10px;
+  border: 1px solid color-mix(in oklab, var(--rose) 30%, transparent);
+  border-radius: 999px;
+  font-size: 10px;
+  color: var(--rose);
+  cursor: pointer;
+  transition: background 150ms;
+}
+.listen-button > span {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: var(--rose);
+  color: var(--background);
+  font-size: 16px;
+}
+.listen-button:hover {
+  background: color-mix(in oklab, var(--rose) 6%, transparent);
+}
+.record-progress {
+  height: 2px;
+  background: var(--room-rule);
+  margin-block: 22px 10px;
+}
+.record-progress > span {
+  display: block;
+  height: 100%;
+  width: var(--record-progress, 0%);
+  background: var(--rose);
+  transition: width 250ms linear;
+}
+.record-unavailable {
+  margin-block: 24px 10px;
+  font: italic 13px / 1.5 var(--font-serif-body);
+  color: var(--faint);
+}
+.listening-footnote {
+  margin-top: 16px;
+  font: italic 12px / 1.4 var(--font-serif-body);
+  color: var(--faint);
+}
+
+.garden-room .room-display {
+  margin-block: 14px 10px;
+}
+.garden-room .room-display em {
+  color: var(--garden-ink);
+}
+.garden-intro {
+  max-width: 42ch;
+  font-size: 17px;
+}
+.flower-shelf {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+  margin-block: 18px;
+}
+.flower-pot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  text-align: center;
+}
+.flower-head {
+  font: 75px / 1 var(--font-serif-display);
+  color: var(--rose);
+  rotate: var(--flower-turn);
+  transition:
+    rotate 750ms var(--ease-strong),
+    translate 500ms var(--ease-strong);
+}
+.flower-pot:nth-child(2) .flower-head {
+  color: var(--garden-ink);
+}
+.flower-pot:nth-child(3) .flower-head {
+  color: light-dark(#967448, #d0ad7e);
+}
+.flower-pot:hover .flower-head {
+  rotate: calc(var(--flower-turn) + 80deg);
+  translate: 0 -4px;
+}
+.flower-stem {
+  width: 1px;
+  height: 20px;
+  margin-top: -6px;
+  background: var(--garden-ink);
+}
+.flower-pot h4 {
+  width: 100%;
+  padding-top: 12px;
+  border-top: 1px solid var(--room-rule);
+  font: 25px var(--font-serif-display);
+}
+.flower-pot h4 > span {
+  font: 10px var(--font-mono);
+  color: var(--faint);
+  margin-left: 8px;
+}
+.flower-pot p {
+  font: 11px / 1.5 var(--font-serif-body);
+  color: var(--muted);
+  max-width: 19ch;
+  margin-top: 6px;
+}
+
+.about-room {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  align-items: center;
+  gap: 42px;
+  min-height: 100%;
+}
+.identity-card {
+  position: relative;
+  rotate: -4deg;
+  padding: 21px;
+  border: 1px solid var(--room-rule);
+  background: var(--card);
+  box-shadow: 6px 8px 0 color-mix(in oklab, var(--rose) 5%, transparent);
+  transition: rotate 500ms var(--ease-strong);
+}
+.identity-card:hover {
+  rotate: 0deg;
+}
+.identity-card > .room-kicker {
+  font-size: 7px;
+}
+.identity-monogram {
+  position: relative;
+  margin-block: 20px 28px;
+  font: italic 110px / 0.9 var(--font-serif-display);
+  color: var(--rose);
+  letter-spacing: -10px;
+}
+.identity-monogram > span {
+  font-size: 65px;
+  margin-left: -7px;
+  color: var(--ink);
+}
+.identity-card > p {
+  font: 26px var(--font-serif-display);
+  padding-top: 12px;
+  border-top: 1px solid var(--room-rule);
+}
+.identity-card > p > span {
+  display: block;
+  font: italic 14px var(--font-serif-body);
+  color: var(--muted);
+  margin-top: 4px;
+}
+.identity-location {
+  display: block;
+  font-size: 7px;
+  color: var(--faint);
+  margin-top: 20px;
+}
+.about-copy .room-display {
+  margin-block: 13px 15px;
+  font-size: 43px;
+}
+.about-copy .room-prose {
+  font-size: 17px;
+}
+.about-aside {
+  font: italic 16px / 1.4 var(--font-serif-body);
+  color: var(--rose);
+  margin-block: 18px;
+}
+.about-aside > span {
+  display: block;
+  font: 8px var(--font-mono);
+  color: var(--faint);
+  margin-top: 7px;
+}
+.contact-links {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 18px;
+  border-top: 1px solid var(--room-rule);
+  padding-top: 8px;
+}
+.contact-links .room-link {
+  font-size: 9px;
+}
+.contact-links > :nth-child(n + 3) {
+  grid-column: 1 / -1;
+}
+.about-footnote {
+  margin-top: 13px;
+  font: italic 12px / 1.4 var(--font-serif-body);
+  color: var(--faint);
+}
+
+.index-search {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  border-bottom: 1px solid var(--room-rule);
+  padding-bottom: 17px;
+  margin-bottom: 21px;
+}
+.index-search > span {
+  font: 28px var(--font-serif-display);
+  color: var(--rose);
+}
+.index-search input {
+  width: 100%;
+  min-width: 0;
+  font: 26px var(--font-serif-display);
+  outline-offset: 6px;
+  background: transparent;
+}
+.index-search input::placeholder {
+  color: var(--faint);
+}
+.index-results {
+  margin-top: 10px;
+}
+.index-result {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  width: 100%;
+  padding: 13px 10px;
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+  font: 21px / 1.2 var(--font-serif-display);
+  transition:
+    background 150ms,
+    color 150ms;
+}
+.index-result:hover,
+.index-result:focus-visible {
+  background: color-mix(in oklab, var(--rose) 6%, transparent);
+  color: var(--rose);
+}
+.index-result .index-glyph {
+  font: 22px var(--font-serif-display);
+  width: 25px;
+  flex-shrink: 0;
+  color: var(--rose);
+  text-align: center;
+}
+.index-result > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.index-result small {
+  display: block;
+  margin-top: 6px;
+  font: 9px / 1.4 var(--font-mono);
+  color: var(--faint);
+}
+.index-result > span:last-child:not(:nth-child(2)) {
+  font: 11px var(--font-mono);
+  color: var(--faint);
+}
+.index-footnote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 21px;
+  font-size: 8px;
+  color: var(--faint);
+}
+
+@media (hover: none) {
+  .hint-desktop {
+    display: none;
+  }
+  .hint-touch {
+    display: inline;
+  }
+}
+@media (max-width: 1100px) {
+  .living-footer-note {
+    display: none;
+  }
+  .index-shortcut {
+    flex: none;
+  }
+  .living-footer {
+    gap: 25px;
+  }
+  .living-composition {
+    inset-inline: 6%;
+    gap: 40px;
+  }
+  .living-introduction {
+    font-size: clamp(32px, 4.3vw, 45px);
+  }
+}
+@media (max-width: 767px) {
+  .home-signature {
+    top: max(17px, env(safe-area-inset-top));
+    left: 24px;
+  }
+  .home-signature > span {
+    display: none;
+  }
+  .living-composition {
+    inset: 85px 28px 107px;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 20px;
+    justify-content: stretch;
+  }
+  .living-eyebrow {
+    margin-bottom: 18px;
+    font-size: 8px;
+  }
+  .living-introduction {
+    font-size: clamp(25px, 4.4dvh, 34px);
+    line-height: 1.18;
+  }
+  .living-invitation {
+    margin-top: 15px;
+    font-size: 8px;
+  }
+  .living-art {
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .living-rose-stage {
+    height: 100%;
+    width: 100%;
+    justify-content: center;
+  }
+  .living-rose {
+    width: min(52vw, 230px, calc(100dvh - 530px));
+    min-width: 90px;
+  }
+  .rose-halo {
+    width: 65%;
+    top: 0;
+    left: 17.5%;
+  }
+  .rose-caption {
+    margin-top: 4px;
+    font-size: 8px;
+  }
+  .rose-shapes {
+    margin-top: 4px;
+    gap: 9px;
+  }
+  .rose-shapes button {
+    width: 32px;
+    height: 32px;
+  }
+  .living-footer {
+    left: 14px;
+    right: 14px;
+    bottom: max(22px, env(safe-area-inset-bottom));
+  }
+  .index-shortcut {
+    display: none;
+  }
+  .home-dock {
+    padding: 4px 6px;
+    width: min(100%, 430px);
+    justify-content: space-around;
+  }
+  .home-dock button {
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 10px;
+    font-size: 8px;
+    border-radius: 10px;
+  }
+  .home-dock button > span:first-child {
+    font-size: 17px;
+  }
+  .room-dialog {
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 36px);
+    border-radius: 13px;
+  }
+  .room-shell {
+    max-height: calc(100dvh - 36px);
+  }
+  .room-header {
+    padding: 14px 14px 9px 20px;
+  }
+  .room-close {
+    width: 36px;
+    height: 36px;
+  }
+  .room-tabs {
+    padding: 0 12px 10px;
+    gap: 0;
+    justify-content: space-between;
+  }
+  .room-tabs button {
+    padding: 9px 7px;
+    font-size: 8px;
+    gap: 4px;
+  }
+  .room-tabs button > span {
+    font-size: 12px;
+  }
+  .room-body {
+    height: min(620px, calc(100dvh - 180px));
+    padding: 22px 20px;
+  }
+  .room-footer {
+    padding: 7px 20px;
+  }
+  .room-footer > span {
+    display: none;
+  }
+  .room-footer .room-copy {
+    margin-left: auto;
+  }
+  .room-intro-row {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .room-intro-row > .room-kicker {
+    font-size: 8px;
+  }
+  .project-dossier {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .dossier-list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+  }
+  .dossier-list button {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 9px 3px;
+    font: 8px var(--font-mono);
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .dossier-list button small,
+  .dossier-list button > span:last-child {
+    display: none;
+  }
+  .dossier-index {
+    font-size: 8px;
+  }
+  .dossier-art {
+    height: 92px;
+  }
+  .dossier-art > span {
+    font-size: 60px;
+  }
+  .dossier-art i {
+    height: 66px;
+    width: 66px;
+  }
+  .dossier-detail .room-prose {
+    font-size: 16px;
+  }
+  .dossier-title h3 {
+    font-size: 33px;
+  }
+  .room-display {
+    font-size: 43px;
+  }
+  .notebook-heading > span {
+    right: 0;
+    font-size: 80px;
+  }
+  .notebook-entry h4 {
+    font-size: 27px;
+  }
+  .notebook-entry .room-kicker {
+    font-size: 8px;
+  }
+  .notebook-links .room-link {
+    font-size: 9px;
+  }
+  .listening-room {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .record-player {
+    width: 200px;
+    justify-self: center;
+  }
+  .listening-copy .room-display {
+    font-size: 36px;
+  }
+  .listening-copy .room-kicker {
+    font-size: 9px;
+  }
+  .listen-button {
+    margin-top: 18px;
+  }
+  .record-progress {
+    margin-top: 16px;
+  }
+  .listening-footnote {
+    margin-top: 9px;
+  }
+  .garden-intro {
+    font-size: 16px;
+  }
+  .flower-shelf {
+    gap: 12px;
+  }
+  .flower-head {
+    font-size: 60px;
+  }
+  .flower-pot h4 {
+    font-size: 22px;
+  }
+  .flower-pot h4 > span {
+    display: none;
+  }
+  .flower-pot p {
+    font-size: 11px;
+  }
+  .about-room {
+    grid-template-columns: 1fr;
+    gap: 23px;
+  }
+  .identity-card {
+    display: grid;
+    grid-template-columns: 75px 1fr;
+    align-items: center;
+    width: 100%;
+    justify-self: center;
+    padding: 15px 20px;
+    rotate: -2deg;
+  }
+  .identity-card > .room-kicker {
+    grid-column: 1 / -1;
+  }
+  .identity-monogram {
+    grid-row: 2 / 4;
+    font-size: 63px;
+    margin-block: 15px 4px;
+  }
+  .identity-monogram > span {
+    font-size: 40px;
+  }
+  .identity-card > p {
+    font-size: 23px;
+    border: 0;
+    padding-top: 12px;
+  }
+  .identity-location {
+    grid-column: 2;
+    margin-top: 7px;
+  }
+  .about-copy .room-display {
+    font-size: 39px;
+  }
+  .index-search {
+    gap: 10px;
+  }
+  .index-search input {
+    font-size: 21px;
+  }
+  .index-result {
+    padding: 13px 5px;
+    gap: 11px;
+  }
+  .index-footnote {
+    gap: 5px;
+    font-size: 7px;
+    flex-wrap: wrap;
+  }
+  .activity-list li {
+    gap: 10px;
+  }
+  .activity-list li > div {
+    gap: 4px;
+  }
+  .activity-list .room-link {
+    font-size: 10px;
+  }
+}
+@media (max-width: 767px) and (max-height: 680px) {
+  .living-composition {
+    top: 65px;
+    bottom: 88px;
+    gap: 8px;
+  }
+  .living-eyebrow {
+    display: none;
+  }
+  .living-introduction {
+    font-size: 26px;
+  }
+  .living-invitation {
+    margin-top: 10px;
+  }
+  .living-rose {
+    width: 110px;
+  }
+  .rose-shapes button {
+    height: 28px;
+    width: 28px;
+  }
+  .living-footer {
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  .living-sentence > p:last-child {
+    font-size: 8px;
+  }
+}
+@media (min-width: 768px) and (max-height: 650px) {
+  .living-composition {
+    inset-block: 75px 100px;
+  }
+  .living-introduction {
+    font-size: 34px;
+  }
+  .living-rose {
+    width: min(100%, calc(100dvh - 250px), 230px);
+  }
+  .living-eyebrow {
+    margin-bottom: 15px;
+  }
+  .living-invitation {
+    margin-top: 15px;
+  }
+  .index-shortcut {
+    display: none;
+  }
+}
+@media (max-width: 600px) and (orientation: landscape) {
+  .living-composition {
+    grid-template-columns: 1.4fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 25px;
+  }
+  .living-introduction {
+    font-size: 22px;
+  }
+  .living-invitation {
+    display: none;
+  }
+}

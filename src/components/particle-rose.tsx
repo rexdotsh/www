@@ -10,7 +10,8 @@ export type RoseMode =
   | "garden"
   | "art"
   | "hi"
-  | "paper";
+  | "paper"
+  | "orbit";
 
 type Rgb = [number, number, number];
 
@@ -303,19 +304,22 @@ export default function ParticleRose({
   artUrl = null,
   className = "",
   mode = "rest",
+  paused = false,
 }: {
   artFade?: number;
   artUrl?: string | null;
   className?: string;
   mode?: RoseMode;
+  paused?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const modeRef = useRef<RoseMode>(mode);
-  modeRef.current = mode;
+  const pausedRef = useRef(paused);
   const artFadeRef = useRef(artFade);
   artFadeRef.current = artFade;
   const loadArtRef = useRef<(url: string | null) => void>(() => undefined);
+  const syncRef = useRef<() => void>(() => undefined);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -325,9 +329,8 @@ export default function ParticleRose({
       return;
     }
 
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduceMotion = motionQuery.matches;
 
     let particles: Particle[] = [];
     let size = 0;
@@ -386,6 +389,7 @@ export default function ParticleRose({
       image.onload = () => {
         artImage = image;
         applyArt();
+        syncRef.current();
       };
       image.src = url;
     };
@@ -410,10 +414,13 @@ export default function ParticleRose({
     };
 
     const drawStatic = () => {
+      const artMode = modeRef.current === "art" && hasArt;
+      context.font = artMode ? artFont : baseFont;
       context.clearRect(0, 0, size, size);
       for (const p of particles) {
-        context.fillStyle = p.color;
-        context.fillText(p.ch, p.homeX, p.homeY);
+        const [x, y] = targetFor(p, 0);
+        context.fillStyle = artMode && p.art ? toCss(p.art) : p.color;
+        context.fillText(artMode ? "#" : p.ch, x, y);
       }
     };
 
@@ -423,6 +430,14 @@ export default function ParticleRose({
       const dy = p.homeY - c;
 
       switch (modeRef.current) {
+        case "orbit": {
+          const angle =
+            Math.atan2(dy, dx) + t * (p.cluster % 2 === 0 ? 0.18 : -0.13);
+          const radius = size * (0.28 + (p.ramp - 2) * 0.027);
+          const x = Math.cos(angle) * radius;
+          const y = Math.sin(angle) * radius * 0.4;
+          return [c + x * 0.9 + y * 0.43, c - x * 0.43 + y * 0.9];
+        }
         case "cube": {
           const angle = t * 0.7;
           const cos = Math.cos(angle);
@@ -471,6 +486,8 @@ export default function ParticleRose({
     let nextPetalAt = performance.now() + 9000 + Math.random() * 8000;
 
     const tick = (now: number) => {
+      raf = 0;
+      if (document.hidden || pausedRef.current || reduceMotion) return;
       if (!startedAt) {
         startedAt = now;
       }
@@ -574,14 +591,31 @@ export default function ParticleRose({
 
     const restart = (scattered: boolean) => {
       cancelAnimationFrame(raf);
+      raf = 0;
       setup(scattered);
-      if (reduceMotion) {
+      if (reduceMotion || pausedRef.current) {
         drawStatic();
       } else {
         startedAt = 0;
         raf = requestAnimationFrame(tick);
       }
     };
+    const sync = () => {
+      if (reduceMotion || pausedRef.current || document.hidden) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+        if (reduceMotion) drawStatic();
+      } else if (!raf) {
+        raf = requestAnimationFrame(tick);
+      }
+    };
+    syncRef.current = sync;
+    const onMotionChange = () => {
+      reduceMotion = motionQuery.matches;
+      restart(false);
+    };
+    motionQuery.addEventListener("change", onMotionChange);
+    document.addEventListener("visibilitychange", sync);
 
     const toLocal = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -663,12 +697,21 @@ export default function ParticleRose({
       window.removeEventListener("pointercancel", onPointerLift);
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointerleave", onPointerLeave);
+      motionQuery.removeEventListener("change", onMotionChange);
+      document.removeEventListener("visibilitychange", sync);
+      syncRef.current = () => undefined;
     };
   }, []);
 
   useEffect(() => {
     loadArtRef.current(artUrl);
   }, [artUrl]);
+
+  useEffect(() => {
+    modeRef.current = mode;
+    pausedRef.current = paused;
+    syncRef.current();
+  }, [mode, paused]);
 
   const inset = `${(((BLEED - 1) / 2) * 100).toFixed(0)}%`;
 
@@ -678,7 +721,7 @@ export default function ParticleRose({
       ref={containerRef}
     >
       <canvas
-        aria-label="An interactive rose made of ascii characters, move your cursor through it"
+        aria-label={`Interactive ASCII ${mode === "rest" ? "rose" : mode}. Move your pointer through it, or choose a shape below.`}
         className="absolute block touch-none"
         ref={canvasRef}
         role="img"
