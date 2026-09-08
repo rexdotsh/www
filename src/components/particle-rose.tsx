@@ -313,6 +313,7 @@ export default function ParticleRose({
   const containerRef = useRef<HTMLDivElement>(null);
   const modeRef = useRef<RoseMode>(mode);
   modeRef.current = mode;
+  const wakeRef = useRef<() => void>(() => undefined);
   const loadArtRef = useRef<(url: string | null) => void>(() => undefined);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: the canvas loop intentionally reads mutable refs without restarting
@@ -337,6 +338,8 @@ export default function ParticleRose({
     let artImage: HTMLImageElement | null = null;
     let baseFont = "";
     let artFont = "";
+    let activationEnd = 0;
+    let idleWakeTimer: ReturnType<typeof setTimeout> | undefined;
     let palette = readPalette(container);
     const pointer = { active: false, x: -9999, y: -9999 };
     let inViewport = true;
@@ -398,6 +401,10 @@ export default function ParticleRose({
       canvas.height = size * dpr;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       particles = buildParticles(size, scattered && !reduceMotion);
+      activationEnd = particles.reduce(
+        (end, particle) => Math.max(end, particle.activateAt),
+        0
+      );
       tint();
       const rows = ASCII_ROSE.split("\n").length;
       const inner = size / BLEED;
@@ -411,6 +418,8 @@ export default function ParticleRose({
     };
 
     const drawStatic = () => {
+      context.font = baseFont;
+      context.globalAlpha = 1;
       context.clearRect(0, 0, size, size);
       for (const p of particles) {
         context.fillStyle = p.color;
@@ -583,6 +592,24 @@ export default function ParticleRose({
         }
       }
       context.globalAlpha = 1;
+      const settled =
+        resting &&
+        !pointer.active &&
+        !petal &&
+        elapsed >= activationEnd &&
+        particles.every(
+          (particle) =>
+            Math.abs(particle.vx) < 0.015 &&
+            Math.abs(particle.vy) < 0.015 &&
+            Math.abs(particle.x - particle.homeX) < 0.5 &&
+            Math.abs(particle.y - particle.homeY) < 0.5
+        );
+      if (settled) {
+        drawStatic();
+        raf = 0;
+        scheduleIdleWake();
+        return;
+      }
       raf = inViewport && !document.hidden ? requestAnimationFrame(tick) : 0;
     };
 
@@ -593,6 +620,8 @@ export default function ParticleRose({
       }
     };
     const start = () => {
+      clearTimeout(idleWakeTimer);
+      idleWakeTimer = undefined;
       if (
         initialized &&
         !reduceMotion &&
@@ -602,6 +631,24 @@ export default function ParticleRose({
       ) {
         raf = requestAnimationFrame(tick);
       }
+    };
+    const scheduleIdleWake = () => {
+      if (
+        idleWakeTimer ||
+        modeRef.current !== "rest" ||
+        pointer.active ||
+        document.hidden
+      ) {
+        return;
+      }
+      idleWakeTimer = setTimeout(
+        () => {
+          idleWakeTimer = undefined;
+          nextPetalAt = performance.now();
+          start();
+        },
+        Math.max(0, nextPetalAt - performance.now())
+      );
     };
 
     const restart = (scattered: boolean) => {
@@ -626,6 +673,7 @@ export default function ParticleRose({
       pointer.x = local.x;
       pointer.y = local.y;
       pointer.active = true;
+      start();
     };
 
     const onPointerLeave = () => {
@@ -645,6 +693,7 @@ export default function ParticleRose({
       pointer.active = true;
       pointer.x = local.x;
       pointer.y = local.y;
+      start();
       const burstRadius = size * 0.38;
       for (const p of particles) {
         const dx = p.x - local.x;
@@ -672,6 +721,7 @@ export default function ParticleRose({
         restart(true);
       }
     });
+    wakeRef.current = start;
 
     const resizeObserver = new ResizeObserver(() => {
       if (container.clientWidth * BLEED !== size) {
@@ -703,6 +753,8 @@ export default function ParticleRose({
       tint();
       if (reduceMotion) {
         drawStatic();
+      } else {
+        start();
       }
     };
     const themeObserver = new MutationObserver(onThemeChange);
@@ -714,6 +766,9 @@ export default function ParticleRose({
     return () => {
       cancelled = true;
       stop();
+      clearTimeout(idleWakeTimer);
+      idleWakeTimer = undefined;
+      wakeRef.current = () => undefined;
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       themeObserver.disconnect();
@@ -725,6 +780,11 @@ export default function ParticleRose({
       canvas.removeEventListener("pointerleave", onPointerLeave);
     };
   }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mode changes wake a loop held outside React state
+  useEffect(() => {
+    wakeRef.current();
+  }, [mode]);
 
   useEffect(() => {
     loadArtRef.current(artUrl);
