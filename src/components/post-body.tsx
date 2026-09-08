@@ -85,7 +85,17 @@ function CodeFile({
   );
 }
 
-function Figure({ alt = "", src }: { alt?: string; src: string }) {
+function Figure({
+  alt = "",
+  height,
+  src,
+  width,
+}: {
+  alt?: string;
+  height: number;
+  src: string;
+  width: number;
+}) {
   const imageRef = useRef<HTMLImageElement>(null);
   const [pending, setPending] = useState(false);
 
@@ -96,17 +106,18 @@ function Figure({ alt = "", src }: { alt?: string; src: string }) {
   }, []);
 
   return (
-    // biome-ignore lint/correctness/useImageSize: post images vary
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: tracks fade-in
     <img
       alt={alt}
       className="post-media"
       data-pending={pending ? "" : undefined}
       decoding="async"
+      height={height}
       loading="lazy"
       onLoad={() => setPending(false)}
       ref={imageRef}
       src={src}
+      width={width}
     />
   );
 }

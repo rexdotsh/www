@@ -218,7 +218,11 @@ As you can see, the gold blocks are in the correct positions, but the player can
 
 A few hours later of trying to wrap our heads around the Ghidra decompiled code, using [GhidraBoy](https://github.com/Gekkio/GhidraBoy) and the output from the BGB Debugger, my teammate discovered this.
 
-<Figure src="https://r2.rex.wf/blog/parabox/ghidra-third-map.png" />
+<Figure
+  height={881}
+  src="https://r2.rex.wf/blog/parabox/ghidra-third-map.png"
+  width={487}
+/>
 
 He discovered that there was a **3rd map** in the level (1st one was the main map, 2nd one was the teleporter map), and our theory was that the player had to push some blocks into the third map as well to win the level. Taking a look at the win conditions for this level, confirmed that theory.
 
