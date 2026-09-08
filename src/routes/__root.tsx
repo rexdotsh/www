@@ -5,13 +5,13 @@ import CornerNotes from "@/components/corner-notes";
 import { preloadFont } from "@/lib/head";
 import { SITE_HEADERS } from "@/lib/headers";
 import { getSiteInfo } from "@/lib/site";
+import { ogImageUrl } from "@/lib/utils";
 import geistMonoWoff2 from "@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url";
 import instrumentItalicWoff2 from "@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2?url";
 import instrumentWoff2 from "@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2?url";
 import appCss from "../styles.css?url";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
-const OG_IMAGE_VERSION = import.meta.env.VITE_OG_IMAGE_VERSION ?? "dev";
 
 export const Route = createRootRoute({
   headers: () => ({
@@ -32,10 +32,10 @@ export const Route = createRootRoute({
     const title = `${name}'s space`;
     const description = "projects, writing, and whatever's playing.";
     const canonicalUrl = new URL("/", baseUrl).href;
-    const imageUrl = new URL(
-      `${name === "mridul" ? "/social-card-mridul.png" : "/social-card-rex.png"}?v=${OG_IMAGE_VERSION}`,
+    const imageUrl = ogImageUrl(
+      name === "mridul" ? "/social-card-mridul.png" : "/social-card-rex.png",
       baseUrl
-    ).href;
+    );
 
     return {
       meta: [

@@ -10,6 +10,7 @@ import { preloadFont, RSS_LINK } from "@/lib/head";
 import { getPost, type TocEntry } from "@/lib/posts";
 import { getPostMeta } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
+import { ogImageUrl } from "@/lib/utils";
 import postCss from "../../post.css?url";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
@@ -33,7 +34,7 @@ export const Route = createFileRoute("/blog/$slug")({
       (matches[0]?.loaderData as { baseUrl?: string } | undefined)?.baseUrl ??
       DEFAULT_BASE_URL;
     const url = `${baseUrl}/blog/${loaderData.slug}`;
-    const imageUrl = `${baseUrl}/og/${loaderData.slug}.png`;
+    const imageUrl = ogImageUrl(`/og/${loaderData.slug}.png`, baseUrl);
     return {
       meta: [
         { title: loaderData.title },
