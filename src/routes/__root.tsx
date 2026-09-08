@@ -11,7 +11,7 @@ import instrumentWoff2 from "@fontsource/instrument-serif/files/instrument-serif
 import appCss from "../styles.css?url";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
-const OG_IMAGE_VERSION = "2";
+const OG_IMAGE_VERSION = import.meta.env.VITE_OG_IMAGE_VERSION ?? "dev";
 
 export const Route = createRootRoute({
   headers: () => ({

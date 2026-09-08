@@ -6,6 +6,8 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import remarkReadingTime from "remark-reading-time";
@@ -30,7 +32,20 @@ const STATIC_ASSET_HEADERS = {
   },
 };
 
+const OG_IMAGE_VERSION = createHash("sha256")
+  .update(
+    readFileSync(new URL("./public/social-card-rex.png", import.meta.url))
+  )
+  .update(
+    readFileSync(new URL("./public/social-card-mridul.png", import.meta.url))
+  )
+  .digest("hex")
+  .slice(0, 12);
+
 export default defineConfig({
+  define: {
+    "import.meta.env.VITE_OG_IMAGE_VERSION": JSON.stringify(OG_IMAGE_VERSION),
+  },
   build: {
     rolldownOptions: {
       external: ["cloudflare:workers"],
