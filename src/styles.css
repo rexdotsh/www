@@ -55,7 +55,7 @@
 
 body {
   background-color: var(--background);
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
 }
 
 .paper {
@@ -130,7 +130,7 @@ body {
   top: max(1.1rem, env(safe-area-inset-top));
   right: max(1.4rem, env(safe-area-inset-right));
   z-index: 60;
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-style: italic;
   letter-spacing: 0.06em;

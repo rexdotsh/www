@@ -25,7 +25,7 @@
 }
 
 .prose-post {
-  font-family: "Newsreader Variable", Georgia, serif;
+  font-family: var(--font-serif-body);
   font-size: 1.0625rem;
   line-height: 1.78;
   color: var(--body);
@@ -36,7 +36,7 @@
 }
 
 .prose-post > p:first-child::first-letter {
-  font-family: "Instrument Serif", Georgia, serif;
+  font-family: var(--font-serif-display);
   font-size: 3.1em;
   line-height: 0.8;
   float: left;
@@ -45,7 +45,7 @@
 
 .prose-post h2,
 .prose-post h3 {
-  font-family: "Instrument Serif", Georgia, serif;
+  font-family: var(--font-serif-display);
   font-weight: 400;
   color: var(--ink);
   line-height: 1.15;
@@ -62,7 +62,7 @@
 }
 
 .prose-post h4 {
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.22em;
@@ -111,7 +111,7 @@
 }
 
 .prose-post :not(pre) > code {
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 0.8em;
   background: color-mix(in oklab, var(--ink) 6%, transparent);
   border: 1px solid color-mix(in oklab, var(--ink) 8%, transparent);
@@ -164,7 +164,7 @@
   content: "· · ·";
   display: block;
   text-align: center;
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.4em;
   color: var(--faint);
@@ -178,7 +178,7 @@
   padding: 1rem 1.15rem;
   overflow-x: auto;
   box-shadow: 0 12px 32px -20px rgba(23, 20, 15, 0.3);
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 0.78rem;
   line-height: 1.65;
   color: var(--body);
@@ -213,7 +213,7 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.18em;
@@ -261,7 +261,7 @@
 }
 
 .code-title {
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.22em;
@@ -279,7 +279,7 @@
   align-items: center;
   cursor: pointer;
   list-style: none;
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--muted);
   border: 1px dashed color-mix(in oklab, var(--ink) 22%, transparent);
@@ -397,7 +397,7 @@
   width: max-content;
   height: max-content;
   padding: 0.5rem 0.9rem;
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   font-style: italic;
   color: var(--ink);
@@ -430,7 +430,7 @@
   left: 50%;
   bottom: 0.75rem;
   translate: -50% 0;
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   font-style: italic;
   color: rgb(255 255 255 / 0.75);
@@ -443,7 +443,7 @@
   gap: 0.9rem;
   padding: 0.4rem 0.5rem 0.4rem 0.9rem;
   border-top: 1px solid color-mix(in oklab, var(--ink) 8%, transparent);
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
 }
 
@@ -608,7 +608,7 @@
 }
 
 .toc-back {
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--muted);
   margin-left: 1rem;
@@ -628,7 +628,7 @@
 
 .toc-label {
   display: block;
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.25em;
@@ -639,7 +639,7 @@
 
 .toc-item {
   display: block;
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   line-height: 1.5;
   color: var(--faint);
@@ -702,7 +702,7 @@
   left: 50%;
   top: 0;
   color: var(--heat-3);
-  font-family: "Geist Mono Variable", monospace;
+  font-family: var(--font-mono);
   font-size: 15px;
   animation: petal-fall 3s linear both;
 }
