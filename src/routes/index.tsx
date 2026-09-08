@@ -66,12 +66,12 @@ function Home() {
   const [preview, setPreview] = useState<Preview | null>(null);
   const track = preview?.track ?? live.track;
   const previewUrl = preview?.url ?? live.previewUrl;
-  const [artFade, setArtFade] = useState(0);
+  const artFadeRef = useRef(0);
   const fadedOutRef = useRef(false);
   const volumeRef = useRef(VOLUME);
   const { isPlaying, play, pause, fade, getPosition, duration, setVolume } =
     usePreview(previewUrl, () => {
-      setArtFade(0);
+      artFadeRef.current = 0;
       setPreview(null);
     });
 
@@ -82,7 +82,7 @@ function Home() {
     const interval = setInterval(() => {
       const total = duration || 30;
       const position = getPosition();
-      setArtFade(Math.min(1, position / total));
+      artFadeRef.current = Math.min(1, position / total);
       if (total - position < 6 && !fadedOutRef.current) {
         fadedOutRef.current = true;
         fade(volumeRef.current, 0, 5500);
@@ -105,7 +105,7 @@ function Home() {
   const togglePreview = useCallback(() => {
     if (preview) {
       pause();
-      setArtFade(0);
+      artFadeRef.current = 0;
       setPreview(null);
       return;
     }
@@ -114,7 +114,7 @@ function Home() {
     }
     fadedOutRef.current = false;
     volumeRef.current = isTouch() ? VOLUME_TOUCH : VOLUME;
-    setArtFade(0);
+    artFadeRef.current = 0;
     setPreview({ track: live.track, url: live.previewUrl });
     setVolume(0);
     play();
@@ -172,7 +172,7 @@ function Home() {
             className={`flex flex-col items-center transition-transform duration-300 ease-strong ${liftClass}`}
           >
             <ParticleRose
-              artFade={artFade}
+              artFadeRef={artFadeRef}
               artUrl={albumArt}
               className="w-[min(64vw,300px)] md:w-[min(34vw,440px)]"
               mode={mode}

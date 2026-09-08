@@ -74,7 +74,7 @@ export default defineConfig({
         },
         "/favicon.ico": STATIC_ASSET_HEADERS,
         "/image.png": STATIC_ASSET_HEADERS,
-        "/social-card.png": STATIC_ASSET_HEADERS,
+        "/social-card-rex.png": STATIC_ASSET_HEADERS,
         "/social-card-mridul.png": STATIC_ASSET_HEADERS,
         "/og/**": STATIC_ASSET_HEADERS,
         "/twitter": {

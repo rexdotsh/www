@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 import { ASCII_ROSE } from "@/lib/ascii-rose";
 import { sfx } from "@/lib/sfx";
 
@@ -299,12 +299,12 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
 }
 
 export default function ParticleRose({
-  artFade = 0,
+  artFadeRef,
   artUrl = null,
   className = "",
   mode = "rest",
 }: {
-  artFade?: number;
+  artFadeRef: RefObject<number>;
   artUrl?: string | null;
   className?: string;
   mode?: RoseMode;
@@ -313,10 +313,9 @@ export default function ParticleRose({
   const containerRef = useRef<HTMLDivElement>(null);
   const modeRef = useRef<RoseMode>(mode);
   modeRef.current = mode;
-  const artFadeRef = useRef(artFade);
-  artFadeRef.current = artFade;
   const loadArtRef = useRef<(url: string | null) => void>(() => undefined);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the canvas loop intentionally reads mutable refs without restarting
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -333,12 +332,14 @@ export default function ParticleRose({
     let size = 0;
     let raf = 0;
     let startedAt = 0;
+    let initialized = false;
     let hasArt = false;
     let artImage: HTMLImageElement | null = null;
     let baseFont = "";
     let artFont = "";
     let palette = readPalette(container);
-    const pointer = { x: -9999, y: -9999 };
+    const pointer = { active: false, x: -9999, y: -9999 };
+    let inViewport = true;
 
     const tint = () => {
       for (const p of particles) {
@@ -417,50 +418,6 @@ export default function ParticleRose({
       }
     };
 
-    const targetFor = (p: Particle, t: number): [number, number] => {
-      const c = size / 2;
-      const dx = p.homeX - c;
-      const dy = p.homeY - c;
-
-      switch (modeRef.current) {
-        case "cube": {
-          const angle = t * 0.7;
-          const cos = Math.cos(angle);
-          const sin = Math.sin(angle);
-          const x1 = p.cubeX * cos + p.cubeZ * sin;
-          const z1 = -p.cubeX * sin + p.cubeZ * cos;
-          const y1 = p.cubeY * 0.9135 - z1 * 0.4067;
-          const scale = (size / BLEED) * 0.26;
-          return [c + x1 * scale, c + y1 * scale];
-        }
-        case "caret":
-          return [p.caretX, p.caretY];
-        case "hi":
-          return [p.hiX, p.hiY];
-        case "art": {
-          if (hasArt) {
-            return [p.gridX, p.gridY];
-          }
-          const s = 1 + 0.07 * Math.sin(t * TAU * 1.35);
-          return [c + dx * s, c + dy * s];
-        }
-        case "garden": {
-          const [gx, gy] = GARDEN_CENTERS[p.cluster];
-          return [gx * size + dx * GARDEN_SCALE, gy * size + dy * GARDEN_SCALE];
-        }
-
-        case "paper":
-          return [p.docX, p.docY];
-        case "shiver":
-          return [
-            p.homeX + (Math.random() - 0.5) * 4,
-            p.homeY + (Math.random() - 0.5) * 4,
-          ];
-        default:
-          return [p.homeX, p.homeY];
-      }
-    };
-
     let petal: {
       p: Particle;
       phase: "fall" | "return";
@@ -476,13 +433,20 @@ export default function ParticleRose({
       }
       const elapsed = now - startedAt;
       const t = now / 1000;
+      const mode = modeRef.current;
+      const center = size / 2;
       const repelRadius = size * 0.16;
       const blushRadius = size * BLUSH_RADIUS_RATIO;
       const [glowR, glowG, glowB] = palette[GLOW];
-      const resting = modeRef.current === "rest";
-      const artMode = modeRef.current === "art" && hasArt;
+      const resting = mode === "rest";
+      const artMode = mode === "art" && hasArt;
+      const cubeAngle = t * 0.7;
+      const cubeCos = Math.cos(cubeAngle);
+      const cubeSin = Math.sin(cubeAngle);
+      const cubeScale = (size / BLEED) * 0.26;
+      const artScale = 1 + 0.07 * Math.sin(t * TAU * 1.35);
       const blink =
-        modeRef.current === "caret"
+        mode === "caret"
           ? 0.35 + 0.65 * (0.5 + 0.5 * Math.cos((t * TAU) / 1.2))
           : 1;
       context.font = artMode ? artFont : baseFont;
@@ -531,20 +495,70 @@ export default function ParticleRose({
             }
           }
         } else {
-          const [targetX, targetY] = targetFor(p, t);
+          const dx = p.homeX - center;
+          const dy = p.homeY - center;
+          let targetX = p.homeX;
+          let targetY = p.homeY;
+          switch (mode) {
+            case "cube": {
+              const x1 = p.cubeX * cubeCos + p.cubeZ * cubeSin;
+              const z1 = -p.cubeX * cubeSin + p.cubeZ * cubeCos;
+              const y1 = p.cubeY * 0.9135 - z1 * 0.4067;
+              targetX = center + x1 * cubeScale;
+              targetY = center + y1 * cubeScale;
+              break;
+            }
+            case "caret":
+              targetX = p.caretX;
+              targetY = p.caretY;
+              break;
+            case "hi":
+              targetX = p.hiX;
+              targetY = p.hiY;
+              break;
+            case "art":
+              if (hasArt) {
+                targetX = p.gridX;
+                targetY = p.gridY;
+              } else {
+                targetX = center + dx * artScale;
+                targetY = center + dy * artScale;
+              }
+              break;
+            case "garden": {
+              const garden = GARDEN_CENTERS[p.cluster];
+              targetX = garden[0] * size + dx * GARDEN_SCALE;
+              targetY = garden[1] * size + dy * GARDEN_SCALE;
+              break;
+            }
+            case "paper":
+              targetX = p.docX;
+              targetY = p.docY;
+              break;
+            case "shiver":
+              targetX += (Math.random() - 0.5) * 4;
+              targetY += (Math.random() - 0.5) * 4;
+              break;
+            default:
+              break;
+          }
           p.vx += (targetX - p.x) * SPRING;
           p.vy += (targetY - p.y) * SPRING;
 
-          const dx = p.x - pointer.x;
-          const dy = p.y - pointer.y;
-          const dist = Math.hypot(dx, dy);
-          if (dist < repelRadius && dist > 0.01) {
-            const force = (1 - dist / repelRadius) * REPEL_FORCE;
-            p.vx += (dx / dist) * force;
-            p.vy += (dy / dist) * force;
+          if (pointer.active) {
+            const pointerDx = p.x - pointer.x;
+            const pointerDy = p.y - pointer.y;
+            const dist = Math.hypot(pointerDx, pointerDy);
+            if (dist < repelRadius && dist > 0.01) {
+              const force = (1 - dist / repelRadius) * REPEL_FORCE;
+              p.vx += (pointerDx / dist) * force;
+              p.vy += (pointerDy / dist) * force;
+            }
+            blush =
+              dist < blushRadius
+                ? (1 - dist / blushRadius) * BLUSH_STRENGTH
+                : 0;
           }
-          blush =
-            dist < blushRadius ? (1 - dist / blushRadius) * BLUSH_STRENGTH : 0;
 
           p.vx *= DAMPING;
           p.vy *= DAMPING;
@@ -569,17 +583,36 @@ export default function ParticleRose({
         }
       }
       context.globalAlpha = 1;
-      raf = requestAnimationFrame(tick);
+      raf = inViewport && !document.hidden ? requestAnimationFrame(tick) : 0;
+    };
+
+    const stop = () => {
+      if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    };
+    const start = () => {
+      if (
+        initialized &&
+        !reduceMotion &&
+        inViewport &&
+        !document.hidden &&
+        !raf
+      ) {
+        raf = requestAnimationFrame(tick);
+      }
     };
 
     const restart = (scattered: boolean) => {
-      cancelAnimationFrame(raf);
+      stop();
       setup(scattered);
+      initialized = true;
       if (reduceMotion) {
         drawStatic();
       } else {
         startedAt = 0;
-        raf = requestAnimationFrame(tick);
+        start();
       }
     };
 
@@ -592,9 +625,11 @@ export default function ParticleRose({
       const local = toLocal(event);
       pointer.x = local.x;
       pointer.y = local.y;
+      pointer.active = true;
     };
 
     const onPointerLeave = () => {
+      pointer.active = false;
       pointer.x = -9999;
       pointer.y = -9999;
     };
@@ -607,6 +642,9 @@ export default function ParticleRose({
 
     const onPointerDown = (event: PointerEvent) => {
       const local = toLocal(event);
+      pointer.active = true;
+      pointer.x = local.x;
+      pointer.y = local.y;
       const burstRadius = size * 0.38;
       for (const p of particles) {
         const dx = p.x - local.x;
@@ -622,6 +660,13 @@ export default function ParticleRose({
     };
 
     let cancelled = false;
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        start();
+      }
+    };
     document.fonts.ready.then(() => {
       if (!cancelled) {
         restart(true);
@@ -634,9 +679,22 @@ export default function ParticleRose({
       }
     });
     resizeObserver.observe(container);
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("pointerup", onPointerLift, { passive: true });
-    window.addEventListener("pointercancel", onPointerLift, { passive: true });
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        inViewport = entry?.isIntersecting ?? false;
+        if (inViewport) {
+          start();
+        } else {
+          stop();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    intersectionObserver.observe(container);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    canvas.addEventListener("pointermove", onPointerMove, { passive: true });
+    canvas.addEventListener("pointerup", onPointerLift, { passive: true });
+    canvas.addEventListener("pointercancel", onPointerLift, { passive: true });
     canvas.addEventListener("pointerdown", onPointerDown);
     canvas.addEventListener("pointerleave", onPointerLeave);
 
@@ -655,12 +713,14 @@ export default function ParticleRose({
 
     return () => {
       cancelled = true;
-      cancelAnimationFrame(raf);
+      stop();
       resizeObserver.disconnect();
+      intersectionObserver.disconnect();
       themeObserver.disconnect();
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerup", onPointerLift);
-      window.removeEventListener("pointercancel", onPointerLift);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      canvas.removeEventListener("pointermove", onPointerMove);
+      canvas.removeEventListener("pointerup", onPointerLift);
+      canvas.removeEventListener("pointercancel", onPointerLift);
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointerleave", onPointerLeave);
     };
