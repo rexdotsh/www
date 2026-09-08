@@ -45,6 +45,7 @@ const SPRING = 0.028;
 const DAMPING = 0.86;
 const REPEL_FORCE = 3.4;
 const TAU = Math.PI * 2;
+const ACTIVATE_FADE_MS = 350;
 
 const BLEED = 1.24;
 
@@ -475,7 +476,8 @@ export default function ParticleRose({
           continue;
         }
 
-        let alpha = Math.min(1, (elapsed - p.activateAt) / 350) * blink;
+        let alpha =
+          Math.min(1, (elapsed - p.activateAt) / ACTIVATE_FADE_MS) * blink;
         let blush = 0;
 
         if (petal?.p === p) {
@@ -596,7 +598,7 @@ export default function ParticleRose({
         resting &&
         !pointer.active &&
         !petal &&
-        elapsed >= activationEnd &&
+        elapsed >= activationEnd + ACTIVATE_FADE_MS &&
         particles.every(
           (particle) =>
             Math.abs(particle.vx) < 0.015 &&
@@ -620,8 +622,6 @@ export default function ParticleRose({
       }
     };
     const start = () => {
-      clearTimeout(idleWakeTimer);
-      idleWakeTimer = undefined;
       if (
         initialized &&
         !reduceMotion &&
@@ -629,16 +629,13 @@ export default function ParticleRose({
         !document.hidden &&
         !raf
       ) {
+        clearTimeout(idleWakeTimer);
+        idleWakeTimer = undefined;
         raf = requestAnimationFrame(tick);
       }
     };
     const scheduleIdleWake = () => {
-      if (
-        idleWakeTimer ||
-        modeRef.current !== "rest" ||
-        pointer.active ||
-        document.hidden
-      ) {
+      if (idleWakeTimer || document.hidden) {
         return;
       }
       idleWakeTimer = setTimeout(

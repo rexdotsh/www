@@ -23,13 +23,22 @@ export function useNowPlaying() {
     let timeout: ReturnType<typeof setTimeout> | undefined;
     let previewId: string | undefined;
     let polling = false;
+    let lastPollAt = 0;
     const abortController = new AbortController();
+
+    const schedule = (delay: number) => {
+      clearTimeout(timeout);
+      if (!abortController.signal.aborted && !document.hidden) {
+        timeout = setTimeout(poll, delay);
+      }
+    };
 
     const poll = async () => {
       if (polling || document.hidden) {
         return;
       }
       polling = true;
+      lastPollAt = Date.now();
       try {
         const response = await fetch("/api/spotify/playing", {
           signal: abortController.signal,
@@ -42,14 +51,17 @@ export function useNowPlaying() {
               : data
           );
           if (data && data.id !== previewId) {
-            previewId = data.id;
             setPreviewUrl(null);
             const preview = await fetch(`/api/spotify/preview/${data.id}`, {
               signal: abortController.signal,
             });
+            // 4xx means no preview exists; 5xx and throws stay unresolved to retry.
             if (preview.ok) {
               const { url } = (await preview.json()) as { url?: string };
+              previewId = data.id;
               setPreviewUrl(url ?? null);
+            } else if (preview.status < 500) {
+              previewId = data.id;
             }
           }
         }
@@ -58,16 +70,14 @@ export function useNowPlaying() {
       } finally {
         polling = false;
       }
-      if (!abortController.signal.aborted && !document.hidden) {
-        timeout = setTimeout(poll, POLL_INTERVAL);
-      }
+      schedule(POLL_INTERVAL);
     };
 
-    // Pause polling while hidden.
+    // Pause while hidden, and resume on the remaining interval rather than at once.
     const onVisibility = () => {
       clearTimeout(timeout);
       if (!document.hidden) {
-        poll();
+        schedule(Math.max(0, POLL_INTERVAL - (Date.now() - lastPollAt)));
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
