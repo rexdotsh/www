@@ -19,7 +19,10 @@ export function getIdentity(hostname: string): SiteIdentity {
   };
 }
 
+export const EMAIL = "hey@mridul.sh";
+
 export const LINKS = {
+  email: `mailto:${EMAIL}`,
   archive: "https://github.com/rexdotsh/ctf-writeups",
   blog: "/blog",
   flora: "https://floraorg.github.io",

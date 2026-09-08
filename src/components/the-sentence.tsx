@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { getIdentity, LINKS, PROJECTS } from "@/lib/content";
+import { EMAIL, getIdentity, LINKS, PROJECTS } from "@/lib/content";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
 import type { SpotifyTrack } from "@/lib/use-now-playing";
@@ -180,15 +180,7 @@ export const TheSentence = memo(function TheSentence({
               hoverKey="hi"
               href={LINKS.twitter}
               onHover={onWordHover}
-              peek={
-                <TextPeek
-                  center
-                  href={LINKS.twitter}
-                  label="over on x"
-                  line={`@${identity.handle}`}
-                  sub="strangers welcome"
-                />
-              }
+              peek={<HiPeek handle={identity.handle} />}
             >
               hi back
             </Peek>
@@ -404,6 +396,60 @@ function TextPeek({
           {sub}
         </span>
       ) : null}
+    </PeekCard>
+  );
+}
+
+const COPIED_MS = 1600;
+
+function HiPeek({ handle }: { handle: string }) {
+  const [copied, setCopied] = useState(false);
+  const [touch, setTouch] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    setTouch(window.matchMedia("(hover: none)").matches);
+    return () => clearTimeout(timer.current);
+  }, []);
+
+  const copy = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (touch) {
+      return;
+    }
+    event.preventDefault();
+    navigator.clipboard
+      .writeText(EMAIL)
+      .then(() => {
+        setCopied(true);
+        sfx("pop");
+        clearTimeout(timer.current);
+        timer.current = setTimeout(() => setCopied(false), COPIED_MS);
+      })
+      .catch(() => undefined);
+  };
+
+  return (
+    <PeekCard center compact label="say hi">
+      <a
+        className="hi-row"
+        href={LINKS.twitter}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <span>@{handle}</span>
+        <span className="hi-hint">x</span>
+      </a>
+      <a className="hi-row" href={LINKS.email} onClick={copy}>
+        <span className="swap-in" key={String(copied)}>
+          {copied ? "( copied )" : `${EMAIL}`}
+        </span>
+        <span className="hi-hint">
+          {copied ? "" : `${touch ? "mail" : "copy"}`}
+        </span>
+      </a>
+      <span className="mt-1.5 block whitespace-nowrap text-center text-[10px] text-muted">
+        strangers welcome
+      </span>
     </PeekCard>
   );
 }

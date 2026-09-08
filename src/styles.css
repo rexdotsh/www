@@ -395,6 +395,36 @@ html[data-vt="theme"]::view-transition-new(root) {
   transform: translate(-50%, -50%);
 }
 
+.hi-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.25rem;
+  white-space: nowrap;
+  color: var(--ink);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  transition: color 150ms;
+}
+
+.hi-row:hover,
+.hi-row:focus-visible {
+  color: var(--rose);
+}
+
+.hi-hint {
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+  transition: color 150ms;
+}
+
+.hi-row:hover .hi-hint,
+.hi-row:focus-visible .hi-hint {
+  color: var(--rose);
+}
+
 .peek-play {
   position: absolute;
   inset: 0;
