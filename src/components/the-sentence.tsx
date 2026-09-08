@@ -428,28 +428,33 @@ function HiPeek({ handle }: { handle: string }) {
       .catch(() => undefined);
   };
 
+  const emailSub = touch ? "opens your mail app" : "click to copy";
+
   return (
-    <PeekCard center compact label="say hi">
+    <PeekCard fit label="say hi">
+      <a className="group block" href={LINKS.email} onClick={copy}>
+        <span className="block whitespace-nowrap text-ink text-xs group-hover:text-rose">
+          {EMAIL}
+        </span>
+        <span className="block whitespace-nowrap text-[10px] text-muted">
+          <span className="swap-in" key={String(copied)}>
+            {copied ? "( copied )" : `${emailSub}`}
+          </span>
+        </span>
+      </a>
       <a
-        className="hi-row"
+        className="group mt-2.5 block"
         href={LINKS.twitter}
         rel="noopener noreferrer"
         target="_blank"
       >
-        <span>@{handle}</span>
-        <span className="hi-hint">x</span>
-      </a>
-      <a className="hi-row" href={LINKS.email} onClick={copy}>
-        <span className="swap-in" key={String(copied)}>
-          {copied ? "( copied )" : `${EMAIL}`}
+        <span className="block whitespace-nowrap text-ink text-xs group-hover:text-rose">
+          @{handle}
         </span>
-        <span className="hi-hint">
-          {copied ? "" : `${touch ? "mail" : "copy"}`}
+        <span className="block whitespace-nowrap text-[10px] text-muted">
+          over on x, strangers welcome
         </span>
       </a>
-      <span className="mt-1.5 block whitespace-nowrap text-center text-[10px] text-muted">
-        strangers welcome
-      </span>
     </PeekCard>
   );
 }
