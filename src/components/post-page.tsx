@@ -1,104 +1,9 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import newsreaderItalicWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2?url";
-import newsreaderWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2?url";
-import newsreaderCss from "@fontsource-variable/newsreader/index.css?url";
-import newsreaderItalicCss from "@fontsource-variable/newsreader/wght-italic.css?url";
+import type { RefObject } from "react";
 import BackLink from "@/components/back-link";
 import { PostBody } from "@/components/post-body";
-import { preloadFont, RSS_LINK } from "@/lib/head";
 import { getPost, type TocEntry } from "@/lib/posts";
-import { getPostMeta } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
-import postCss from "../../post.css?url";
-
-const DEFAULT_BASE_URL = "https://rex.wf";
-
-export const Route = createFileRoute("/blog/$slug")({
-  component: PostPage,
-  notFoundComponent: BlogNotFound,
-  loader: ({ params }) => {
-    const post = getPostMeta(params.slug);
-    if (!post) {
-      throw notFound();
-    }
-    const { date, description, slug, title } = post;
-    return { date, description, slug, title };
-  },
-  head: ({ loaderData, matches }) => {
-    if (!loaderData) {
-      return { meta: [{ title: "writing" }] };
-    }
-    const baseUrl =
-      (matches[0]?.loaderData as { baseUrl?: string } | undefined)?.baseUrl ??
-      DEFAULT_BASE_URL;
-    const url = `${baseUrl}/blog/${loaderData.slug}`;
-    const imageUrl = `${baseUrl}/og/${loaderData.slug}.png`;
-    return {
-      meta: [
-        { title: loaderData.title },
-        { name: "description", content: loaderData.description },
-        { property: "og:title", content: loaderData.title },
-        { property: "og:description", content: loaderData.description },
-        { property: "og:type", content: "article" },
-        { property: "og:url", content: url },
-        { property: "og:image", content: imageUrl },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { property: "og:image:alt", content: loaderData.title },
-        { property: "article:published_time", content: loaderData.date },
-        { name: "twitter:title", content: loaderData.title },
-        { name: "twitter:description", content: loaderData.description },
-        { name: "twitter:image", content: imageUrl },
-      ],
-      links: [
-        RSS_LINK,
-        { rel: "stylesheet", href: newsreaderCss },
-        { rel: "stylesheet", href: newsreaderItalicCss },
-        { rel: "stylesheet", href: postCss },
-        preloadFont(newsreaderWoff2),
-        preloadFont(newsreaderItalicWoff2),
-      ],
-      scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BlogPosting",
-            datePublished: loaderData.date,
-            description: loaderData.description,
-            headline: loaderData.title,
-            image: imageUrl,
-            mainEntityOfPage: url,
-            url,
-          }),
-        },
-      ],
-    };
-  },
-  headers: () => ({
-    "Cache-Control": "public, max-age=0",
-    "Cloudflare-CDN-Cache-Control":
-      "public, max-age=3600, stale-while-revalidate=86400",
-  }),
-});
-
-function BlogNotFound() {
-  return (
-    <main className="flex min-h-dvh flex-col items-center justify-center paper px-7 text-center font-serif-display text-ink selection:bg-rose selection:text-paper">
-      <p className="rise font-mono text-faint text-xs italic">
-        ( no such page. the rose checked. )
-      </p>
-      <BackLink
-        className="rise mt-8 font-mono text-muted text-xs"
-        style={{ animationDelay: "120ms" }}
-        to="/blog"
-      >
-        writing
-      </BackLink>
-    </main>
-  );
-}
 
 function ReadingProgress() {
   const barRef = useRef<HTMLDivElement>(null);
@@ -161,7 +66,7 @@ function Toc({
   backRef,
   entries,
 }: {
-  backRef: React.RefObject<HTMLAnchorElement | null>;
+  backRef: RefObject<HTMLAnchorElement | null>;
   entries: TocEntry[];
 }) {
   const navRef = useRef<HTMLDivElement>(null);
@@ -342,14 +247,11 @@ function FallingPetal() {
   );
 }
 
-function PostPage() {
-  const { slug } = Route.useParams();
+export default function PostPage({ slug }: { slug: string }) {
   const post = getPost(slug);
   const headerBackRef = useRef<HTMLAnchorElement>(null);
 
-  if (!post) {
-    return null;
-  }
+  if (!post) return null;
 
   return (
     <main className="min-h-dvh paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">

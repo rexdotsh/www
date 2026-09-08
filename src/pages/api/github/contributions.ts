@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import type { APIRoute } from "astro";
 
 const SOURCE = "https://github.com/users/rexdotsh/contributions";
 const DAY_TAG_RE = /<[^>]*data-date="\d{4}-\d{2}-\d{2}"[^>]*>/g;
@@ -57,47 +57,39 @@ function parse(html: string) {
   return { total, weeks };
 }
 
-export const Route = createFileRoute("/api/github/contributions")({
-  server: {
-    handlers: {
-      GET: async ({ request }) => {
-        try {
-          const response = await fetch(SOURCE, {
-            headers: {
-              Accept: "text/html",
-              "Accept-Language": "en-US",
-              "User-Agent": "rex.wf contributions widget (https://rex.wf)",
-            },
-            signal: AbortSignal.any([
-              request.signal,
-              AbortSignal.timeout(GITHUB_TIMEOUT_MS),
-            ]),
-          });
-          if (!response.ok) {
-            throw new Error(`GitHub returned ${response.status}`);
-          }
-
-          const data = parse(await response.text());
-          if (!data) {
-            throw new Error(
-              "GitHub returned an unrecognized contributions page"
-            );
-          }
-
-          return Response.json(data, {
-            headers: CACHE_HEADERS,
-          });
-        } catch (error) {
-          console.error("Failed to fetch GitHub contributions:", error);
-          return Response.json(
-            { error: "Failed to fetch GitHub contributions" },
-            {
-              status: 502,
-              headers: { "Cache-Control": "no-store" },
-            }
-          );
-        }
+export const GET: APIRoute = async ({ request }) => {
+  try {
+    const response = await fetch(SOURCE, {
+      headers: {
+        Accept: "text/html",
+        "Accept-Language": "en-US",
+        "User-Agent": "rex.wf contributions widget (https://rex.wf)",
       },
-    },
-  },
-});
+      signal: AbortSignal.any([
+        request.signal,
+        AbortSignal.timeout(GITHUB_TIMEOUT_MS),
+      ]),
+    });
+    if (!response.ok) {
+      throw new Error(`GitHub returned ${response.status}`);
+    }
+
+    const data = parse(await response.text());
+    if (!data) {
+      throw new Error("GitHub returned an unrecognized contributions page");
+    }
+
+    return Response.json(data, {
+      headers: CACHE_HEADERS,
+    });
+  } catch (error) {
+    console.error("Failed to fetch GitHub contributions:", error);
+    return Response.json(
+      { error: "Failed to fetch GitHub contributions" },
+      {
+        status: 502,
+        headers: { "Cache-Control": "no-store" },
+      }
+    );
+  }
+};

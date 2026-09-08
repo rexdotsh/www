@@ -1,0 +1,10 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import NotFoundPage from "../components/not-found.tsx";
+import { resolveSiteInfo } from "../lib/site";
+
+const site = resolveSiteInfo(Astro.request);
+---
+<BaseLayout {...site} title="not found" description="the rose checked.">
+  <NotFoundPage client:load />
+</BaseLayout>

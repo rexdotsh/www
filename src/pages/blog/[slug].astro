@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/wght-italic.css";
+import NotFoundPage from "../../components/not-found.tsx";
+import PostPage from "../../components/post-page.tsx";
+import { getPost } from "../../lib/posts";
+import { resolveSiteInfo } from "../../lib/site";
+
+const site = resolveSiteInfo(Astro.request);
+const name = site.hostname === "mridul.sh" ? "mridul" : "rex";
+const post = Astro.params.slug ? getPost(Astro.params.slug) : undefined;
+if (!post) Astro.response.status = 404;
+---
+<BaseLayout {...site} name={name} title={post?.title ?? "writing"} description={post?.description ?? "occasional writeups and notes."} imagePath={post ? `/og/${post.slug}.png` : undefined} publishedDate={post?.date} rss>
+  {post ? <PostPage client:load slug={post.slug} /> : <NotFoundPage client:load />}
+</BaseLayout>

@@ -1,0 +1,12 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Home from "../components/home.tsx";
+import { resolveSiteInfo } from "../lib/site";
+
+const site = resolveSiteInfo(Astro.request);
+const name = site.hostname === "mridul.sh" ? "mridul" : "rex";
+const title = `${name}'s space`;
+---
+<BaseLayout {...site} name={name} title={title} description="projects, writing, and whatever's playing." imageName={name === "mridul" ? "mridul" : "rex"}>
+  <Home client:load hostname={site.hostname} />
+</BaseLayout>

@@ -6,7 +6,9 @@
       "!bun.lock",
       "!src/routeTree.gen.ts",
       "!worker-configuration.d.ts",
-      "!.output"
+      "!.output",
+      "!.astro",
+      "!**/*.astro"
     ]
   },
   "linter": {
@@ -62,6 +64,14 @@
     }
   },
   "overrides": [
+    {
+      "includes": ["src/env.d.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noNamespace": "off" }
+        }
+      }
+    },
     {
       "includes": ["src/routes/**/*"],
       "linter": {

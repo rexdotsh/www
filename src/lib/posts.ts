@@ -41,7 +41,7 @@ interface PostContent {
 
 const CONTENT: Record<string, PostContent> = {
   parabox: {
-    Content: ParaboxContent,
+    Content: ParaboxContent as unknown as MDXContent,
     readingMinutes: Math.max(1, Math.round(paraboxReadingTime.minutes)),
     toc: flattenToc(paraboxToc),
   },

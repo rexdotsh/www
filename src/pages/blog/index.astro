@@ -1,0 +1,40 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/newsreader/wght-italic.css";
+import { LINKS } from "../../lib/content";
+import { PUBLISHED_META } from "../../lib/posts-meta";
+import { resolveSiteInfo } from "../../lib/site";
+
+const site = resolveSiteInfo(Astro.request);
+const name = site.hostname === "mridul.sh" ? "mridul" : "rex";
+---
+<BaseLayout {...site} name={name} title="writing" description="occasional writeups and notes." rss>
+  <main class="min-h-dvh paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
+    <div class="mx-auto w-full max-w-xl">
+      <a class="back-link rise font-mono text-muted text-xs" href="/">
+        <span aria-hidden="true" class="back-arrow">←</span>home
+      </a>
+      <h1 class="rise mt-10 text-[clamp(2.4rem,7vw,3.2rem)] leading-none" style="animation-delay:80ms">
+        writing<span class="full-stop text-rose">.</span>
+      </h1>
+      <p class="rise mt-3 font-mono text-faint text-[11px] italic" style="animation-delay:150ms">( infrequent. long. )</p>
+      <ul class="post-list mt-14">
+        {PUBLISHED_META.map((post, index) => (
+          <li class="rise" style={`animation-delay:${230 + index * 70}ms`}>
+            <a class="group block py-4" href={`/blog/${post.slug}`}>
+              <span class="block font-mono text-faint text-[11px] tabular-nums transition-colors duration-200 group-hover:text-muted">{post.dateLabel}</span>
+              <span class="mt-1 block text-[clamp(1.4rem,4.5vw,1.8rem)] leading-tight transition-colors duration-200 group-hover:text-rose" style={`view-transition-name:post-${post.slug}`}>
+                {post.title}<span aria-hidden="true" class="ml-2 inline-block text-rose transition-transform duration-200 ease-strong group-hover:translate-x-1">→</span>
+              </span>
+              <span class="mt-1.5 block font-serif-body text-muted text-[15px] italic">{post.description}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <footer class="rise mt-16 border-ink/10 border-t pt-6" style="animation-delay:360ms">
+        <a class="font-mono text-faint text-[11px] transition-colors duration-150 hover:text-rose" href={LINKS.archive} rel="noopener noreferrer" target="_blank">older ctf writeups live on github →</a>
+      </footer>
+    </div>
+  </main>
+</BaseLayout>

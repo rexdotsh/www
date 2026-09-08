@@ -20,8 +20,15 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "scripts/**/*.ts",
-    "vite.config.ts",
+    "astro.config.ts",
+    "src/env.d.ts",
     "worker-configuration.d.ts"
   ],
-  "exclude": ["node_modules", ".output"]
+  "exclude": [
+    "node_modules",
+    ".output",
+    "src/routes",
+    "src/router.tsx",
+    "src/routeTree.gen.ts"
+  ]
 }

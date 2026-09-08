@@ -1,4 +1,3 @@
-import { useRouter } from "@tanstack/react-router";
 import {
   Fragment,
   memo,
@@ -238,7 +237,6 @@ function Peek({
 }) {
   const [armed, setArmed] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
-  const router = useRouter();
   const external = href.startsWith("http");
 
   const report = (word: SentenceWord | null) => {
@@ -257,10 +255,6 @@ function Peek({
         return;
       }
       setArmed(false);
-    }
-    if (!external) {
-      event.preventDefault();
-      router.navigate({ href });
     }
   };
 
@@ -283,11 +277,6 @@ function Peek({
           return;
         }
         report(hoverKey);
-        if (!external) {
-          router
-            .preloadRoute({ href } as Parameters<typeof router.preloadRoute>[0])
-            .catch(() => undefined);
-        }
       }}
       onPointerLeave={(event) => {
         if (event.pointerType !== "touch" && !armed) {
@@ -558,7 +547,6 @@ function ProjectsPeek() {
 }
 
 function PostsPeek() {
-  const router = useRouter();
   return (
     <PeekCard fit label="recent writing">
       {PUBLISHED_META.map((post, index) => {
@@ -568,10 +556,6 @@ function PostsPeek() {
             className={`group block ${index > 0 ? "mt-2.5" : ""}`}
             href={href}
             key={post.slug}
-            onClick={(event) => {
-              event.preventDefault();
-              router.navigate({ href });
-            }}
           >
             <span className="block truncate text-ink text-xs group-hover:text-rose">
               {post.title}

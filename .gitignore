@@ -21,6 +21,7 @@ node_modules
 # vite
 /.vite
 /.tanstack
+/.astro
 
 # misc
 .DS_Store

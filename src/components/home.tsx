@@ -1,21 +1,9 @@
-import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
 import { type SpotifyTrack, useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
-
-const rootRoute = getRouteApi("__root__");
-
-export const Route = createFileRoute("/")({
-  component: Home,
-  headers: () => ({
-    "Cache-Control": "public, max-age=0",
-    "Cloudflare-CDN-Cache-Control":
-      "public, max-age=3600, stale-while-revalidate=86400",
-  }),
-});
 
 const MODES: Record<SentenceWord, RoseMode> = {
   name: "shiver",
@@ -59,8 +47,7 @@ interface Preview {
   url: string;
 }
 
-function Home() {
-  const { hostname } = rootRoute.useLoaderData();
+export default function Home({ hostname }: { hostname: string }) {
   const live = useNowPlaying();
   const [word, setWord] = useState<SentenceWord | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
