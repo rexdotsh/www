@@ -2,12 +2,15 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import newsreaderItalicWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2?url";
 import newsreaderWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-normal.woff2?url";
+import newsreaderCss from "@fontsource-variable/newsreader/index.css?url";
+import newsreaderItalicCss from "@fontsource-variable/newsreader/wght-italic.css?url";
 import BackLink from "@/components/back-link";
 import { PostBody } from "@/components/post-body";
 import { preloadFont, RSS_LINK } from "@/lib/head";
 import { getPost, type TocEntry } from "@/lib/posts";
 import { getPostMeta } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
+import postCss from "../../post.css?url";
 
 const DEFAULT_BASE_URL = "https://rex.wf";
 
@@ -50,6 +53,9 @@ export const Route = createFileRoute("/blog/$slug")({
       ],
       links: [
         RSS_LINK,
+        { rel: "stylesheet", href: newsreaderCss },
+        { rel: "stylesheet", href: newsreaderItalicCss },
+        { rel: "stylesheet", href: postCss },
         preloadFont(newsreaderWoff2),
         preloadFont(newsreaderItalicWoff2),
       ],

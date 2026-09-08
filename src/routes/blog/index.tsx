@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import newsreaderItalicWoff2 from "@fontsource-variable/newsreader/files/newsreader-latin-wght-italic.woff2?url";
+import newsreaderCss from "@fontsource-variable/newsreader/index.css?url";
+import newsreaderItalicCss from "@fontsource-variable/newsreader/wght-italic.css?url";
 import BackLink from "@/components/back-link";
 import { LINKS } from "@/lib/content";
 import { preloadFont, RSS_LINK } from "@/lib/head";
 import { PUBLISHED_META } from "@/lib/posts-meta";
+import postCss from "../../post.css?url";
 
 const DESCRIPTION = "occasional writeups and notes.";
 
@@ -16,7 +19,13 @@ export const Route = createFileRoute("/blog/")({
       { property: "og:title", content: "writing" },
       { property: "og:description", content: DESCRIPTION },
     ],
-    links: [RSS_LINK, preloadFont(newsreaderItalicWoff2)],
+    links: [
+      RSS_LINK,
+      { rel: "stylesheet", href: newsreaderCss },
+      { rel: "stylesheet", href: newsreaderItalicCss },
+      { rel: "stylesheet", href: postCss },
+      preloadFont(newsreaderItalicWoff2),
+    ],
   }),
   headers: () => ({
     "Cache-Control": "public, max-age=0",
