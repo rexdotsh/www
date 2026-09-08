@@ -25,7 +25,7 @@ const WIDTH = 1200;
 const HEIGHT = 630;
 
 const SITES = [
-  { domain: "rex.wf", file: "social-card.png", name: "rex" },
+  { domain: "rex.wf", file: "social-card-rex.png", name: "rex" },
   { domain: "mridul.sh", file: "social-card-mridul.png", name: "mridul" },
 ];
 

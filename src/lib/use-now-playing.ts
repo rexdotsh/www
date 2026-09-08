@@ -22,9 +22,14 @@ export function useNowPlaying() {
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout> | undefined;
     let previewId: string | undefined;
+    let polling = false;
     const abortController = new AbortController();
 
     const poll = async () => {
+      if (polling || document.hidden) {
+        return;
+      }
+      polling = true;
       try {
         const response = await fetch("/api/spotify/playing", {
           signal: abortController.signal,
@@ -50,8 +55,10 @@ export function useNowPlaying() {
         }
       } catch {
         // Retry on the next poll.
+      } finally {
+        polling = false;
       }
-      if (!abortController.signal.aborted) {
+      if (!abortController.signal.aborted && !document.hidden) {
         timeout = setTimeout(poll, POLL_INTERVAL);
       }
     };

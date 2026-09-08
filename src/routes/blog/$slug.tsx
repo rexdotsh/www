@@ -99,22 +99,29 @@ function ReadingProgress() {
 
   useEffect(() => {
     let frame = 0;
+    let max = 0;
     const update = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
       const progress = max > 0 ? Math.min(1, window.scrollY / max) : 0;
       barRef.current?.style.setProperty("transform", `scaleX(${progress})`);
+    };
+    const measure = () => {
+      max = document.documentElement.scrollHeight - window.innerHeight;
+      update();
     };
     const onScroll = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(update);
     };
-    update();
+    measure();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("resize", measure, { passive: true });
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(document.documentElement);
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", measure);
+      resizeObserver.disconnect();
     };
   }, []);
 
@@ -170,28 +177,48 @@ function Toc({
   }, [backRef]);
 
   useEffect(() => {
-    const headings = entries.flatMap(
-      (entry) => document.getElementById(entry.id) ?? []
-    );
+    const headings = entries
+      .map((entry) => document.getElementById(entry.id))
+      .filter((heading): heading is HTMLElement => heading !== null);
+    let positions: { id: string; top: number }[] = [];
     let frame = 0;
     const update = () => {
-      const line = window.innerHeight * 0.24;
-      const current = headings.findLast(
-        (heading) => heading.getBoundingClientRect().top <= line
-      );
-      setActive(current?.id ?? null);
+      const line = window.scrollY + window.innerHeight * 0.24;
+      let current: string | null = null;
+      for (const heading of positions) {
+        if (heading.top > line) {
+          break;
+        }
+        current = heading.id;
+      }
+      setActive((previous) => (previous === current ? previous : current));
+    };
+    const measure = () => {
+      const scrollTop = window.scrollY;
+      positions = headings.map((heading) => ({
+        id: heading.id,
+        top: heading.getBoundingClientRect().top + scrollTop,
+      }));
+      update();
     };
     const onScroll = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(update);
     };
-    update();
+    const onResize = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(measure);
+    };
+    measure();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
+    const resizeObserver = new ResizeObserver(onResize);
+    resizeObserver.observe(document.body);
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
+      resizeObserver.disconnect();
     };
   }, [entries]);
 

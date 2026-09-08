@@ -15,7 +15,11 @@ const DEFAULT_BASE_URL = "https://rex.wf";
 export const Route = createRootRoute({
   headers: () => ({
     ...SITE_HEADERS,
-    "Cache-Control": "no-store",
+    // The document is static per hostname; keep browser validation cheap while
+    // allowing Cloudflare to serve repeat navigations from the edge.
+    "Cache-Control": "public, max-age=0, must-revalidate",
+    "Cloudflare-CDN-Cache-Control":
+      "public, max-age=3600, stale-while-revalidate=86400",
   }),
   loader: () => getSiteInfo(),
   staleTime: Number.POSITIVE_INFINITY,
@@ -28,7 +32,7 @@ export const Route = createRootRoute({
     const description = "projects, writing, and whatever's playing.";
     const canonicalUrl = new URL("/", baseUrl).href;
     const imageUrl = new URL(
-      name === "mridul" ? "/social-card-mridul.png" : "/social-card.png",
+      name === "mridul" ? "/social-card-mridul.png" : "/social-card-rex.png",
       baseUrl
     ).href;
 
