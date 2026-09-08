@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PUBLISHED_META } from "@/lib/posts-meta";
 import { resolveSiteInfo } from "@/lib/site";
 
 export const Route = createFileRoute("/sitemap.xml")({
@@ -13,11 +14,16 @@ export const Route = createFileRoute("/sitemap.xml")({
           });
         }
 
+        const paths = [
+          "/",
+          "/blog",
+          ...PUBLISHED_META.map((post) => `/blog/${post.slug}`),
+        ];
         const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${baseUrl}/</loc>
-  </url>
+${paths
+  .map((path) => `  <url>\n    <loc>${baseUrl}${path}</loc>\n  </url>`)
+  .join("\n")}
 </urlset>
 `;
 

@@ -17,7 +17,7 @@ function parseHostname(host: string | undefined) {
   try {
     return new URL(`https://${host}`).hostname.toLowerCase();
   } catch {
-    // Ignore malformed proxy headers and fall back to the request URL.
+    // Ignore malformed proxy headers.
   }
 }
 

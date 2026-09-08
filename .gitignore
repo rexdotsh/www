@@ -20,6 +20,7 @@ node_modules
 
 # vite
 /.vite
+/.tanstack
 
 # misc
 .DS_Store

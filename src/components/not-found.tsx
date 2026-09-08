@@ -1,5 +1,6 @@
-import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import BackLink from "@/components/back-link";
+import TintStrips from "@/components/tint-strips";
 
 const GRID = [
   [1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1],
@@ -72,14 +73,15 @@ function ScrambleLink({ text, to }: { text: string; to: "/" }) {
   };
 
   return (
-    <Link
-      className="mt-1.5 text-lg text-secondary transition-colors duration-200 hover:text-primary-hover dark:hover:text-white"
-      to={to}
+    <BackLink
+      className="rise mt-6 font-mono text-muted text-xs"
       onMouseEnter={start}
       onMouseLeave={stop}
+      style={{ animationDelay: "900ms" }}
+      to={to}
     >
       {display}
-    </Link>
+    </BackLink>
   );
 }
 
@@ -167,9 +169,9 @@ export default function NotFoundPage() {
   };
 
   return (
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: passive visual effect on page container
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: visual effect
     <main
-      className="fixed inset-0 overflow-hidden"
+      className="fixed inset-0 overflow-hidden paper text-ink selection:bg-rose selection:text-paper"
       onMouseMove={(e) => setPointer(e.clientX, e.clientY)}
       onMouseLeave={clearPointer}
       onTouchMove={(e) =>
@@ -196,7 +198,7 @@ export default function NotFoundPage() {
                   ref={(el) => {
                     cellRefs.current[idx] = el;
                   }}
-                  className="absolute text-accent"
+                  className="absolute text-rose"
                   style={{
                     left: `${(c / COLS) * 100}%`,
                     top: `${(r / ROWS) * 100}%`,
@@ -215,9 +217,15 @@ export default function NotFoundPage() {
             })
           )}
         </div>
-        <p className="mt-12 text-lg text-accent">page not found</p>
-        <ScrambleLink text="return home" to="/" />
+        <p
+          className="rise mt-12 font-mono text-faint text-xs italic"
+          style={{ animationDelay: "800ms" }}
+        >
+          ( no such page. the rose checked. )
+        </p>
+        <ScrambleLink text="home" to="/" />
       </div>
+      <TintStrips />
     </main>
   );
 }
