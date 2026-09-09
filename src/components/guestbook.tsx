@@ -142,7 +142,7 @@ export default function Guestbook() {
                 <span className="gb-label">
                   signed
                   {stats.signed > GUESTBOOK_LIMITS.shown ? (
-                    <span>{stats.signed} lines</span>
+                    <span className="gb-count"> · {stats.signed}</span>
                   ) : null}
                 </span>
                 {stats.guestbook.length === 0 ? (

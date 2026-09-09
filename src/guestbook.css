@@ -126,13 +126,17 @@
 }
 
 .gb-label {
-  display: flex;
-  justify-content: space-between;
+  display: block;
   margin-bottom: 0.3rem;
   font-size: 8.5px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--faint);
+}
+
+.gb-count {
+  color: color-mix(in oklab, var(--faint) 70%, transparent);
+  font-variant-numeric: tabular-nums;
 }
 
 .guest {
