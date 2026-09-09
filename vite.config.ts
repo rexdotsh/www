@@ -2,9 +2,9 @@ import mdx from "@mdx-js/rollup";
 import rehypeShiki from "@shikijs/rehype";
 import rehypeExtractToc from "@stefanprobst/rehype-extract-toc";
 import rehypeExtractTocExport from "@stefanprobst/rehype-extract-toc/mdx";
+import preact from "@preact/preset-vite";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -91,7 +91,7 @@ export default defineConfig({
     },
     tailwindcss(),
     tanstackStart(),
-    viteReact(),
+    preact(),
     nitro({
       preset: "cloudflare_module",
       routeRules: {
