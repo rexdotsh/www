@@ -10,12 +10,13 @@ import {
 
 const ROTATE_MS = 6000;
 const HINT_MS = 2600;
+const FRESH_MS = 1800;
 
 type SignState = "idle" | "sending" | "signed" | "cooldown" | "failed";
 
 const HINTS: Record<SignState, string> = {
-  idle: "enter to sign",
-  sending: "…",
+  idle: "",
+  sending: "",
   signed: "( signed. thank you. )",
   cooldown: "( you were just here. later. )",
   failed: "( that didn't take. try again? )",
@@ -25,6 +26,7 @@ export default function Guestbook() {
   const stats = useSiteStats();
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
+  const [fresh, setFresh] = useState<number | null>(null);
   const rootRef = useRef<HTMLSpanElement>(null);
   const recent = stats?.recent ?? [];
 
@@ -52,6 +54,14 @@ export default function Guestbook() {
     return () => window.removeEventListener("pointerdown", close);
   }, [open]);
 
+  useEffect(() => {
+    if (fresh === null) {
+      return;
+    }
+    const timer = setTimeout(() => setFresh(null), FRESH_MS);
+    return () => clearTimeout(timer);
+  }, [fresh]);
+
   if (!stats) {
     return null;
   }
@@ -76,8 +86,9 @@ export default function Guestbook() {
           <span className="peek-tab">guestbook</span>
 
           {recent.length > 0 ? (
-            <span className="guest-list">
-              {recent.slice(0, 4).map((guest) => (
+            <span className="gb-section">
+              <span className="gb-label">here lately</span>
+              {recent.slice(0, 3).map((guest) => (
                 <span
                   className="guest"
                   key={`${guest.place}-${guest.ago}-${guest.path}`}
@@ -90,8 +101,31 @@ export default function Guestbook() {
             </span>
           ) : null}
 
-          <Signatures entries={stats.guestbook} />
-          <SignForm />
+          <span className="gb-section">
+            <span className="gb-label">signed</span>
+            {stats.guestbook.length === 0 ? (
+              <span className="signature-empty">
+                nobody yet. the first line is yours.
+              </span>
+            ) : (
+              stats.guestbook.map((entry) => (
+                <span
+                  className="signature"
+                  data-fresh={entry.id === fresh ? "" : undefined}
+                  key={entry.id}
+                >
+                  <span className="signature-msg">“{entry.message}”</span>
+                  <span className="signature-by">
+                    <span className="dash">—</span> {entry.name}
+                    {entry.place === "somewhere" ? "" : `, ${entry.place}`}
+                    <span className="text-faint"> · {entry.ago}</span>
+                  </span>
+                </span>
+              ))
+            )}
+          </span>
+
+          <SignForm onSigned={(entry) => setFresh(entry.id)} />
 
           <span className="guest-foot">
             <span>
@@ -100,7 +134,7 @@ export default function Guestbook() {
             </span>
             <span className="guest-no">
               you are visitor №{" "}
-              <span className="tabular-nums">
+              <span className="text-ink tabular-nums">
                 {stats.total.toLocaleString("en-US")}
               </span>
             </span>
@@ -146,30 +180,7 @@ export default function Guestbook() {
   );
 }
 
-function Signatures({ entries }: { entries: GuestbookEntry[] }) {
-  return (
-    <span className="signatures">
-      {entries.length === 0 ? (
-        <span className="signature-empty">
-          nobody has signed yet. be first.
-        </span>
-      ) : (
-        entries.map((entry) => (
-          <span className="signature" key={entry.id}>
-            <span className="signature-msg">“{entry.message}”</span>
-            <span className="signature-by">
-              — {entry.name}
-              {entry.place === "somewhere" ? "" : `, ${entry.place}`} ·{" "}
-              {entry.ago}
-            </span>
-          </span>
-        ))
-      )}
-    </span>
-  );
-}
-
-function SignForm() {
+function SignForm({ onSigned }: { onSigned: (entry: GuestbookEntry) => void }) {
   const [state, setState] = useState<SignState>("idle");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
@@ -213,6 +224,7 @@ function SignForm() {
             GUESTBOOK_LIMITS.shown
           ),
         }));
+        onSigned(result.entry);
         setMessage("");
         settle("signed");
       } else {
@@ -223,38 +235,66 @@ function SignForm() {
     }
   };
 
+  const ready = message.trim().length > 0;
+
   return (
-    <form className="sign" onSubmit={submit}>
-      <span className="sign-row">
-        <input
-          aria-label="your name"
-          autoComplete="off"
-          className="sign-name"
-          maxLength={GUESTBOOK_LIMITS.name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="name"
-          value={name}
-        />
-        <input
-          aria-label="leave a line"
-          autoComplete="off"
-          className="sign-msg"
-          maxLength={GUESTBOOK_LIMITS.message}
-          onChange={(event) => setMessage(event.target.value)}
-          placeholder="leave a line"
-          required
-          value={message}
-        />
-      </span>
-      <button
-        className="sign-hint"
-        disabled={state === "sending"}
-        type="submit"
-      >
-        <span className="swap-in" key={state}>
-          {HINTS[state]}
+    <form
+      className="sign"
+      data-ready={ready ? "" : undefined}
+      data-state={state}
+      onSubmit={submit}
+    >
+      <span className="sign-body">
+        <span className="sign-msg">
+          <span aria-hidden="true" className="sign-quote">
+            “
+          </span>
+          <input
+            aria-label="leave a line"
+            autoComplete="off"
+            maxLength={GUESTBOOK_LIMITS.message}
+            onChange={(event) => setMessage(event.target.value)}
+            placeholder="leave a line"
+            required
+            value={message}
+          />
+          <span aria-hidden="true" className="sign-rule" />
         </span>
-      </button>
+        <span className="sign-by">
+          <span className="dash">—</span>
+          <input
+            aria-label="your name"
+            autoComplete="off"
+            maxLength={GUESTBOOK_LIMITS.name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="your name"
+            value={name}
+          />
+          {HINTS[state] ? (
+            <span className="sign-hint swap-in" key={state}>
+              {HINTS[state]}
+            </span>
+          ) : (
+            <button
+              className="sign-go"
+              disabled={state === "sending" || !ready}
+              type="submit"
+            >
+              {state === "sending" ? (
+                <span className="sign-dots">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              ) : (
+                <>
+                  sign <span className="sign-arrow">→</span>
+                </>
+              )}
+            </button>
+          )}
+        </span>
+      </span>
     </form>
   );
 }

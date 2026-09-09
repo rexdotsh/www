@@ -106,8 +106,8 @@
 
 .guestbook-card {
   display: block;
-  width: 16.5rem;
-  padding: 1rem 0.9rem 0.75rem;
+  width: 17rem;
+  padding: 1.05rem 1rem 0.8rem;
   border-radius: 12px;
   border: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
   background: var(--card);
@@ -117,15 +117,29 @@
   text-align: left;
 }
 
-.guest {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 0.6rem;
-  padding: 0.28rem 0;
+.gb-section {
+  display: block;
 }
 
-.guest + .guest {
-  border-top: 1px dashed color-mix(in oklab, var(--ink) 9%, transparent);
+.gb-section + .gb-section {
+  margin-top: 0.7rem;
+}
+
+.gb-label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 8.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.guest {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.16rem 0;
 }
 
 .guest-place {
@@ -138,53 +152,101 @@
 }
 
 .guest-ago {
+  min-width: 3.2em;
   color: var(--muted);
   font-size: 10px;
   font-variant-numeric: tabular-nums;
-  min-width: 3.2em;
   text-align: right;
 }
 
-.guest-list {
+.signature,
+.signature-empty {
   display: block;
-}
-
-.signatures {
-  display: block;
-  margin-top: 0.55rem;
-  padding-top: 0.6rem;
-  border-top: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
 }
 
 .signature {
-  display: block;
+  margin: 0 -0.5rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
 }
 
-.signature + .signature {
-  margin-top: 0.55rem;
+.signature[data-fresh] {
+  animation: sig-in 1400ms var(--ease-strong) both;
 }
 
-.signature-msg {
-  display: block;
+@keyframes sig-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+    background: color-mix(in oklab, var(--rose) 14%, transparent);
+  }
+  30% {
+    opacity: 1;
+    transform: none;
+    background: color-mix(in oklab, var(--rose) 14%, transparent);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.sign input {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+
+.sign input::placeholder {
+  color: var(--faint);
+  transition: color 150ms;
+}
+
+.sign input:focus::placeholder {
+  color: color-mix(in oklab, var(--faint) 60%, transparent);
+}
+
+.signature-msg,
+.sign-msg input {
   font-family:
     var(--font-serif-body), var(--font-serif-display), Georgia, serif;
   font-style: italic;
-  font-size: 13px;
+  font-size: 13.5px;
   line-height: 1.4;
   color: var(--ink);
 }
 
-.signature-by,
-.signature-empty {
+.signature-msg {
   display: block;
-  margin-top: 0.15rem;
+}
+
+.signature-by,
+.sign-by {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  margin-top: 0.2rem;
   font-size: 10px;
-  color: var(--faint);
+  color: var(--muted);
+}
+
+.dash {
+  display: inline-block;
+  color: var(--rose);
+  transition: transform 220ms var(--ease-strong);
+}
+
+.signature:hover .dash {
+  transform: translateX(3px);
 }
 
 .signature-empty {
-  margin-top: 0;
+  font-size: 10.5px;
   font-style: italic;
+  color: var(--faint);
 }
 
 .sign {
@@ -192,55 +254,189 @@
   margin-top: 0.7rem;
 }
 
-.sign-row {
-  display: grid;
-  grid-template-columns: 5rem 1fr;
-  gap: 0.5rem;
+.sign-body {
+  display: block;
 }
 
-.sign input {
-  width: 100%;
-  min-width: 0;
-  padding: 0.25rem 0;
-  border: 0;
-  border-bottom: 1px dashed color-mix(in oklab, var(--ink) 20%, transparent);
-  background: transparent;
-  font: inherit;
-  font-size: 11px;
-  color: var(--ink);
-  outline: none;
-  transition: border-color 150ms;
+.sign[data-state="signed"] .sign-body {
+  animation: sign-out 620ms var(--ease-strong) both;
 }
 
-.sign input::placeholder {
+.sign[data-state="cooldown"] .sign-body,
+.sign[data-state="failed"] .sign-body {
+  animation: sign-shake 360ms var(--ease-strong) both;
+}
+
+@keyframes sign-out {
+  0% {
+    opacity: 1;
+    transform: none;
+  }
+  38% {
+    opacity: 0;
+    transform: translateY(-7px);
+  }
+  39% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sign-shake {
+  20%,
+  60% {
+    transform: translateX(-2px);
+  }
+  40%,
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+.sign-msg {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  padding-bottom: 2px;
+}
+
+.sign-msg input {
+  flex: 1;
+}
+
+.sign-quote {
+  margin-right: 0.1em;
+  font-family:
+    var(--font-serif-body), var(--font-serif-display), Georgia, serif;
+  font-size: 13.5px;
   color: var(--faint);
+  transition: color 220ms;
 }
 
-.sign input:focus {
-  border-bottom-color: var(--rose);
-  border-bottom-style: solid;
+.sign[data-ready] .sign-quote,
+.sign-msg:focus-within .sign-quote {
+  color: var(--rose);
+}
+
+.sign-rule {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: color-mix(in oklab, var(--ink) 10%, transparent);
+}
+
+.sign-rule::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--rose);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 320ms var(--ease-strong);
+}
+
+.sign-msg:focus-within .sign-rule::after,
+.sign[data-ready] .sign-rule::after {
+  transform: scaleX(1);
+}
+
+.sign-by {
+  margin-top: 0.25rem;
+}
+
+.sign-by input {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.sign-go {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--faint);
+  opacity: 0.55;
+  transform: translateX(4px);
+  transition:
+    color 180ms,
+    opacity 220ms var(--ease-strong),
+    transform 260ms var(--ease-strong);
+}
+
+.sign[data-ready] .sign-go {
+  color: var(--rose);
+  opacity: 1;
+  transform: none;
+  cursor: pointer;
+}
+
+.sign-arrow {
+  display: inline-block;
+  transition: transform 200ms var(--ease-strong);
+}
+
+.sign-go:not(:disabled):hover .sign-arrow {
+  transform: translateX(3px);
+}
+
+.sign-dots {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+  height: 1em;
+}
+
+.sign-dots i {
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--rose);
+  animation: dot-pulse 900ms ease-in-out infinite;
+}
+
+.sign-dots i:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.sign-dots i:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
 }
 
 .sign-hint {
-  display: block;
-  width: 100%;
-  margin-top: 0.35rem;
   font-size: 9.5px;
   font-style: italic;
   color: var(--faint);
-  text-align: right;
-  cursor: pointer;
-  transition: color 150ms;
+  white-space: nowrap;
 }
 
-.sign-hint:hover:not(:disabled) {
+.sign[data-state="signed"] .sign-hint {
   color: var(--rose);
 }
 
 .guest-foot {
   display: block;
-  margin-top: 0.6rem;
-  padding-top: 0.55rem;
+  margin-top: 0.7rem;
+  padding-top: 0.6rem;
   border-top: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
   color: var(--muted);
   font-size: 10px;
@@ -251,7 +447,7 @@
 }
 
 .guest-no {
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
   color: var(--faint);
   font-style: italic;
 }
