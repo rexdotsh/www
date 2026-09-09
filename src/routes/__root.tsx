@@ -6,9 +6,9 @@ import { preloadFont } from "@/lib/head";
 import { SITE_HEADERS } from "@/lib/headers";
 import { getSiteInfo } from "@/lib/site";
 import { ogImageUrl } from "@/lib/utils";
-import geistMonoWoff2 from "@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url";
-import instrumentItalicWoff2 from "@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2?url";
-import instrumentWoff2 from "@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2?url";
+import geistMonoWoff2 from "../fonts/geist-mono-latin.woff2?url";
+import instrumentItalicWoff2 from "../fonts/instrument-serif-latin-italic.woff2?url";
+import instrumentWoff2 from "../fonts/instrument-serif-latin.woff2?url";
 import appCss from "../styles.css?url";
 
 const DEFAULT_BASE_URL = "https://rex.wf";

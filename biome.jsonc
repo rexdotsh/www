@@ -9,6 +9,9 @@
       "!.output"
     ]
   },
+  "javascript": {
+    "globals": ["Bun"]
+  },
   "linter": {
     "rules": {
       "suspicious": {
