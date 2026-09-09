@@ -115,6 +115,10 @@ export class Room extends DurableObject {
         })),
       paths,
       hi: this.count(`hi:${month(now)}`),
+      signed:
+        this.first<{ n: number }>(
+          "SELECT count(*) AS n FROM guestbook WHERE hidden = 0"
+        )?.n ?? 0,
       guestbook: this.sql
         .exec<{
           city: string;
@@ -144,26 +148,22 @@ export class Room extends DurableObject {
     const now = Date.now();
     const name = input.name || "anonymous";
     const marks = input.who.map(() => "?").join(", ");
-    const [seen] = this.sql
-      .exec<{ n: number }>(
-        `SELECT count(*) AS n FROM guestbook WHERE ts > ? AND who IN (${marks})`,
-        now - GUESTBOOK_LIMITS.cooldownMs,
-        ...input.who
-      )
-      .toArray();
+    const seen = this.first<{ n: number }>(
+      `SELECT count(*) AS n FROM guestbook WHERE ts > ? AND who IN (${marks})`,
+      now - GUESTBOOK_LIMITS.cooldownMs,
+      ...input.who
+    );
     if (seen && seen.n > 0) {
       return { ok: false, reason: "cooldown" };
     }
-    const [row] = this.sql
-      .exec<{ id: number }>(
-        "INSERT INTO guestbook (ts, name, message, city, who) VALUES (?, ?, ?, ?, ?) RETURNING id",
-        now,
-        name,
-        input.message,
-        input.city,
-        input.who[0] ?? ""
-      )
-      .toArray();
+    const row = this.first<{ id: number }>(
+      "INSERT INTO guestbook (ts, name, message, city, who) VALUES (?, ?, ?, ?, ?) RETURNING id",
+      now,
+      name,
+      input.message,
+      input.city,
+      input.who[0] ?? ""
+    );
     return {
       ok: true,
       entry: {
@@ -180,14 +180,21 @@ export class Room extends DurableObject {
     this.sql.exec("UPDATE guestbook SET hidden = 1 WHERE id = ?", id);
   }
 
+  private first<T extends Record<string, SqlStorageValue>>(
+    query: string,
+    ...bindings: SqlStorageValue[]
+  ) {
+    const [row] = this.sql.exec<T>(query, ...bindings).toArray();
+    return row;
+  }
+
   private visitsSince(ts: number, what = "*") {
-    const [row] = this.sql
-      .exec<{ n: number }>(
+    return (
+      this.first<{ n: number }>(
         `SELECT count(${what}) AS n FROM visits WHERE ts > ?`,
         ts
-      )
-      .toArray();
-    return row?.n ?? 0;
+      )?.n ?? 0
+    );
   }
 
   private bump(key: string) {
@@ -198,10 +205,10 @@ export class Room extends DurableObject {
   }
 
   private count(key: string) {
-    const [row] = this.sql
-      .exec<{ n: number }>("SELECT n FROM counters WHERE key = ?", key)
-      .toArray();
-    return row?.n ?? 0;
+    return (
+      this.first<{ n: number }>("SELECT n FROM counters WHERE key = ?", key)
+        ?.n ?? 0
+    );
   }
 }
 

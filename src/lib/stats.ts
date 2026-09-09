@@ -21,6 +21,7 @@ export interface SiteStats {
   online: number;
   paths: Record<string, number>;
   recent: RecentVisitor[];
+  signed: number;
   today: number;
   total: number;
   week: number;
@@ -80,6 +81,7 @@ export const FALLBACK_STATS: SiteStats = {
   ],
   paths: { "/": 5802, "/blog/parabox": 2214, "/blog": 1037 },
   hi: 12,
+  signed: 17,
   guestbook: [
     {
       id: 3,
