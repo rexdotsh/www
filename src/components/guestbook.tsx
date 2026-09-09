@@ -1,4 +1,10 @@
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import {
+  type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { sfx } from "@/lib/sfx";
 import {
   GUESTBOOK_LIMITS,
@@ -9,15 +15,13 @@ import {
 } from "@/lib/stats";
 
 const ROTATE_MS = 6000;
-const HINT_MS = 2600;
+const THANKS_MS = 2600;
 const FRESH_MS = 1800;
 
-type SignState = "idle" | "sending" | "signed" | "cooldown" | "failed";
+type Mode = "read" | "write";
+type SignState = "idle" | "sending" | "cooldown" | "failed";
 
-const HINTS: Record<SignState, string> = {
-  idle: "",
-  sending: "",
-  signed: "( signed. thank you. )",
+const ERRORS: Partial<Record<SignState, string>> = {
   cooldown: "( you were just here. later. )",
   failed: "( that didn't take. try again? )",
 };
@@ -25,8 +29,10 @@ const HINTS: Record<SignState, string> = {
 export default function Guestbook() {
   const stats = useSiteStats();
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<Mode>("read");
   const [index, setIndex] = useState(0);
   const [fresh, setFresh] = useState<number | null>(null);
+  const [thanks, setThanks] = useState(false);
   const rootRef = useRef<HTMLSpanElement>(null);
   const recent = stats?.recent ?? [];
 
@@ -45,13 +51,22 @@ export default function Guestbook() {
     if (!open) {
       return;
     }
-    const close = (event: PointerEvent) => {
+    const away = (event: PointerEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) {
         setOpen(false);
       }
     };
-    window.addEventListener("pointerdown", close);
-    return () => window.removeEventListener("pointerdown", close);
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+    window.addEventListener("pointerdown", away);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointerdown", away);
+      window.removeEventListener("keydown", onKey);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -61,6 +76,14 @@ export default function Guestbook() {
     const timer = setTimeout(() => setFresh(null), FRESH_MS);
     return () => clearTimeout(timer);
   }, [fresh]);
+
+  useEffect(() => {
+    if (!thanks) {
+      return;
+    }
+    const timer = setTimeout(() => setThanks(false), THANKS_MS);
+    return () => clearTimeout(timer);
+  }, [thanks]);
 
   if (!stats) {
     return null;
@@ -83,62 +106,96 @@ export default function Guestbook() {
     >
       <span className="guestbook-peek">
         <span className="peek-card guestbook-card">
-          <span className="peek-tab">guestbook</span>
+          <span className="peek-tab">
+            {mode === "write" ? "leave a line" : "guestbook"}
+          </span>
 
-          {recent.length > 0 ? (
-            <span className="gb-section">
-              <span className="gb-label">here lately</span>
-              {recent.slice(0, 3).map((guest) => (
-                <span
-                  className="guest"
-                  key={`${guest.place}-${guest.ago}-${guest.path}`}
-                >
-                  <span className="guest-place">{guest.place}</span>
-                  <span className="guest-page">{guest.path}</span>
-                  <span className="guest-ago">{guest.ago}</span>
+          {mode === "write" ? (
+            <SignForm
+              key="write"
+              onBack={() => setMode("read")}
+              onSigned={(entry) => {
+                setFresh(entry.id);
+                setThanks(true);
+                setMode("read");
+              }}
+            />
+          ) : (
+            <span className="gb-view" key="read">
+              {recent.length > 0 ? (
+                <span className="gb-section">
+                  <span className="gb-label">here lately</span>
+                  {recent.slice(0, 3).map((guest) => (
+                    <span
+                      className="guest"
+                      key={`${guest.place}-${guest.ago}-${guest.path}`}
+                    >
+                      <span className="guest-place">{guest.place}</span>
+                      <span className="guest-page">{guest.path}</span>
+                      <span className="guest-ago">{guest.ago}</span>
+                    </span>
+                  ))}
                 </span>
-              ))}
-            </span>
-          ) : null}
+              ) : null}
 
-          <span className="gb-section">
-            <span className="gb-label">signed</span>
-            {stats.guestbook.length === 0 ? (
-              <span className="signature-empty">
-                nobody yet. the first line is yours.
+              <span className="gb-section">
+                <span className="gb-label">
+                  signed
+                  {stats.signed > GUESTBOOK_LIMITS.shown ? (
+                    <span>{stats.signed} lines</span>
+                  ) : null}
+                </span>
+                {stats.guestbook.length === 0 ? (
+                  <span className="signature-empty">nobody yet.</span>
+                ) : (
+                  stats.guestbook.map((entry) => (
+                    <span
+                      className="signature"
+                      data-fresh={entry.id === fresh ? "" : undefined}
+                      key={entry.id}
+                    >
+                      <span className="signature-msg">“{entry.message}”</span>
+                      <span className="signature-by">
+                        <span className="dash">—</span> {entry.name}
+                        {entry.place === "somewhere" ? "" : `, ${entry.place}`}
+                        <span className="text-faint"> · {entry.ago}</span>
+                      </span>
+                    </span>
+                  ))
+                )}
+                {thanks ? (
+                  <span className="gb-thanks swap-in">
+                    ( signed. thank you. )
+                  </span>
+                ) : (
+                  <button
+                    className="gb-write-link"
+                    onClick={() => {
+                      sfx("tick");
+                      setMode("write");
+                      setOpen(true);
+                    }}
+                    type="button"
+                  >
+                    leave a line <span className="arrow">→</span>
+                  </button>
+                )}
               </span>
-            ) : (
-              stats.guestbook.map((entry) => (
-                <span
-                  className="signature"
-                  data-fresh={entry.id === fresh ? "" : undefined}
-                  key={entry.id}
-                >
-                  <span className="signature-msg">“{entry.message}”</span>
-                  <span className="signature-by">
-                    <span className="dash">—</span> {entry.name}
-                    {entry.place === "somewhere" ? "" : `, ${entry.place}`}
-                    <span className="text-faint"> · {entry.ago}</span>
+
+              <span className="guest-foot">
+                <span>
+                  {stats.today} today · {stats.week.toLocaleString("en-US")}{" "}
+                  this week
+                </span>
+                <span className="guest-no">
+                  you are visitor №{" "}
+                  <span className="text-ink tabular-nums">
+                    {stats.total.toLocaleString("en-US")}
                   </span>
                 </span>
-              ))
-            )}
-          </span>
-
-          <SignForm onSigned={(entry) => setFresh(entry.id)} />
-
-          <span className="guest-foot">
-            <span>
-              {stats.today} today · {stats.week.toLocaleString("en-US")} this
-              week
-            </span>
-            <span className="guest-no">
-              you are visitor №{" "}
-              <span className="text-ink tabular-nums">
-                {stats.total.toLocaleString("en-US")}
               </span>
             </span>
-          </span>
+          )}
         </span>
       </span>
 
@@ -180,7 +237,13 @@ export default function Guestbook() {
   );
 }
 
-function SignForm({ onSigned }: { onSigned: (entry: GuestbookEntry) => void }) {
+function SignForm({
+  onBack,
+  onSigned,
+}: {
+  onBack: () => void;
+  onSigned: (entry: GuestbookEntry) => void;
+}) {
   const [state, setState] = useState<SignState>("idle");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
@@ -188,14 +251,14 @@ function SignForm({ onSigned }: { onSigned: (entry: GuestbookEntry) => void }) {
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  const settle = (next: SignState) => {
+  const fail = (next: SignState) => {
     setState(next);
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setState("idle"), HINT_MS);
+    timer.current = setTimeout(() => setState("idle"), THANKS_MS);
   };
 
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
+  const submit = async (event?: FormEvent) => {
+    event?.preventDefault();
     const text = message.trim();
     if (!text || state === "sending") {
       return;
@@ -219,62 +282,68 @@ function SignForm({ onSigned }: { onSigned: (entry: GuestbookEntry) => void }) {
         sfx("pop");
         patchStats((stats) => ({
           ...stats,
+          signed: stats.signed + 1,
           guestbook: [result.entry, ...stats.guestbook].slice(
             0,
             GUESTBOOK_LIMITS.shown
           ),
         }));
         onSigned(result.entry);
-        setMessage("");
-        settle("signed");
       } else {
-        settle(result?.reason === "cooldown" ? "cooldown" : "failed");
+        fail(result?.reason === "cooldown" ? "cooldown" : "failed");
       }
     } catch {
-      settle("failed");
+      fail("failed");
     }
   };
 
   const ready = message.trim().length > 0;
+  const left = GUESTBOOK_LIMITS.message - message.length;
 
   return (
     <form
-      className="sign"
+      className="gb-view sign"
       data-ready={ready ? "" : undefined}
       data-state={state}
       onSubmit={submit}
     >
-      <span className="sign-body">
-        <span className="sign-msg">
-          <span aria-hidden="true" className="sign-quote">
-            “
+      <span className="sign-text">
+        “
+        <Editable
+          autoFocus
+          label="leave a line"
+          max={GUESTBOOK_LIMITS.message}
+          onChange={setMessage}
+          onEnter={submit}
+          onEscape={onBack}
+          placeholder="say something, anything"
+          value={message}
+        />
+        ”
+        <br />
+        <span className="text-muted">— </span>
+        <Editable
+          label="your name"
+          max={GUESTBOOK_LIMITS.name}
+          onChange={setName}
+          onEnter={submit}
+          onEscape={onBack}
+          placeholder="anonymous"
+          value={name}
+        />
+        <span className="text-rose">.</span>
+      </span>
+      <span className="sign-foot">
+        <button className="gb-back" onClick={onBack} type="button">
+          <span className="arrow">←</span> back
+        </button>
+        {ERRORS[state] ? (
+          <span className="sign-error swap-in" key={state}>
+            {ERRORS[state]}
           </span>
-          <input
-            aria-label="leave a line"
-            autoComplete="off"
-            maxLength={GUESTBOOK_LIMITS.message}
-            onChange={(event) => setMessage(event.target.value)}
-            placeholder="leave a line"
-            required
-            value={message}
-          />
-          <span aria-hidden="true" className="sign-rule" />
-        </span>
-        <span className="sign-by">
-          <span className="dash">—</span>
-          <input
-            aria-label="your name"
-            autoComplete="off"
-            maxLength={GUESTBOOK_LIMITS.name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="your name"
-            value={name}
-          />
-          {HINTS[state] ? (
-            <span className="sign-hint swap-in" key={state}>
-              {HINTS[state]}
-            </span>
-          ) : (
+        ) : (
+          <span className="sign-actions">
+            {left <= 20 ? <span className="sign-left">{left}</span> : null}
             <button
               className="sign-go"
               disabled={state === "sending" || !ready}
@@ -288,13 +357,94 @@ function SignForm({ onSigned }: { onSigned: (entry: GuestbookEntry) => void }) {
                 </span>
               ) : (
                 <>
-                  sign <span className="sign-arrow">→</span>
+                  sign <span className="arrow">→</span>
                 </>
               )}
             </button>
-          )}
-        </span>
+          </span>
+        )}
       </span>
     </form>
+  );
+}
+
+function Editable({
+  autoFocus = false,
+  label,
+  max,
+  onChange,
+  onEnter,
+  onEscape,
+  placeholder,
+  value,
+}: {
+  autoFocus?: boolean;
+  label: string;
+  max: number;
+  onChange: (value: string) => void;
+  onEnter: () => void;
+  onEscape: () => void;
+  placeholder: string;
+  value: string;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (el && el.textContent !== value) {
+      el.textContent = value;
+    }
+  }, [value]);
+
+  useEffect(() => {
+    if (autoFocus) {
+      ref.current?.focus();
+    }
+  }, [autoFocus]);
+
+  const onKeyDown = (event: ReactKeyboardEvent<HTMLSpanElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      onEnter();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      onEscape();
+    }
+  };
+
+  return (
+    <span
+      aria-label={label}
+      aria-multiline="false"
+      className="ed"
+      contentEditable="plaintext-only"
+      data-placeholder={placeholder}
+      onInput={(event) => {
+        const el = event.currentTarget;
+        let text = (el.textContent ?? "").replace(/\s+/g, " ");
+        if (text.length > max) {
+          text = text.slice(0, max);
+        }
+        if (text !== el.textContent) {
+          el.textContent = text;
+          const range = document.createRange();
+          range.selectNodeContents(el);
+          range.collapse(false);
+          const selection = getSelection();
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+        }
+        if (!text) {
+          el.replaceChildren();
+        }
+        onChange(text);
+      }}
+      onKeyDown={onKeyDown}
+      ref={ref}
+      role="textbox"
+      suppressContentEditableWarning
+      tabIndex={0}
+    />
   );
 }

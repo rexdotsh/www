@@ -46,7 +46,7 @@ type BeaconInput = Beacon extends infer B
 
 export const GUESTBOOK_LIMITS = {
   name: 24,
-  message: 120,
+  message: 80,
   cooldownMs: 10 * 60_000,
   shown: 3,
 } as const;

@@ -126,7 +126,8 @@
 }
 
 .gb-label {
-  display: block;
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 0.3rem;
   font-size: 8.5px;
   letter-spacing: 0.22em;
@@ -190,27 +191,7 @@
   }
 }
 
-.sign input {
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  color: inherit;
-  outline: none;
-}
-
-.sign input::placeholder {
-  color: var(--faint);
-  transition: color 150ms;
-}
-
-.sign input:focus::placeholder {
-  color: color-mix(in oklab, var(--faint) 60%, transparent);
-}
-
-.signature-msg,
-.sign-msg input {
+.signature-msg {
   font-family:
     var(--font-serif-body), var(--font-serif-display), Georgia, serif;
   font-style: italic;
@@ -233,7 +214,8 @@
   color: var(--muted);
 }
 
-.dash {
+.dash,
+.arrow {
   display: inline-block;
   color: var(--rose);
   transition: transform 220ms var(--ease-strong);
@@ -249,41 +231,61 @@
   color: var(--faint);
 }
 
-.sign {
+.gb-view {
   display: block;
-  margin-top: 0.7rem;
+  animation: swap-in 320ms var(--ease-strong) backwards;
 }
 
-.sign-body {
+.gb-write-link,
+.gb-back,
+.gb-thanks {
   display: block;
+  font-size: 10px;
+  color: var(--faint);
 }
 
-.sign[data-state="signed"] .sign-body {
-  animation: sign-out 620ms var(--ease-strong) both;
+.gb-write-link,
+.gb-thanks {
+  margin-top: 0.55rem;
 }
 
-.sign[data-state="cooldown"] .sign-body,
-.sign[data-state="failed"] .sign-body {
+.gb-write-link,
+.gb-back {
+  cursor: pointer;
+  transition: color 150ms;
+}
+
+.gb-write-link:hover,
+.gb-back:hover {
+  color: var(--rose);
+}
+
+.gb-write-link:hover .arrow {
+  transform: translateX(3px);
+}
+
+.gb-back:hover .arrow {
+  transform: translateX(-3px);
+}
+
+.gb-thanks {
+  font-style: italic;
+  color: var(--rose);
+}
+
+.sign-text {
+  display: block;
+  margin-top: 0.4rem;
+  font-family: var(--font-serif-display);
+  font-size: 21px;
+  line-height: 1.3;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.sign[data-state="cooldown"] .sign-text,
+.sign[data-state="failed"] .sign-text {
   animation: sign-shake 360ms var(--ease-strong) both;
-}
-
-@keyframes sign-out {
-  0% {
-    opacity: 1;
-    transform: none;
-  }
-  38% {
-    opacity: 0;
-    transform: translateY(-7px);
-  }
-  39% {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  100% {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 @keyframes sign-shake {
@@ -297,63 +299,101 @@
   }
 }
 
-.sign-msg {
+.ed {
   position: relative;
-  display: flex;
-  align-items: baseline;
-  padding-bottom: 2px;
+  display: inline;
+  min-width: 1ch;
+  padding-inline: 0.05em;
+  margin-inline: -0.05em;
+  font-style: italic;
+  color: var(--rose);
+  outline: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: color-mix(in oklab, var(--rose) 35%, transparent);
+  text-decoration-thickness: 0.05em;
+  text-underline-offset: 0.16em;
+  text-decoration-skip-ink: none;
+  background-image: linear-gradient(var(--rose), var(--rose));
+  background-repeat: no-repeat;
+  background-position: 0 calc(100% - 0.02em);
+  background-size: 0% 0.05em;
+  transition:
+    text-decoration-color 220ms var(--ease-strong),
+    background-size 360ms var(--ease-strong);
+  caret-color: var(--rose);
+  cursor: text;
 }
 
-.sign-msg input {
-  flex: 1;
+.ed:hover {
+  text-decoration-color: color-mix(in oklab, var(--rose) 70%, transparent);
 }
 
-.sign-quote {
-  margin-right: 0.1em;
-  font-family:
-    var(--font-serif-body), var(--font-serif-display), Georgia, serif;
-  font-size: 13.5px;
-  color: var(--faint);
+.ed:focus,
+.ed:focus-visible {
+  outline: none;
+  background-size: 100% 0.05em;
+}
+
+.ed:empty::after {
+  content: attr(data-placeholder);
+  color: color-mix(in oklab, var(--rose) 45%, transparent);
+  pointer-events: none;
   transition: color 220ms;
 }
 
-.sign[data-ready] .sign-quote,
-.sign-msg:focus-within .sign-quote {
-  color: var(--rose);
+.ed:empty:focus::after {
+  color: color-mix(in oklab, var(--rose) 28%, transparent);
 }
 
-.sign-rule {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: 1px;
-  background: color-mix(in oklab, var(--ink) 10%, transparent);
-}
-
-.sign-rule::after {
+.ed:empty::before {
   content: "";
   position: absolute;
-  inset: 0;
+  top: 0.12em;
+  left: -0.02em;
+  width: 0.07em;
+  height: 0.9em;
   background: var(--rose);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 320ms var(--ease-strong);
+  opacity: 0;
+  transition: opacity 160ms;
 }
 
-.sign-msg:focus-within .sign-rule::after,
-.sign[data-ready] .sign-rule::after {
-  transform: scaleX(1);
+.ed:empty:focus::before {
+  opacity: 1;
+  animation: hi-blink 1.1s steps(1) infinite;
 }
 
-.sign-by {
-  margin-top: 0.25rem;
-}
-
-.sign-by input {
-  flex: 1;
-  font-family: var(--font-mono);
+.sign-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 1rem;
   font-size: 10px;
-  color: var(--muted);
+}
+
+.sign-foot .gb-back {
+  margin: 0;
+}
+
+.sign-actions {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.8em;
+}
+
+.sign-left {
+  font-size: 9.5px;
+  font-style: italic;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.sign-error {
+  font-size: 9.5px;
+  font-style: italic;
+  color: var(--rose);
 }
 
 .sign-go {
@@ -363,27 +403,23 @@
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--faint);
-  opacity: 0.55;
-  transform: translateX(4px);
+  opacity: 0.5;
   transition:
     color 180ms,
-    opacity 220ms var(--ease-strong),
-    transform 260ms var(--ease-strong);
+    opacity 220ms var(--ease-strong);
 }
 
 .sign[data-ready] .sign-go {
   color: var(--rose);
   opacity: 1;
-  transform: none;
   cursor: pointer;
 }
 
-.sign-arrow {
-  display: inline-block;
-  transition: transform 200ms var(--ease-strong);
+.sign-go .arrow {
+  color: inherit;
 }
 
-.sign-go:not(:disabled):hover .sign-arrow {
+.sign-go:not(:disabled):hover .arrow {
   transform: translateX(3px);
 }
 
@@ -422,21 +458,10 @@
   }
 }
 
-.sign-hint {
-  font-size: 9.5px;
-  font-style: italic;
-  color: var(--faint);
-  white-space: nowrap;
-}
-
-.sign[data-state="signed"] .sign-hint {
-  color: var(--rose);
-}
-
 .guest-foot {
   display: block;
-  margin-top: 0.7rem;
-  padding-top: 0.6rem;
+  margin-top: 0.55rem;
+  padding-top: 0.5rem;
   border-top: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
   color: var(--muted);
   font-size: 10px;
