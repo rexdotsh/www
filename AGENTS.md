@@ -23,22 +23,4 @@ Run lint + typecheck before committing. Spotify routes need `.dev.vars` (copy th
 
 ## Git
 
-Branch from `origin/main`, lowercase conventional commits (`feat:`, `fix:`, `perf:`, `chore:`), PRs via `gh`.
-
-### Screenshots in PRs
-
-Attach screenshots for any visual change with `gh --attach` (needs gh ≥ 2.88). It uploads the file to GitHub and inlines the URL, so images render in the PR body. Works on `gh pr create`, `gh pr edit`, and `gh pr comment`; repeat the flag for multiple files, and add alt text after a `#`.
-
-```bash
-# append images to the end of the body
-gh pr create --title "feat: thing" --body-file body.md --attach 'shots/light.png#light mode' --attach 'shots/dark.png#dark mode'
-
-# or reference local paths in the markdown and gh rewrites them in place
-#   body.md:  | ![light](shots/light.png) | ![dark](shots/dark.png) |
-gh pr edit 27 --body-file body.md --attach shots/light.png --attach shots/dark.png
-
-# add more later
-gh pr comment 27 --body "mobile:" --attach shots/mobile.png
-```
-
-Take the screenshots headless with `dev-browser --headless` (Playwright page API; `saveScreenshot(await page.screenshot({ fullPage: true }), "name.png")` writes to `~/.dev-browser/tmp/`). Capture light, dark (`document.documentElement.dataset.theme = "dark"`), and a 390px-wide mobile viewport.
+Branch from `origin/main`, lowercase conventional commits (`feat:`, `fix:`, `perf:`, `chore:`), PRs via `gh`. For visual changes attach screenshots with `gh pr create|edit|comment --attach 'shot.png#alt text'` (repeatable; if the body markdown already references the local path, gh rewrites it in place; gh ≥ 2.88).
