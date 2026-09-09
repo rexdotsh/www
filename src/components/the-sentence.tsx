@@ -461,9 +461,11 @@ function HiPeek({ handle }: { handle: string }) {
         </span>
         <span className="block whitespace-nowrap text-[10px] text-muted">
           strangers welcome
-          <span className="text-faint"> · {HI_COUNT} did this month</span>
         </span>
       </a>
+      <span className="mt-3 block border-ink/10 border-t pt-2 text-center text-[9px] text-faint tracking-[0.1em]">
+        {HI_COUNT} people said hi this month
+      </span>
     </PeekCard>
   );
 }

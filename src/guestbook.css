@@ -112,7 +112,7 @@
 .guestbook-card {
   display: block;
   width: 15.5rem;
-  padding: 1rem 0.9rem 0.8rem;
+  padding: 1rem 0.9rem 0.75rem;
   border-radius: 12px;
   border: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
   background: var(--card);
@@ -152,8 +152,8 @@
 
 .guest-foot {
   display: block;
-  margin-top: 0.6rem;
-  padding-top: 0.6rem;
+  margin-top: 0.28rem;
+  padding-top: 0.55rem;
   border-top: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
   color: var(--muted);
   font-size: 10px;
