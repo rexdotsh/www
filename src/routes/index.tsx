@@ -4,7 +4,7 @@ import Guestbook from "@/components/guestbook";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
-import { ROSE_NOTES } from "@/lib/mock-visitors";
+import { type SiteStats, useSiteStats } from "@/lib/stats";
 import { type SpotifyTrack, useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
 
@@ -61,12 +61,33 @@ interface Preview {
   url: string;
 }
 
-// The rose's idle caption occasionally notices other people. On arrival it
-// greets you by where you came from (real: document.referrer), then every so
-// often swaps to a visitor note (mock) for a few seconds before settling back.
 const GREETING_MS = 4200;
 const NOTE_EVERY_MS = 11_000;
 const NOTE_FOR_MS = 3800;
+const RECENT_AGO_RE = /^(just now|[1-4]m)$/;
+
+const roseNotes = (stats: SiteStats | null) => {
+  if (!stats) {
+    return [];
+  }
+  const notes: string[] = [];
+  const others = stats.online - 1;
+  if (others === 1) {
+    notes.push("( one other person is looking at this )");
+  } else if (others > 1) {
+    notes.push(`( ${others} others are looking at this )`);
+  }
+  const arrival = stats.recent.find(
+    (r) => RECENT_AGO_RE.test(r.ago) && r.place !== "somewhere"
+  );
+  if (arrival) {
+    notes.push(`( someone in ${arrival.place} just arrived )`);
+  }
+  if (stats.today >= 10) {
+    notes.push(`( ${stats.today} of you today. hi. )`);
+  }
+  return notes;
+};
 
 const referrerHost = () => {
   try {
@@ -77,8 +98,10 @@ const referrerHost = () => {
   }
 };
 
-function useRoseNote(idle: boolean) {
+function useRoseNote(idle: boolean, stats: SiteStats | null) {
   const [note, setNote] = useState<string | null>(null);
+  const notesRef = useRef<string[]>([]);
+  notesRef.current = roseNotes(stats);
 
   useEffect(() => {
     const host = referrerHost();
@@ -98,7 +121,11 @@ function useRoseNote(idle: boolean) {
     let i = 0;
     let hide: ReturnType<typeof setTimeout>;
     const show = setInterval(() => {
-      setNote(ROSE_NOTES[i % ROSE_NOTES.length]);
+      const notes = notesRef.current;
+      if (notes.length === 0) {
+        return;
+      }
+      setNote(notes[i % notes.length]);
       i += 1;
       hide = setTimeout(() => setNote(null), NOTE_FOR_MS);
     }, NOTE_EVERY_MS);
@@ -179,7 +206,8 @@ function Home() {
     null;
 
   const mode = word ? MODES[word] : preview ? "art" : "rest";
-  const roseNote = useRoseNote(!(word || preview));
+  const stats = useSiteStats();
+  const roseNote = useRoseNote(!(word || preview), stats);
 
   const caption = (() => {
     if (roseNote) {

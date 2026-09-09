@@ -8,9 +8,9 @@ import {
   useState,
 } from "react";
 import { EMAIL, getIdentity, LINKS, PROJECTS } from "@/lib/content";
-import { compact, HI_COUNT, POST_READS } from "@/lib/mock-visitors";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
+import { beacon, compact, useSiteStats } from "@/lib/stats";
 import type { SpotifyTrack } from "@/lib/use-now-playing";
 
 export type SentenceWord =
@@ -407,6 +407,7 @@ function HiPeek({ handle }: { handle: string }) {
   const [copied, setCopied] = useState(false);
   const [touch, setTouch] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const hi = useSiteStats()?.hi ?? 0;
 
   useEffect(() => {
     setTouch(window.matchMedia("(hover: none)").matches);
@@ -414,6 +415,7 @@ function HiPeek({ handle }: { handle: string }) {
   }, []);
 
   const copy = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    beacon({ type: "hi" });
     if (touch) {
       return;
     }
@@ -463,9 +465,11 @@ function HiPeek({ handle }: { handle: string }) {
           strangers welcome
         </span>
       </a>
-      <span className="mt-3 block border-ink/10 border-t pt-2 text-center text-[9px] text-faint tracking-[0.1em]">
-        {HI_COUNT} people said hi this month
-      </span>
+      {hi > 0 ? (
+        <span className="mt-3 block border-ink/10 border-t pt-2 text-center text-[9px] text-faint tracking-[0.1em]">
+          {hi === 1 ? "one person" : `${hi} people`} said hi this month
+        </span>
+      ) : null}
     </PeekCard>
   );
 }
@@ -563,10 +567,12 @@ function ProjectsPeek() {
 
 function PostsPeek() {
   const router = useRouter();
+  const paths = useSiteStats()?.paths;
   return (
     <PeekCard fit label="recent writing">
       {PUBLISHED_META.map((post, index) => {
         const href = `/blog/${post.slug}`;
+        const reads = paths?.[href] ?? 0;
         return (
           <a
             className={`group block ${index > 0 ? "mt-2.5" : ""}`}
@@ -582,10 +588,10 @@ function PostsPeek() {
             </span>
             <span className="block text-muted text-[10px] tabular-nums">
               {post.date.slice(0, 7)}
-              {POST_READS[post.slug] ? (
+              {reads > 0 ? (
                 <span className="text-faint">
                   {" · "}
-                  {compact(POST_READS[post.slug])} reads
+                  {compact(reads)} {reads === 1 ? "read" : "reads"}
                 </span>
               ) : null}
             </span>

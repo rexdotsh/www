@@ -1,9 +1,15 @@
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
+import {
+  HeadContent,
+  Scripts,
+  createRootRoute,
+  useLocation,
+} from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import NotFoundPage from "@/components/not-found";
 import CornerNotes from "@/components/corner-notes";
+import NotFoundPage from "@/components/not-found";
 import { preloadFont } from "@/lib/head";
 import { SITE_HEADERS } from "@/lib/headers";
+import { useBeacon } from "@/lib/stats";
 import { getSiteInfo } from "@/lib/site";
 import { ogImageUrl } from "@/lib/utils";
 import geistMonoWoff2 from "../fonts/geist-mono-latin.woff2?url";
@@ -118,6 +124,11 @@ export const Route = createRootRoute({
 // Apply the saved theme before first paint.
 const THEME_SCRIPT = `try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
 
+function Beacon() {
+  useBeacon(useLocation({ select: (location) => location.pathname }));
+  return null;
+}
+
 function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -129,6 +140,7 @@ function RootDocument({ children }: { children: ReactNode }) {
       </head>
       <body className="antialiased">
         <CornerNotes />
+        <Beacon />
         {children}
         <Scripts />
       </body>

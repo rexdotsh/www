@@ -15,5 +15,19 @@
       "binding": "SPOTIFY_TOKENS",
       "id": "03d58d1db51b477085e75f3d5aa7c977"
     }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ROOM",
+        "class_name": "Room"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["Room"]
+    }
   ]
 }
