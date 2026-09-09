@@ -19,10 +19,11 @@ const THANKS_MS = 2600;
 const FRESH_MS = 1800;
 
 type Mode = "read" | "write";
-type SignState = "idle" | "sending" | "cooldown" | "failed";
+type SignState = "idle" | "sending" | "cooldown" | "rude" | "failed";
 
 const ERRORS: Partial<Record<SignState, string>> = {
   cooldown: "( you were just here. later. )",
+  rude: "( be nice. )",
   failed: "( that didn't take. try again? )",
 };
 
@@ -290,7 +291,11 @@ function SignForm({
         }));
         onSigned(result.entry);
       } else {
-        fail(result?.reason === "cooldown" ? "cooldown" : "failed");
+        fail(
+          result?.reason === "cooldown" || result?.reason === "rude"
+            ? result.reason
+            : "failed"
+        );
       }
     } catch {
       fail("failed");

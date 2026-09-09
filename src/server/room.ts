@@ -1,5 +1,10 @@
 import { DurableObject, env } from "cloudflare:workers";
 import {
+  englishDataset,
+  englishRecommendedTransformers,
+  RegExpMatcher,
+} from "obscenity";
+import {
   ago,
   type Beacon,
   GUESTBOOK_LIMITS,
@@ -223,6 +228,26 @@ const BOT_RE =
 
 export const isBot = (request: Request) =>
   BOT_RE.test(request.headers.get("user-agent") ?? "");
+
+export const limited = async (request: Request, scope: string) => {
+  const ip = request.headers.get("cf-connecting-ip");
+  if (!(env.RATE_LIMIT && ip)) {
+    return false;
+  }
+  const { success } = await env.RATE_LIMIT.limit({ key: `${scope}:${ip}` });
+  return !success;
+};
+
+const profanity = new RegExpMatcher({
+  ...englishDataset.build(),
+  ...englishRecommendedTransformers,
+});
+
+const PUNCTUATION_RE = /[^\p{L}\p{N}\s]/gu;
+
+export const isRude = (text: string) =>
+  profanity.hasMatch(text) ||
+  profanity.hasMatch(text.replace(PUNCTUATION_RE, ""));
 
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
 

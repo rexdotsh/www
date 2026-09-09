@@ -288,6 +288,7 @@
 }
 
 .sign[data-state="cooldown"] .sign-text,
+.sign[data-state="rude"] .sign-text,
 .sign[data-state="failed"] .sign-text {
   animation: sign-shake 360ms var(--ease-strong) both;
 }

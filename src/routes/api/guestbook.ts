@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
 import { GUESTBOOK_LIMITS, VISITOR_RE } from "@/lib/stats";
-import { ipHash, isBot, placeOf, room } from "@/server/room";
+import { ipHash, isBot, isRude, limited, placeOf, room } from "@/server/room";
 
 const MAX_BODY = 1024;
 // biome-ignore lint/suspicious/noControlCharactersInRegex: stripping them is the point
@@ -28,6 +28,12 @@ export const Route = createFileRoute("/api/guestbook")({
         if (isBot(request)) {
           return new Response(null, { status: 403 });
         }
+        if (await limited(request, "guestbook")) {
+          return Response.json(
+            { ok: false, reason: "cooldown" },
+            { status: 429 }
+          );
+        }
         const text = await request.text();
         if (text.length > MAX_BODY) {
           return new Response(null, { status: 413 });
@@ -40,15 +46,19 @@ export const Route = createFileRoute("/api/guestbook")({
         }
         const { visitor } = body;
         const message = clean(body.message, GUESTBOOK_LIMITS.message);
+        const name = clean(body.name, GUESTBOOK_LIMITS.name);
         if (
           !(typeof visitor === "string" && VISITOR_RE.test(visitor) && message)
         ) {
           return Response.json({ ok: false, reason: "empty" }, { status: 400 });
         }
+        if (isRude(message) || isRude(name)) {
+          return Response.json({ ok: false, reason: "rude" }, { status: 422 });
+        }
         const hash = await ipHash(request);
         try {
           const result = await stub.sign({
-            name: clean(body.name, GUESTBOOK_LIMITS.name),
+            name,
             message,
             city: placeOf(request),
             who: hash ? [visitor, hash] : [visitor],
