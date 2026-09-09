@@ -1,8 +1,10 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Guestbook from "@/components/guestbook";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
+import { ROSE_NOTES } from "@/lib/mock-visitors";
 import { type SpotifyTrack, useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
 
@@ -57,6 +59,56 @@ const isTouch = () => window.matchMedia("(hover: none)").matches;
 interface Preview {
   track: SpotifyTrack;
   url: string;
+}
+
+// The rose's idle caption occasionally notices other people. On arrival it
+// greets you by where you came from (real: document.referrer), then every so
+// often swaps to a visitor note (mock) for a few seconds before settling back.
+const GREETING_MS = 4200;
+const NOTE_EVERY_MS = 11_000;
+const NOTE_FOR_MS = 3800;
+
+const referrerHost = () => {
+  try {
+    const host = new URL(document.referrer).hostname.replace(/^www\./, "");
+    return host && host !== location.hostname ? host : null;
+  } catch {
+    return null;
+  }
+};
+
+function useRoseNote(idle: boolean) {
+  const [note, setNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    const host = referrerHost();
+    if (!host) {
+      return;
+    }
+    setNote(`( hello, ${host} )`);
+    const timer = setTimeout(() => setNote(null), GREETING_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!idle) {
+      setNote(null);
+      return;
+    }
+    let i = 0;
+    let hide: ReturnType<typeof setTimeout>;
+    const show = setInterval(() => {
+      setNote(ROSE_NOTES[i % ROSE_NOTES.length]);
+      i += 1;
+      hide = setTimeout(() => setNote(null), NOTE_FOR_MS);
+    }, NOTE_EVERY_MS);
+    return () => {
+      clearInterval(show);
+      clearTimeout(hide);
+    };
+  }, [idle]);
+
+  return note;
 }
 
 function Home() {
@@ -127,8 +179,12 @@ function Home() {
     null;
 
   const mode = word ? MODES[word] : preview ? "art" : "rest";
+  const roseNote = useRoseNote(!(word || preview));
 
   const caption = (() => {
+    if (roseNote) {
+      return roseNote;
+    }
     if (word === "music" || (!word && preview)) {
       if (preview) {
         return "( humming along )";
@@ -188,6 +244,7 @@ function Home() {
           </div>
         </div>
       </div>
+      <Guestbook />
       <TintStrips />
     </main>
   );

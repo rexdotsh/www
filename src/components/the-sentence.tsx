@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { EMAIL, getIdentity, LINKS, PROJECTS } from "@/lib/content";
+import { compact, HI_COUNT, POST_READS } from "@/lib/mock-visitors";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
 import type { SpotifyTrack } from "@/lib/use-now-playing";
@@ -460,6 +461,7 @@ function HiPeek({ handle }: { handle: string }) {
         </span>
         <span className="block whitespace-nowrap text-[10px] text-muted">
           strangers welcome
+          <span className="text-faint"> · {HI_COUNT} did this month</span>
         </span>
       </a>
     </PeekCard>
@@ -578,6 +580,12 @@ function PostsPeek() {
             </span>
             <span className="block text-muted text-[10px] tabular-nums">
               {post.date.slice(0, 7)}
+              {POST_READS[post.slug] ? (
+                <span className="text-faint">
+                  {" · "}
+                  {compact(POST_READS[post.slug])} reads
+                </span>
+              ) : null}
             </span>
           </a>
         );
