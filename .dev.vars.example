@@ -1,4 +1,11 @@
 SPOTIFY_CLIENT_ID=
 SPOTIFY_CLIENT_SECRET=
+# Optional seed. Once you visit /api/spotify/connect the token lives in KV and this is ignored.
 SPOTIFY_REFRESH_TOKEN=
+# Gate for /api/spotify/connect?key=... (any long random string).
+SPOTIFY_CONNECT_SECRET=
+# Optional: get pinged when the refresh token is dying / dead.
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+# Bearer for DELETE /api/guestbook?id=N (hides an entry).
 GUESTBOOK_ADMIN_TOKEN=

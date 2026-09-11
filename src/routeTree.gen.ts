@@ -19,6 +19,8 @@ import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as BlogRssDotxmlRouteImport } from './routes/blog/rss[.]xml'
 import { Route as ApiGithubContributionsRouteImport } from './routes/api/github/contributions'
+import { Route as ApiSpotifyCallbackRouteImport } from './routes/api/spotify/callback'
+import { Route as ApiSpotifyConnectRouteImport } from './routes/api/spotify/connect'
 import { Route as ApiSpotifyPlayingRouteImport } from './routes/api/spotify/playing'
 import { Route as ApiSpotifyPreviewIdRouteImport } from './routes/api/spotify/preview/$id'
 
@@ -72,6 +74,16 @@ const ApiGithubContributionsRoute = ApiGithubContributionsRouteImport.update({
   path: '/api/github/contributions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSpotifyCallbackRoute = ApiSpotifyCallbackRouteImport.update({
+  id: '/api/spotify/callback',
+  path: '/api/spotify/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSpotifyConnectRoute = ApiSpotifyConnectRouteImport.update({
+  id: '/api/spotify/connect',
+  path: '/api/spotify/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSpotifyPlayingRoute = ApiSpotifyPlayingRouteImport.update({
   id: '/api/spotify/playing',
   path: '/api/spotify/playing',
@@ -94,6 +106,8 @@ export interface FileRoutesByFullPath {
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog/': typeof BlogIndexRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
+  '/api/spotify/callback': typeof ApiSpotifyCallbackRoute
+  '/api/spotify/connect': typeof ApiSpotifyConnectRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
@@ -108,6 +122,8 @@ export interface FileRoutesByTo {
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog': typeof BlogIndexRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
+  '/api/spotify/callback': typeof ApiSpotifyCallbackRoute
+  '/api/spotify/connect': typeof ApiSpotifyConnectRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
@@ -123,6 +139,8 @@ export interface FileRoutesById {
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog/': typeof BlogIndexRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
+  '/api/spotify/callback': typeof ApiSpotifyCallbackRoute
+  '/api/spotify/connect': typeof ApiSpotifyConnectRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
@@ -139,6 +157,8 @@ export interface FileRouteTypes {
     | '/blog/rss.xml'
     | '/blog/'
     | '/api/github/contributions'
+    | '/api/spotify/callback'
+    | '/api/spotify/connect'
     | '/api/spotify/playing'
     | '/api/spotify/preview/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -153,6 +173,8 @@ export interface FileRouteTypes {
     | '/blog/rss.xml'
     | '/blog'
     | '/api/github/contributions'
+    | '/api/spotify/callback'
+    | '/api/spotify/connect'
     | '/api/spotify/playing'
     | '/api/spotify/preview/$id'
   id:
@@ -167,6 +189,8 @@ export interface FileRouteTypes {
     | '/blog/rss.xml'
     | '/blog/'
     | '/api/github/contributions'
+    | '/api/spotify/callback'
+    | '/api/spotify/connect'
     | '/api/spotify/playing'
     | '/api/spotify/preview/$id'
   fileRoutesById: FileRoutesById
@@ -182,6 +206,8 @@ export interface RootRouteChildren {
   BlogRssDotxmlRoute: typeof BlogRssDotxmlRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ApiGithubContributionsRoute: typeof ApiGithubContributionsRoute
+  ApiSpotifyCallbackRoute: typeof ApiSpotifyCallbackRoute
+  ApiSpotifyConnectRoute: typeof ApiSpotifyConnectRoute
   ApiSpotifyPlayingRoute: typeof ApiSpotifyPlayingRoute
   ApiSpotifyPreviewIdRoute: typeof ApiSpotifyPreviewIdRoute
 }
@@ -258,6 +284,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGithubContributionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/spotify/callback': {
+      id: '/api/spotify/callback'
+      path: '/api/spotify/callback'
+      fullPath: '/api/spotify/callback'
+      preLoaderRoute: typeof ApiSpotifyCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/spotify/connect': {
+      id: '/api/spotify/connect'
+      path: '/api/spotify/connect'
+      fullPath: '/api/spotify/connect'
+      preLoaderRoute: typeof ApiSpotifyConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/spotify/playing': {
       id: '/api/spotify/playing'
       path: '/api/spotify/playing'
@@ -286,6 +326,8 @@ const rootRouteChildren: RootRouteChildren = {
   BlogRssDotxmlRoute: BlogRssDotxmlRoute,
   BlogIndexRoute: BlogIndexRoute,
   ApiGithubContributionsRoute: ApiGithubContributionsRoute,
+  ApiSpotifyCallbackRoute: ApiSpotifyCallbackRoute,
+  ApiSpotifyConnectRoute: ApiSpotifyConnectRoute,
   ApiSpotifyPlayingRoute: ApiSpotifyPlayingRoute,
   ApiSpotifyPreviewIdRoute: ApiSpotifyPreviewIdRoute,
 }

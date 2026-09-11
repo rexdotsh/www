@@ -21,6 +21,10 @@ bun run build
 
 Run lint + typecheck before committing. Spotify routes need `.dev.vars` (copy the example).
 
+## Spotify auth
+
+Spotify refresh tokens expire 6 months after authorization. `src/lib/spotify-auth.ts` handles it: visit `/api/spotify/connect?key=$SPOTIFY_CONNECT_SECRET` to reconnect (token lands in KV, no redeploy), and a Telegram DM with that link fires ~30 days before expiry and on `invalid_grant`. `<origin>/api/spotify/callback` must be a registered redirect URI in the Spotify dashboard (`http://127.0.0.1:3000` locally; Spotify rejects `localhost`).
+
 ## Git
 
 Lowercase conventional commits (`feat:`, `fix:`, `perf:`, `chore:`), PRs via `gh`. For visual changes can attach screenshots with `gh pr create|edit|comment --attach 'shot.png#alt text'` (repeatable; if the body markdown already references the local path, gh rewrites it in place). Not mandatory.

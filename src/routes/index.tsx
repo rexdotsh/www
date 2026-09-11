@@ -34,7 +34,7 @@ const CAPTIONS: Record<SentenceWord, string> = {
   builds: "( assembling )",
   writes: "( waiting for the first word )",
   garden: "( becoming a garden )",
-  music: "( keeping time )",
+  music: "( listening for something )",
   hi: "( saying it back )",
   resume: "( pretending to be a document )",
 };
