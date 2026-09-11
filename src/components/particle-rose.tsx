@@ -454,7 +454,8 @@ export default function ParticleRose({
       const cubeCos = Math.cos(cubeAngle);
       const cubeSin = Math.sin(cubeAngle);
       const cubeScale = (size / BLEED) * 0.26;
-      const artScale = 1 + 0.07 * Math.sin(t * TAU * 1.35);
+      // No album art to dress up in: just breathe slowly instead of pulsing to a beat.
+      const artScale = 1 + 0.025 * Math.sin(t * TAU * 0.3);
       const blink =
         mode === "caret"
           ? 0.35 + 0.65 * (0.5 + 0.5 * Math.cos((t * TAU) / 1.2))
