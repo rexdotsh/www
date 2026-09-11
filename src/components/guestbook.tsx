@@ -27,7 +27,9 @@ const ERRORS: Partial<Record<SignState, string>> = {
   failed: "( that didn't take. try again? )",
 };
 
-export default function Guestbook() {
+const PARENS_RE = /^\(\s*|\s*\)$/g;
+
+export default function Guestbook({ caption }: { caption: string }) {
   const stats = useSiteStats();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("read");
@@ -219,17 +221,24 @@ export default function Guestbook() {
           (
         </span>{" "}
         <span className="guest-dot" />
-        {Math.max(1, stats.online)} here
-        {latest ? (
-          <>
-            <span aria-hidden="true" className="text-faint">
-              {" · "}
-            </span>
-            <span className="swap-in" key={`${latest.place}-${latest.ago}`}>
-              last from {latest.place}, {latest.ago}
-            </span>
-          </>
-        ) : null}{" "}
+        <span className="gb-corner">
+          {Math.max(1, stats.online)} here
+          {latest ? (
+            <>
+              <span aria-hidden="true" className="text-faint">
+                {" · "}
+              </span>
+              <span className="swap-in" key={`${latest.place}-${latest.ago}`}>
+                last from {latest.place}, {latest.ago}
+              </span>
+            </>
+          ) : null}
+        </span>
+        <span className="gb-caption">
+          <span className="swap-in" key={caption}>
+            {caption.replace(PARENS_RE, "")}
+          </span>
+        </span>{" "}
         <span aria-hidden="true" className="paren">
           )
         </span>

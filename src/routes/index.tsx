@@ -263,16 +263,16 @@ function Home() {
             />
             <p
               aria-hidden="true"
-              className="mt-2.5 h-4 font-mono text-faint text-[10px] italic"
+              className="mt-2.5 hidden h-4 font-mono text-faint text-[10px] italic md:block"
             >
               <span className="swap-in" key={caption}>
                 {caption}
               </span>
             </p>
+            <Guestbook caption={caption} />
           </div>
         </div>
       </div>
-      <Guestbook />
       <TintStrips />
     </main>
   );
