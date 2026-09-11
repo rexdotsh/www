@@ -239,7 +239,8 @@ function Peek({
   const [armed, setArmed] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const router = useRouter();
-  const external = href?.startsWith("http") ?? false;
+  const external = href?.startsWith("http");
+  const internal = href !== undefined && !external;
   const linkClass = `sentence-link ${
     tone === "name"
       ? "text-ink decoration-dotted decoration-ink/30 hover:decoration-ink/70"
@@ -263,7 +264,7 @@ function Peek({
       }
       setArmed(false);
     }
-    if (href && !external) {
+    if (internal) {
       event.preventDefault();
       router.navigate({ href });
     }
@@ -288,7 +289,7 @@ function Peek({
           return;
         }
         report(hoverKey);
-        if (href && !external) {
+        if (internal) {
           router
             .preloadRoute({ href } as Parameters<typeof router.preloadRoute>[0])
             .catch(() => undefined);

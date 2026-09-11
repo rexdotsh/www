@@ -2,27 +2,22 @@ import { timingSafeEqual } from "node:crypto";
 import { env, waitUntil } from "cloudflare:workers";
 import { notify } from "@/lib/notify";
 
-const SPOTIFY_ACCOUNTS = {
-  AUTHORIZE: "https://accounts.spotify.com/authorize",
-  TOKEN: "https://accounts.spotify.com/api/token",
-} as const;
-
+const AUTHORIZE_URL = "https://accounts.spotify.com/authorize";
+const TOKEN_URL = "https://accounts.spotify.com/api/token";
 const SCOPES = "user-read-currently-playing user-read-recently-played";
 
-export const KV = {
-  ACCESS: "spotify:token",
-  REFRESH: "spotify:refresh",
-  STATE: "spotify:state",
-  ALERT: "spotify:alert",
-} as const;
+const KV_ACCESS = "spotify:token";
+const KV_REFRESH = "spotify:refresh";
+const KV_STATE = "spotify:state";
+const KV_ALERT = "spotify:alert";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-// Refresh tokens die 6 months after the user authorized the app, and refreshing
-// an access token does not extend that. https://developer.spotify.com/blog/2026-06-18-refresh-token-expiration
-export const REFRESH_LIFETIME_MS = 182 * DAY_MS;
+const DAY_MS = 86_400_000;
+// Refresh tokens die 6 months after authorization; refreshing doesn't extend it.
+// https://developer.spotify.com/blog/2026-06-18-refresh-token-expiration
+const REFRESH_LIFETIME_MS = 182 * DAY_MS;
 const WARN_BEFORE_MS = 30 * DAY_MS;
-const STATE_TTL = 10 * 60;
-const ALERT_TTL = 7 * 24 * 60 * 60;
+const STATE_TTL = 600;
+const ALERT_TTL = 7 * 86_400;
 
 interface AccessToken {
   access_token: string;
@@ -42,23 +37,19 @@ interface TokenResponse {
   refresh_token?: string;
 }
 
-function basicAuth() {
-  const clientId = env.SPOTIFY_CLIENT_ID;
-  const clientSecret = env.SPOTIFY_CLIENT_SECRET;
-  if (!(clientId && clientSecret)) {
-    throw new Error("Missing Spotify client credentials");
-  }
-  return `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`;
-}
+const kv = () => env.SPOTIFY_TOKENS;
 
 async function tokenRequest(
   params: Record<string, string>,
   signal: AbortSignal
 ) {
-  const response = await fetch(SPOTIFY_ACCOUNTS.TOKEN, {
+  const basic = Buffer.from(
+    `${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`
+  ).toString("base64");
+  const response = await fetch(TOKEN_URL, {
     method: "POST",
     headers: {
-      Authorization: basicAuth(),
+      Authorization: `Basic ${basic}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams(params),
@@ -68,15 +59,45 @@ async function tokenRequest(
   return { ok: response.ok, status: response.status, data };
 }
 
-function callbackUrl(origin: string) {
-  return `${origin}/api/spotify/callback`;
+// Caches the access token from either grant; returns it or null if malformed.
+function cacheAccessToken(data: TokenResponse) {
+  if (!(data.access_token && typeof data.expires_in === "number")) {
+    return null;
+  }
+  const ttl = Math.max(data.expires_in - 60, 1);
+  const token: AccessToken = {
+    access_token: data.access_token,
+    expires_at: Date.now() + ttl * 1000,
+  };
+  waitUntil(
+    kv()
+      .put(KV_ACCESS, JSON.stringify(token), { expirationTtl: ttl })
+      .catch(() => undefined)
+  );
+  return token.access_token;
 }
 
-function connectUrl(origin: string) {
-  const secret = env.SPOTIFY_CONNECT_SECRET;
-  return secret
-    ? `${origin}/api/spotify/connect?key=${encodeURIComponent(secret)}`
-    : "(set SPOTIFY_CONNECT_SECRET to enable the reconnect link)";
+async function alertOnce(
+  kind: "expired" | "expiring",
+  origin: string,
+  expiresAt = 0
+) {
+  if (
+    (await kv()
+      .get(KV_ALERT)
+      .catch(() => kind)) === kind
+  ) {
+    return;
+  }
+  await kv().put(KV_ALERT, kind, { expirationTtl: ALERT_TTL });
+  const link = env.SPOTIFY_CONNECT_SECRET
+    ? `${origin}/api/spotify/connect?key=${encodeURIComponent(env.SPOTIFY_CONNECT_SECRET)}`
+    : "(set SPOTIFY_CONNECT_SECRET first)";
+  await notify(
+    kind === "expired"
+      ? `spotify refresh token is dead, the music widget is off.\n\nreconnect: ${link}`
+      : `spotify refresh token expires around ${new Date(expiresAt).toDateString()}.\n\nreconnect early: ${link}`
+  );
 }
 
 export function isConnectKey(key: string | null) {
@@ -89,49 +110,21 @@ export function isConnectKey(key: string | null) {
   return a.byteLength === b.byteLength && timingSafeEqual(a, b);
 }
 
-async function alertOnce(
-  kind: "expired" | "expiring",
-  origin: string,
-  expiresAt?: number
-) {
-  const key = `${KV.ALERT}:${kind}`;
-  if (await env.SPOTIFY_TOKENS.get(key).catch(() => null)) {
-    return;
-  }
-  await env.SPOTIFY_TOKENS.put(key, "1", { expirationTtl: ALERT_TTL }).catch(
-    () => undefined
-  );
-  const link = connectUrl(origin);
-  await notify(
-    kind === "expired"
-      ? `spotify refresh token is dead, the music widget is off.\n\nreconnect: ${link}`
-      : `spotify refresh token expires around ${new Date(expiresAt ?? 0).toDateString()}.\n\nreconnect early: ${link}`
-  );
-}
-
-async function getRefreshRecord(): Promise<RefreshRecord | null> {
-  const stored = await env.SPOTIFY_TOKENS.get<RefreshRecord>(
-    KV.REFRESH,
-    "json"
-  ).catch(() => null);
-  if (stored?.refresh_token) {
-    return stored;
-  }
-  return env.SPOTIFY_REFRESH_TOKEN
-    ? { refresh_token: env.SPOTIFY_REFRESH_TOKEN, authorized_at: null }
-    : null;
-}
-
 export async function getAccessToken(origin: string, signal: AbortSignal) {
-  const cached = await env.SPOTIFY_TOKENS.get<AccessToken>(
-    KV.ACCESS,
-    "json"
-  ).catch(() => null);
+  const cached = await kv()
+    .get<AccessToken>(KV_ACCESS, "json")
+    .catch(() => null);
   if (cached && Date.now() < cached.expires_at) {
     return cached.access_token;
   }
 
-  const record = await getRefreshRecord();
+  const record =
+    (await kv()
+      .get<RefreshRecord>(KV_REFRESH, "json")
+      .catch(() => null)) ??
+    (env.SPOTIFY_REFRESH_TOKEN
+      ? { refresh_token: env.SPOTIFY_REFRESH_TOKEN, authorized_at: null }
+      : null);
   if (!record) {
     throw new Error("Missing Spotify refresh token");
   }
@@ -146,20 +139,10 @@ export async function getAccessToken(origin: string, signal: AbortSignal) {
     }
     throw new Error(`Failed to refresh access token (${status})`);
   }
-  if (!(data.access_token && Number.isFinite(data.expires_in))) {
+  const token = cacheAccessToken(data);
+  if (!token) {
     throw new Error("Spotify returned an invalid access token");
   }
-
-  const expiresIn = Math.max((data.expires_in as number) - 60, 1);
-  const token: AccessToken = {
-    access_token: data.access_token,
-    expires_at: Date.now() + expiresIn * 1000,
-  };
-  waitUntil(
-    env.SPOTIFY_TOKENS.put(KV.ACCESS, JSON.stringify(token), {
-      expirationTtl: expiresIn,
-    }).catch(() => undefined)
-  );
 
   if (record.authorized_at) {
     const expiresAt = record.authorized_at + REFRESH_LIFETIME_MS;
@@ -167,22 +150,20 @@ export async function getAccessToken(origin: string, signal: AbortSignal) {
       waitUntil(alertOnce("expiring", origin, expiresAt));
     }
   }
-
-  return token.access_token;
+  return token;
 }
 
 export async function beginConnect(origin: string) {
   const state = crypto.randomUUID();
-  await env.SPOTIFY_TOKENS.put(KV.STATE, state, { expirationTtl: STATE_TTL });
-  const url = new URL(SPOTIFY_ACCOUNTS.AUTHORIZE);
-  url.search = new URLSearchParams({
+  await kv().put(KV_STATE, state, { expirationTtl: STATE_TTL });
+  const params = new URLSearchParams({
     client_id: env.SPOTIFY_CLIENT_ID,
     response_type: "code",
-    redirect_uri: callbackUrl(origin),
+    redirect_uri: `${origin}/api/spotify/callback`,
     scope: SCOPES,
     state,
-  }).toString();
-  return url.toString();
+  });
+  return `${AUTHORIZE_URL}?${params}`;
 }
 
 export async function finishConnect(
@@ -191,24 +172,19 @@ export async function finishConnect(
   state: string,
   signal: AbortSignal
 ) {
-  const expected = await env.SPOTIFY_TOKENS.get(KV.STATE);
-  if (!expected || expected !== state) {
+  if ((await kv().get(KV_STATE)) !== state) {
     throw new Error("State mismatch");
   }
-  await env.SPOTIFY_TOKENS.delete(KV.STATE);
-
   const { ok, status, data } = await tokenRequest(
     {
       grant_type: "authorization_code",
       code,
-      redirect_uri: callbackUrl(origin),
+      redirect_uri: `${origin}/api/spotify/callback`,
     },
     signal
   );
   if (!(ok && data.refresh_token)) {
-    throw new Error(
-      `Code exchange failed (${status}${data.error ? `: ${data.error}` : ""})`
-    );
+    throw new Error(`Code exchange failed (${status} ${data.error ?? ""})`);
   }
 
   const authorizedAt = Date.now();
@@ -216,11 +192,11 @@ export async function finishConnect(
     refresh_token: data.refresh_token,
     authorized_at: authorizedAt,
   };
+  cacheAccessToken(data);
   await Promise.all([
-    env.SPOTIFY_TOKENS.put(KV.REFRESH, JSON.stringify(record)),
-    env.SPOTIFY_TOKENS.delete(KV.ACCESS),
-    env.SPOTIFY_TOKENS.delete(`${KV.ALERT}:expired`),
-    env.SPOTIFY_TOKENS.delete(`${KV.ALERT}:expiring`),
+    kv().put(KV_REFRESH, JSON.stringify(record)),
+    kv().delete(KV_STATE),
+    kv().delete(KV_ALERT),
   ]);
 
   const expiresAt = new Date(authorizedAt + REFRESH_LIFETIME_MS);
