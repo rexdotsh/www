@@ -1,0 +1,31 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "www-room",
+  "main": "index.ts",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": false,
+  "observability": {
+    "enabled": true
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ROOM",
+        "class_name": "Room"
+      }
+    ]
+  },
+  // Pulls the existing namespace (and its SQLite data) over from `www`.
+  "migrations": [
+    {
+      "tag": "v1",
+      "transferred_classes": [
+        {
+          "from": "Room",
+          "from_script": "www",
+          "to": "Room"
+        }
+      ]
+    }
+  ]
+}

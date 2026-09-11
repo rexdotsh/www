@@ -8,7 +8,7 @@ Homepage is one interactive "sentence" with peek cards and a particle rose (`src
 
 TanStack Start + Router (file-based routes in `src/routes/`), React 19, Vite 8, Tailwind v4 + plain CSS, MDX, deployed to Cloudflare Workers via Nitro + Wrangler. **Bun** for everything. Biome via `ultracite` for lint/format (lefthook runs it pre-commit).
 
-No database, no auth, no user accounts, no tests, no UI library — everything is bespoke. Analytics is self-hosted Umami, injected in `src/routes/__root.tsx`. Only storage is the `SPOTIFY_TOKENS` KV binding.
+No database, no auth, no user accounts, no tests, no UI library — everything is bespoke. Analytics is self-hosted Umami, injected in `src/routes/__root.tsx`. Storage is the `SPOTIFY_TOKENS` KV binding plus one SQLite Durable Object (`Room`, visitor stats + guestbook) that lives in its own worker, `workers/room` — Cloudflare doesn't issue preview URLs for workers that implement a DO, so `www` only binds to it via `script_name`. Deploy it with `bun run deploy:room` when `src/server/room.ts` changes.
 
 ## Commands
 

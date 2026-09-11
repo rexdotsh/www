@@ -1,9 +1,4 @@
-import { DurableObject, env } from "cloudflare:workers";
-import {
-  englishDataset,
-  englishRecommendedTransformers,
-  RegExpMatcher,
-} from "obscenity";
+import { DurableObject } from "cloudflare:workers";
 import {
   ago,
   type Beacon,
@@ -217,72 +212,3 @@ export class Room extends DurableObject {
     );
   }
 }
-
-// internal durable objects don't run under `vite dev` (nitro#4341 unreleased)
-export const room = () =>
-  import.meta.env.DEV || !env.ROOM
-    ? null
-    : env.ROOM.get(env.ROOM.idFromName("site"));
-
-const BOT_RE =
-  /bot|crawl|spider|slurp|preview|fetch|curl|wget|headless|lighthouse|monitor/i;
-
-export const isBot = (request: Request) =>
-  BOT_RE.test(request.headers.get("user-agent") ?? "");
-
-export const limited = async (request: Request, scope: string) => {
-  const ip = request.headers.get("cf-connecting-ip");
-  if (!(env.RATE_LIMIT && ip)) {
-    return false;
-  }
-  const { success } = await env.RATE_LIMIT.limit({ key: `${scope}:${ip}` });
-  return !success;
-};
-
-const profanity = new RegExpMatcher({
-  ...englishDataset.build(),
-  ...englishRecommendedTransformers,
-});
-
-const PUNCTUATION_RE = /[^\p{L}\p{N}\s]/gu;
-
-export const isRude = (text: string) =>
-  profanity.hasMatch(text) ||
-  profanity.hasMatch(text.replace(PUNCTUATION_RE, ""));
-
-const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
-
-const incoming = (
-  cf: CfProperties | undefined
-): cf is IncomingRequestCfProperties => Boolean(cf && "country" in cf);
-
-export const placeOf = (request: Request) => {
-  const cf = incoming(request.cf) ? request.cf : undefined;
-  const city = cf?.city ?? request.headers.get("cf-ipcity");
-  if (city) {
-    return city.toLowerCase();
-  }
-  const country = cf?.country ?? request.headers.get("cf-ipcountry");
-  if (!country || country === "XX" || country === "T1") {
-    return "somewhere";
-  }
-  try {
-    return (regionNames.of(country) ?? "somewhere").toLowerCase();
-  } catch {
-    return "somewhere";
-  }
-};
-
-export const ipHash = async (request: Request) => {
-  const ip = request.headers.get("cf-connecting-ip");
-  if (!ip) {
-    return null;
-  }
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(`www:${ip}`)
-  );
-  return Array.from(new Uint8Array(digest, 0, 12), (b) =>
-    b.toString(16).padStart(2, "0")
-  ).join("");
-};

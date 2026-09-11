@@ -1,7 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { env } from "cloudflare:workers";
 import { GUESTBOOK_LIMITS, VISITOR_RE } from "@/lib/stats";
-import { ipHash, isBot, isRude, limited, placeOf, room } from "@/server/room";
+import {
+  ipHash,
+  isBot,
+  isPreview,
+  isRude,
+  limited,
+  placeOf,
+  room,
+} from "@/server/api";
 
 const MAX_BODY = 1024;
 // biome-ignore lint/suspicious/noControlCharactersInRegex: stripping them is the point
@@ -25,7 +33,7 @@ export const Route = createFileRoute("/api/guestbook")({
         if (!stub) {
           return new Response(null, { status: 503 });
         }
-        if (isBot(request)) {
+        if (isBot(request) || isPreview(request)) {
           return new Response(null, { status: 403 });
         }
         if (await limited(request, "guestbook")) {

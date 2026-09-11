@@ -8,6 +8,7 @@
     "build": "vite build",
     "cf-typegen": "wrangler types --include-runtime false --env-file .dev.vars.example",
     "deploy": "bun run build && wrangler deploy",
+    "deploy:room": "wrangler deploy -c workers/room/wrangler.jsonc",
     "dev": "vite dev",
     "fonts:subset": "bun scripts/subset-fonts.ts",
     "format": "biome format --write .",

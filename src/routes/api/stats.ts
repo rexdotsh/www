@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { SiteStats } from "@/lib/stats";
-import { room } from "@/server/room";
+import { room } from "@/server/api";
 
 const headers = {
   "Cache-Control": "public, max-age=15",
