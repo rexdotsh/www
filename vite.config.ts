@@ -1,5 +1,5 @@
 import mdx from "@mdx-js/rollup";
-import rehypeShiki from "@shikijs/rehype";
+import rehypeShikiFromHighlighter from "@shikijs/rehype/core";
 import rehypeExtractToc from "@stefanprobst/rehype-extract-toc";
 import rehypeExtractTocExport from "@stefanprobst/rehype-extract-toc/mdx";
 import tailwindcss from "@tailwindcss/vite";
@@ -12,7 +12,8 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import remarkReadingTime from "remark-reading-time";
 import remarkReadingTimeExport from "remark-reading-time/mdx.js";
-import type { ShikiTransformer } from "shiki";
+import { createHighlighterCore, type ShikiTransformer } from "shiki/core";
+import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 import { defineConfig } from "vite";
 import { SITE_HEADERS } from "./src/lib/headers.ts";
 import { PAPER, PAPER_DARK } from "./src/lib/shiki-themes.ts";
@@ -23,6 +24,14 @@ const rawCodeTransformer: ShikiTransformer = {
     node.properties["data-lang"] = this.options.lang;
   },
 };
+
+// Only the grammars the posts actually use, on the JS engine: no WASM, no
+// full-bundle import. Add a lang here when a post needs one.
+const highlighter = await createHighlighterCore({
+  themes: [PAPER, PAPER_DARK],
+  langs: [import("@shikijs/langs/c"), import("@shikijs/langs/python")],
+  engine: createJavaScriptRegexEngine(),
+});
 
 const STATIC_ASSET_HEADERS = {
   headers: {
@@ -77,7 +86,8 @@ export default defineConfig({
           rehypeExtractToc,
           [rehypeExtractTocExport, { name: "tableOfContents" }],
           [
-            rehypeShiki,
+            rehypeShikiFromHighlighter,
+            highlighter,
             {
               // tokens baked at build time; the client ships zero highlighter
               themes: { light: PAPER, dark: PAPER_DARK },
