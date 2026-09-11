@@ -81,12 +81,13 @@ export default function Guestbook({ caption }: { caption: string }) {
   }, [fresh]);
 
   // Keep the line in flow before stats land so the rose doesn't jump on mobile.
+  // Same element shape as below so React patches it instead of remounting.
   if (!stats) {
     return (
       <span className="guestbook" data-loading="">
-        <span className="guestbook-line">
+        <button className="guestbook-line" type="button">
           <Caption caption={caption} />
-        </span>
+        </button>
       </span>
     );
   }
@@ -113,6 +114,38 @@ export default function Guestbook({ caption }: { caption: string }) {
       onPointerLeave={() => setHover(false)}
       ref={rootRef}
     >
+      <button
+        aria-expanded={open}
+        aria-label="guestbook: who else is here"
+        className="guestbook-line"
+        onClick={() => {
+          sfx(open ? "pause" : "pop");
+          setOpen((v) => !v);
+        }}
+        onPointerEnter={(event) => {
+          if (event.pointerType !== "touch") {
+            sfx("pop");
+          }
+        }}
+        type="button"
+      >
+        <Caption caption={caption}>
+          <span className="gb-corner">
+            {Math.max(1, stats.online)} here
+            {latest ? (
+              <>
+                <span aria-hidden="true" className="text-faint">
+                  {" · "}
+                </span>
+                <span className="swap-in" key={`${latest.place}-${latest.ago}`}>
+                  last from {latest.place}, {latest.ago}
+                </span>
+              </>
+            ) : null}
+          </span>
+        </Caption>
+      </button>
+
       <span className="guestbook-peek">
         <span className="peek-card guestbook-card">
           <span className="peek-tab">
@@ -206,38 +239,6 @@ export default function Guestbook({ caption }: { caption: string }) {
           )}
         </span>
       </span>
-
-      <button
-        aria-expanded={open}
-        aria-label="guestbook: who else is here"
-        className="guestbook-line"
-        onClick={() => {
-          sfx(open ? "pause" : "pop");
-          setOpen((v) => !v);
-        }}
-        onPointerEnter={(event) => {
-          if (event.pointerType !== "touch") {
-            sfx("pop");
-          }
-        }}
-        type="button"
-      >
-        <Caption caption={caption}>
-          <span className="gb-corner">
-            {Math.max(1, stats.online)} here
-            {latest ? (
-              <>
-                <span aria-hidden="true" className="text-faint">
-                  {" · "}
-                </span>
-                <span className="swap-in" key={`${latest.place}-${latest.ago}`}>
-                  last from {latest.place}, {latest.ago}
-                </span>
-              </>
-            ) : null}
-          </span>
-        </Caption>
-      </button>
     </span>
   );
 }
