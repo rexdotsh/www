@@ -217,11 +217,11 @@ export class Room extends DurableObject {
   }
 }
 
-// wrangler can't type the namespace without owning `main`, so narrow it here.
-export const room = () => {
-  const { ROOM } = env as unknown as { ROOM?: DurableObjectNamespace<Room> };
-  return ROOM ? ROOM.get(ROOM.idFromName("site")) : null;
-};
+// internal durable objects don't run under `vite dev` (nitro#4341 unreleased)
+export const room = () =>
+  import.meta.env.DEV || !env.ROOM
+    ? null
+    : env.ROOM.get(env.ROOM.idFromName("site"));
 
 const BOT_RE =
   /bot|crawl|spider|slurp|preview|fetch|curl|wget|headless|lighthouse|monitor/i;
