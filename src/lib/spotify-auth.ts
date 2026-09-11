@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { env, waitUntil } from "cloudflare:workers";
 import { notify } from "@/lib/notify";
 
@@ -8,7 +8,6 @@ const SCOPES = "user-read-currently-playing user-read-recently-played";
 
 const KV_ACCESS = "spotify:token";
 const KV_REFRESH = "spotify:refresh";
-const KV_STATE = "spotify:state";
 const KV_ALERT = "spotify:alert";
 
 const DAY_MS = 86_400_000;
@@ -16,7 +15,7 @@ const DAY_MS = 86_400_000;
 // https://developer.spotify.com/blog/2026-06-18-refresh-token-expiration
 const REFRESH_LIFETIME_MS = 182 * DAY_MS;
 const WARN_BEFORE_MS = 30 * DAY_MS;
-const STATE_TTL = 600;
+const STATE_TTL_MS = 10 * 60_000;
 const ALERT_TTL = 7 * 86_400;
 
 interface AccessToken {
@@ -100,14 +99,32 @@ async function alertOnce(
   );
 }
 
+function safeEqual(a: string, b: string) {
+  const x = Buffer.from(a);
+  const y = Buffer.from(b);
+  return x.byteLength === y.byteLength && timingSafeEqual(x, y);
+}
+
 export function isConnectKey(key: string | null) {
   const secret = env.SPOTIFY_CONNECT_SECRET;
-  if (!(key && secret)) {
-    return false;
-  }
-  const a = Buffer.from(key);
-  const b = Buffer.from(secret);
-  return a.byteLength === b.byteLength && timingSafeEqual(a, b);
+  return Boolean(key && secret) && safeEqual(key as string, secret);
+}
+
+// OAuth state is a signed timestamp, so it needs no storage. KV is eventually
+// consistent and a put-then-get across the redirect was failing on retries.
+const signState = (issuedAt: string) =>
+  createHmac("sha256", env.SPOTIFY_CONNECT_SECRET)
+    .update(issuedAt)
+    .digest("base64url");
+
+function isValidState(state: string) {
+  const [issuedAt, sig] = state.split(".");
+  return Boolean(
+    issuedAt &&
+      sig &&
+      Date.now() - Number.parseInt(issuedAt, 36) < STATE_TTL_MS &&
+      safeEqual(sig, signState(issuedAt))
+  );
 }
 
 export async function getAccessToken(origin: string, signal: AbortSignal) {
@@ -153,9 +170,9 @@ export async function getAccessToken(origin: string, signal: AbortSignal) {
   return token;
 }
 
-export async function beginConnect(origin: string) {
-  const state = crypto.randomUUID();
-  await kv().put(KV_STATE, state, { expirationTtl: STATE_TTL });
+export function beginConnect(origin: string) {
+  const issuedAt = Date.now().toString(36);
+  const state = `${issuedAt}.${signState(issuedAt)}`;
   const params = new URLSearchParams({
     client_id: env.SPOTIFY_CLIENT_ID,
     response_type: "code",
@@ -172,8 +189,8 @@ export async function finishConnect(
   state: string,
   signal: AbortSignal
 ) {
-  if ((await kv().get(KV_STATE)) !== state) {
-    throw new Error("State mismatch");
+  if (!isValidState(state)) {
+    throw new Error("Invalid or expired state");
   }
   const { ok, status, data } = await tokenRequest(
     {
@@ -195,13 +212,12 @@ export async function finishConnect(
   cacheAccessToken(data);
   await Promise.all([
     kv().put(KV_REFRESH, JSON.stringify(record)),
-    kv().delete(KV_STATE),
     kv().delete(KV_ALERT),
   ]);
 
+  // Awaited on purpose: this is a one-off admin action and the DM is the
+  // confirmation, so it should land before the "connected" page does.
   const expiresAt = new Date(authorizedAt + REFRESH_LIFETIME_MS);
-  waitUntil(
-    notify(`spotify reconnected. good until ~${expiresAt.toDateString()}.`)
-  );
+  await notify(`spotify reconnected. good until ~${expiresAt.toDateString()}.`);
   return expiresAt;
 }
