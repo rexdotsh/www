@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { type Beacon, VISITOR_RE } from "@/lib/stats";
-import { isBot, limited, placeOf, room } from "@/server/room";
+import { isBot, isPreview, limited, placeOf, room } from "@/server/api";
 
 const MAX_BODY = 512;
 const PATH_RE = /^\/(?:[\w-]+(?:\.[\w-]+)*\/?)*$/;
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/api/beacon")({
     handlers: {
       POST: async ({ request }) => {
         const stub = room();
-        if (!stub || isBot(request)) {
+        if (!stub || isBot(request) || isPreview(request)) {
           return new Response(null, { status: 204 });
         }
         if (await limited(request, "beacon")) {

@@ -8,6 +8,7 @@
     "build": "vite build",
     "cf-typegen": "wrangler types --include-runtime false --env-file .dev.vars.example",
     "deploy": "bun run build && wrangler deploy",
+    "deploy:room": "wrangler deploy -c workers/room/wrangler.jsonc",
     "dev": "vite dev",
     "fonts:subset": "bun scripts/subset-fonts.ts",
     "format": "biome format --write .",
@@ -54,6 +55,6 @@
     "typescript": "^7.0.2",
     "ultracite": "7.10.7",
     "vite": "^8.2.2",
-    "wrangler": "^4.127.1"
+    "wrangler": "4.131.0"
   }
 }
