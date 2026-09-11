@@ -147,8 +147,83 @@ const css = (faces: Face[]) =>
     )
     .join("\n");
 
+// Local stand-ins with metric overrides (numbers from @capsizecss/metrics
+// createFontStack) so the fallback takes the webfont's box and swap doesn't reflow.
+const LOCALS = {
+  georgia: {
+    normal: ["Georgia"],
+    italic: ["Georgia Italic", "Georgia-Italic"],
+  },
+  times: {
+    normal: ["Times New Roman", "TimesNewRomanPSMT"],
+    italic: ["Times New Roman Italic", "TimesNewRomanPS-ItalicMT"],
+  },
+  courier: { normal: ["Courier New", "CourierNewPSMT"] },
+};
+type Fallback = [
+  family: string,
+  local: keyof typeof LOCALS,
+  ascent: string,
+  descent: string,
+  sizeAdjust: string,
+  lineGap?: string,
+];
+const FALLBACKS: Fallback[] = [
+  ["Instrument Serif Fallback", "georgia", "129.426%", "40.5273%", "76.4916%"],
+  [
+    "Instrument Serif Fallback Times",
+    "times",
+    "117.9435%",
+    "36.9318%",
+    "83.9385%",
+    "0%",
+  ],
+  ["Geist Mono Fallback", "courier", "100.5164%", "29.5048%", "99.9837%"],
+  ["Newsreader Fallback", "georgia", "76.4676%", "27.5699%", "96.1192%"],
+  [
+    "Newsreader Fallback Times",
+    "times",
+    "69.6835%",
+    "25.124%",
+    "105.4769%",
+    "0%",
+  ],
+];
+
+const fallbackCss = (fallbacks: Fallback[], note: string) =>
+  `\n/* ${note} */\n${fallbacks
+    .flatMap(([family, local, ascent, descent, size, gap]) => {
+      const faces = LOCALS[local];
+      return Object.entries(faces).map(
+        ([style, names]) => `@font-face {
+  font-family: "${family}";${"italic" in faces ? `\n  font-style: ${style};` : ""}
+  src: ${names.map((n) => `local("${n}")`).join(", ")};
+  ascent-override: ${ascent};
+  descent-override: ${descent};${gap ? `\n  line-gap-override: ${gap};` : ""}
+  size-adjust: ${size};
+}
+`
+      );
+    })
+    .join("\n")}`;
+
 const isBody = (face: Face) => face.family === "Newsreader Variable";
-writeFileSync("src/fonts.css", css(FACES.filter((face) => !isBody(face))));
-writeFileSync("src/fonts-body.css", css(FACES.filter(isBody)));
+const isBodyFallback = ([family]: Fallback) => family.startsWith("Newsreader");
+writeFileSync(
+  "src/fonts.css",
+  css(FACES.filter((face) => !isBody(face))) +
+    fallbackCss(
+      FALLBACKS.filter((f) => !isBodyFallback(f)),
+      "Metric-matched local fallbacks so the swap doesn't reflow (numbers via @capsizecss/metrics)."
+    )
+);
+writeFileSync(
+  "src/fonts-body.css",
+  css(FACES.filter(isBody)) +
+    fallbackCss(
+      FALLBACKS.filter(isBodyFallback),
+      "Metric-matched local fallbacks; see fonts.css."
+    )
+);
 // biome-ignore lint/suspicious/noConsole: build script
 console.log(`\n${before} -> ${after} bytes`);
