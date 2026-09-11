@@ -147,8 +147,108 @@ const css = (faces: Face[]) =>
     )
     .join("\n");
 
+// Metric overrides from @capsizecss/metrics (createFontStack) so the local
+// fallback occupies the same box as the webfont and nothing reflows on swap.
+interface Fallback {
+  ascent: string;
+  descent: string;
+  family: string;
+  italic: boolean;
+  lineGap?: string;
+  local: [string, string];
+  localItalic?: [string, string];
+  sizeAdjust: string;
+}
+
+const FALLBACKS: Record<"display" | "body", Fallback[]> = {
+  display: [
+    {
+      family: "Instrument Serif Fallback",
+      italic: true,
+      local: ["Georgia", "Georgia"],
+      localItalic: ["Georgia Italic", "Georgia-Italic"],
+      ascent: "129.426%",
+      descent: "40.5273%",
+      sizeAdjust: "76.4916%",
+    },
+    {
+      family: "Instrument Serif Fallback Times",
+      italic: true,
+      local: ["Times New Roman", "TimesNewRomanPSMT"],
+      localItalic: ["Times New Roman Italic", "TimesNewRomanPS-ItalicMT"],
+      ascent: "117.9435%",
+      descent: "36.9318%",
+      lineGap: "0%",
+      sizeAdjust: "83.9385%",
+    },
+    {
+      family: "Geist Mono Fallback",
+      italic: false,
+      local: ["Courier New", "CourierNewPSMT"],
+      ascent: "100.5164%",
+      descent: "29.5048%",
+      sizeAdjust: "99.9837%",
+    },
+  ],
+  body: [
+    {
+      family: "Newsreader Fallback",
+      italic: true,
+      local: ["Georgia", "Georgia"],
+      localItalic: ["Georgia Italic", "Georgia-Italic"],
+      ascent: "76.4676%",
+      descent: "27.5699%",
+      sizeAdjust: "96.1192%",
+    },
+    {
+      family: "Newsreader Fallback Times",
+      italic: true,
+      local: ["Times New Roman", "TimesNewRomanPSMT"],
+      localItalic: ["Times New Roman Italic", "TimesNewRomanPS-ItalicMT"],
+      ascent: "69.6835%",
+      descent: "25.124%",
+      lineGap: "0%",
+      sizeAdjust: "105.4769%",
+    },
+  ],
+};
+
+const fallbackCss = (fallbacks: Fallback[], note: string) =>
+  `\n/* ${note} */\n${fallbacks
+    .flatMap((f) => {
+      const face = (style: "normal" | "italic", local: [string, string]) => {
+        const src = [...new Set(local)].map((n) => `local("${n}")`).join(", ");
+        return `@font-face {
+  font-family: "${f.family}";${f.italic ? `\n  font-style: ${style};` : ""}
+  src: ${src};
+  ascent-override: ${f.ascent};
+  descent-override: ${f.descent};${f.lineGap ? `\n  line-gap-override: ${f.lineGap};` : ""}
+  size-adjust: ${f.sizeAdjust};
+}
+`;
+      };
+      return f.italic && f.localItalic
+        ? [face("normal", f.local), face("italic", f.localItalic)]
+        : [face("normal", f.local)];
+    })
+    .join("\n")}`;
+
 const isBody = (face: Face) => face.family === "Newsreader Variable";
-writeFileSync("src/fonts.css", css(FACES.filter((face) => !isBody(face))));
-writeFileSync("src/fonts-body.css", css(FACES.filter(isBody)));
+writeFileSync(
+  "src/fonts.css",
+  css(FACES.filter((face) => !isBody(face))) +
+    fallbackCss(
+      FALLBACKS.display,
+      "Metric-matched local fallbacks (via @capsizecss/metrics) so text painted before the webfont lands occupies the same box and nothing reflows on swap."
+    )
+);
+writeFileSync(
+  "src/fonts-body.css",
+  css(FACES.filter(isBody)) +
+    fallbackCss(
+      FALLBACKS.body,
+      "Metric-matched local fallbacks (via @capsizecss/metrics); see fonts.css."
+    )
+);
 // biome-ignore lint/suspicious/noConsole: build script
 console.log(`\n${before} -> ${after} bytes`);

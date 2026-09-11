@@ -4,9 +4,14 @@
 @import "./guestbook.css";
 
 @theme inline {
-  --font-mono: "Geist Mono Variable", monospace;
-  --font-serif-display: "Instrument Serif", Georgia, serif;
-  --font-serif-body: "Newsreader Variable", Georgia, serif;
+  --font-mono:
+    "Geist Mono Variable", "Geist Mono Fallback", "Courier New", monospace;
+  --font-serif-display:
+    "Instrument Serif", "Instrument Serif Fallback",
+    "Instrument Serif Fallback Times", Georgia, serif;
+  --font-serif-body:
+    "Newsreader Variable", "Newsreader Fallback", "Newsreader Fallback Times",
+    Georgia, serif;
   --ease-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --color-paper: var(--background);
   --color-card: var(--card);

@@ -37,3 +37,42 @@
   unicode-range:
     U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
+
+/* Metric-matched local fallbacks (via @capsizecss/metrics); see fonts.css. */
+@font-face {
+  font-family: "Newsreader Fallback";
+  font-style: normal;
+  src: local("Georgia");
+  ascent-override: 76.4676%;
+  descent-override: 27.5699%;
+  size-adjust: 96.1192%;
+}
+
+@font-face {
+  font-family: "Newsreader Fallback";
+  font-style: italic;
+  src: local("Georgia Italic"), local("Georgia-Italic");
+  ascent-override: 76.4676%;
+  descent-override: 27.5699%;
+  size-adjust: 96.1192%;
+}
+
+@font-face {
+  font-family: "Newsreader Fallback Times";
+  font-style: normal;
+  src: local("Times New Roman"), local("TimesNewRomanPSMT");
+  ascent-override: 69.6835%;
+  descent-override: 25.124%;
+  line-gap-override: 0%;
+  size-adjust: 105.4769%;
+}
+
+@font-face {
+  font-family: "Newsreader Fallback Times";
+  font-style: italic;
+  src: local("Times New Roman Italic"), local("TimesNewRomanPS-ItalicMT");
+  ascent-override: 69.6835%;
+  descent-override: 25.124%;
+  line-gap-override: 0%;
+  size-adjust: 105.4769%;
+}

@@ -66,3 +66,50 @@
   src: url("./fonts/geist-mono-box.woff2") format("woff2");
   unicode-range: U+2500, U+2514, U+251C, U+2588, U+2591;
 }
+
+/* Metric-matched local fallbacks (via @capsizecss/metrics) so text painted before the webfont lands occupies the same box and nothing reflows on swap. */
+@font-face {
+  font-family: "Instrument Serif Fallback";
+  font-style: normal;
+  src: local("Georgia");
+  ascent-override: 129.426%;
+  descent-override: 40.5273%;
+  size-adjust: 76.4916%;
+}
+
+@font-face {
+  font-family: "Instrument Serif Fallback";
+  font-style: italic;
+  src: local("Georgia Italic"), local("Georgia-Italic");
+  ascent-override: 129.426%;
+  descent-override: 40.5273%;
+  size-adjust: 76.4916%;
+}
+
+@font-face {
+  font-family: "Instrument Serif Fallback Times";
+  font-style: normal;
+  src: local("Times New Roman"), local("TimesNewRomanPSMT");
+  ascent-override: 117.9435%;
+  descent-override: 36.9318%;
+  line-gap-override: 0%;
+  size-adjust: 83.9385%;
+}
+
+@font-face {
+  font-family: "Instrument Serif Fallback Times";
+  font-style: italic;
+  src: local("Times New Roman Italic"), local("TimesNewRomanPS-ItalicMT");
+  ascent-override: 117.9435%;
+  descent-override: 36.9318%;
+  line-gap-override: 0%;
+  size-adjust: 83.9385%;
+}
+
+@font-face {
+  font-family: "Geist Mono Fallback";
+  src: local("Courier New"), local("CourierNewPSMT");
+  ascent-override: 100.5164%;
+  descent-override: 29.5048%;
+  size-adjust: 99.9837%;
+}
