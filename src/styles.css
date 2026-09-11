@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./fonts.css";
 @import "./sentence.css";
+@import "./guestbook.css";
 
 @theme inline {
   --font-mono: "Geist Mono Variable", monospace;

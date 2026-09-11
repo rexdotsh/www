@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ApiBeaconRouteImport } from './routes/api/beacon'
+import { Route as ApiGuestbookRouteImport } from './routes/api/guestbook'
+import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as BlogRssDotxmlRouteImport } from './routes/blog/rss[.]xml'
@@ -34,6 +37,21 @@ const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBeaconRoute = ApiBeaconRouteImport.update({
+  id: '/api/beacon',
+  path: '/api/beacon',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGuestbookRoute = ApiGuestbookRouteImport.update({
+  id: '/api/guestbook',
+  path: '/api/guestbook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStatsRoute = ApiStatsRouteImport.update({
+  id: '/api/stats',
+  path: '/api/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -81,6 +99,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/beacon': typeof ApiBeaconRoute
+  '/api/guestbook': typeof ApiGuestbookRoute
+  '/api/stats': typeof ApiStatsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog/': typeof BlogIndexRoute
@@ -94,6 +115,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/beacon': typeof ApiBeaconRoute
+  '/api/guestbook': typeof ApiGuestbookRoute
+  '/api/stats': typeof ApiStatsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog': typeof BlogIndexRoute
@@ -108,6 +132,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/beacon': typeof ApiBeaconRoute
+  '/api/guestbook': typeof ApiGuestbookRoute
+  '/api/stats': typeof ApiStatsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog/': typeof BlogIndexRoute
@@ -123,6 +150,9 @@ export interface FileRouteTypes {
     | '/'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/api/beacon'
+    | '/api/guestbook'
+    | '/api/stats'
     | '/blog/$slug'
     | '/blog/rss.xml'
     | '/blog/'
@@ -136,6 +166,9 @@ export interface FileRouteTypes {
     | '/'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/api/beacon'
+    | '/api/guestbook'
+    | '/api/stats'
     | '/blog/$slug'
     | '/blog/rss.xml'
     | '/blog'
@@ -149,6 +182,9 @@ export interface FileRouteTypes {
     | '/'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/api/beacon'
+    | '/api/guestbook'
+    | '/api/stats'
     | '/blog/$slug'
     | '/blog/rss.xml'
     | '/blog/'
@@ -163,6 +199,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiBeaconRoute: typeof ApiBeaconRoute
+  ApiGuestbookRoute: typeof ApiGuestbookRoute
+  ApiStatsRoute: typeof ApiStatsRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogRssDotxmlRoute: typeof BlogRssDotxmlRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -194,6 +233,27 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/beacon': {
+      id: '/api/beacon'
+      path: '/api/beacon'
+      fullPath: '/api/beacon'
+      preLoaderRoute: typeof ApiBeaconRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/guestbook': {
+      id: '/api/guestbook'
+      path: '/api/guestbook'
+      fullPath: '/api/guestbook'
+      preLoaderRoute: typeof ApiGuestbookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stats': {
+      id: '/api/stats'
+      path: '/api/stats'
+      fullPath: '/api/stats'
+      preLoaderRoute: typeof ApiStatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -259,6 +319,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiBeaconRoute: ApiBeaconRoute,
+  ApiGuestbookRoute: ApiGuestbookRoute,
+  ApiStatsRoute: ApiStatsRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogRssDotxmlRoute: BlogRssDotxmlRoute,
   BlogIndexRoute: BlogIndexRoute,

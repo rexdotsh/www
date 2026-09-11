@@ -1,8 +1,10 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Guestbook from "@/components/guestbook";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
+import { type SiteStats, useSiteStats } from "@/lib/stats";
 import { type SpotifyTrack, useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
 
@@ -57,6 +59,83 @@ const isTouch = () => window.matchMedia("(hover: none)").matches;
 interface Preview {
   track: SpotifyTrack;
   url: string;
+}
+
+const GREETING_MS = 4200;
+const NOTE_EVERY_MS = 11_000;
+const NOTE_FOR_MS = 3800;
+const RECENT_AGO_RE = /^(just now|[1-4]m)$/;
+
+const roseNotes = (stats: SiteStats | null) => {
+  if (!stats) {
+    return [];
+  }
+  const notes: string[] = [];
+  const others = stats.online - 1;
+  if (others === 1) {
+    notes.push("( one other person is looking at this )");
+  } else if (others > 1) {
+    notes.push(`( ${others} others are looking at this )`);
+  }
+  const arrival = stats.recent.find(
+    (r) => RECENT_AGO_RE.test(r.ago) && r.place !== "somewhere"
+  );
+  if (arrival) {
+    notes.push(`( someone in ${arrival.place} just arrived )`);
+  }
+  if (stats.today >= 10) {
+    notes.push(`( ${stats.today} of you today. hi. )`);
+  }
+  return notes;
+};
+
+const referrerHost = () => {
+  try {
+    const host = new URL(document.referrer).hostname.replace(/^www\./, "");
+    return host && host !== location.hostname ? host : null;
+  } catch {
+    return null;
+  }
+};
+
+function useRoseNote(idle: boolean, stats: SiteStats | null) {
+  const [note, setNote] = useState<string | null>(null);
+  const notesRef = useRef<string[]>([]);
+  notesRef.current = roseNotes(stats);
+
+  useEffect(() => {
+    const host = referrerHost();
+    if (!host) {
+      return;
+    }
+    setNote(`( hello, ${host} )`);
+    const timer = setTimeout(() => setNote(null), GREETING_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!idle) {
+      setNote(null);
+      return;
+    }
+    let i = 0;
+    let hide: ReturnType<typeof setTimeout>;
+    const show = setInterval(() => {
+      const notes = notesRef.current;
+      if (notes.length === 0) {
+        return;
+      }
+      setNote(notes[i % notes.length]);
+      i += 1;
+      hide = setTimeout(() => setNote(null), NOTE_FOR_MS);
+    }, NOTE_EVERY_MS);
+    return () => {
+      clearInterval(show);
+      clearTimeout(hide);
+    };
+  }, [idle]);
+
+  return note;
 }
 
 function Home() {
@@ -127,8 +206,13 @@ function Home() {
     null;
 
   const mode = word ? MODES[word] : preview ? "art" : "rest";
+  const stats = useSiteStats();
+  const roseNote = useRoseNote(!(word || preview), stats);
 
   const caption = (() => {
+    if (roseNote) {
+      return roseNote;
+    }
     if (word === "music" || (!word && preview)) {
       if (preview) {
         return "( humming along )";
@@ -179,12 +263,13 @@ function Home() {
             />
             <p
               aria-hidden="true"
-              className="mt-2.5 h-4 font-mono text-faint text-[10px] italic"
+              className="mt-2.5 hidden h-4 font-mono text-faint text-[10px] italic md:block"
             >
               <span className="swap-in" key={caption}>
                 {caption}
               </span>
             </p>
+            <Guestbook caption={caption} />
           </div>
         </div>
       </div>
