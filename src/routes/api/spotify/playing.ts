@@ -1,27 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { env, waitUntil } from "cloudflare:workers";
+import { getAccessToken } from "@/lib/spotify-auth";
 
 const SPOTIFY_API = {
   NOW_PLAYING: "https://api.spotify.com/v1/me/player/currently-playing",
   RECENTLY_PLAYED:
     "https://api.spotify.com/v1/me/player/recently-played?limit=1",
-  TOKEN: "https://accounts.spotify.com/api/token",
 } as const;
 
-const TOKEN_CACHE_KEY = "spotify:token";
 const PLAYING_CACHE_CONTROL = "public, max-age=10";
 const PLAYING_CLOUDFLARE_CACHE_CONTROL =
   "public, max-age=30, stale-while-revalidate=86400";
-
-interface SpotifyToken {
-  access_token: string;
-  expires_at: number;
-}
-
-interface SpotifyTokenResponse {
-  access_token: string;
-  expires_in: number;
-}
 
 interface SpotifyArtist {
   name: string;
@@ -54,62 +42,6 @@ interface SpotifyCurrentlyPlayingResponse {
 
 interface SpotifyRecentlyPlayedResponse {
   items?: Array<{ track: SpotifyTrack }>;
-}
-
-async function getAccessToken(signal: AbortSignal) {
-  const cached = await env.SPOTIFY_TOKENS.get<SpotifyToken>(
-    TOKEN_CACHE_KEY,
-    "json"
-  ).catch(() => null);
-  if (cached && Date.now() < cached.expires_at) {
-    return cached.access_token;
-  }
-
-  const clientId = env.SPOTIFY_CLIENT_ID;
-  const clientSecret = env.SPOTIFY_CLIENT_SECRET;
-  const refreshToken = env.SPOTIFY_REFRESH_TOKEN;
-
-  if (!(clientId && clientSecret && refreshToken)) {
-    throw new Error("Missing Spotify credentials");
-  }
-
-  const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
-  const response = await fetch(SPOTIFY_API.TOKEN, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${basic}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-    }),
-    signal,
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to get access token");
-  }
-
-  const data = (await response.json()) as SpotifyTokenResponse;
-  if (!(data.access_token && Number.isFinite(data.expires_in))) {
-    throw new Error("Spotify returned an invalid access token");
-  }
-
-  const expiresIn = Math.max(data.expires_in - 60, 1);
-
-  const token: SpotifyToken = {
-    access_token: data.access_token,
-    expires_at: Date.now() + expiresIn * 1000,
-  };
-
-  waitUntil(
-    env.SPOTIFY_TOKENS.put(TOKEN_CACHE_KEY, JSON.stringify(token), {
-      expirationTtl: expiresIn,
-    }).catch(() => undefined)
-  );
-
-  return token.access_token;
 }
 
 async function getNowPlaying(token: string, signal: AbortSignal) {
@@ -180,7 +112,10 @@ export const Route = createFileRoute("/api/spotify/playing")({
     handlers: {
       GET: async ({ request }) => {
         try {
-          const token = await getAccessToken(request.signal);
+          const token = await getAccessToken(
+            new URL(request.url).origin,
+            request.signal
+          );
           const track = await getNowPlaying(token, request.signal);
           return Response.json(track ?? null, {
             headers: {

@@ -90,7 +90,7 @@ export const TheSentence = memo(function TheSentence({
   const parts: (
     | string
     | {
-        href: string;
+        href?: string;
         key: SentenceWord;
         peek: ReactNode;
         text: ReactNode;
@@ -138,7 +138,7 @@ export const TheSentence = memo(function TheSentence({
     " with friends, and usually have ",
     {
       key: "music",
-      href: track?.url ?? LINKS.blog,
+      href: track?.url,
       text: "something",
       peek: track ? (
         <MusicPeek
@@ -231,7 +231,7 @@ function Peek({
 }: {
   children: ReactNode;
   hoverKey: SentenceWord;
-  href: string;
+  href?: string;
   onHover?: (word: SentenceWord | null) => void;
   peek: ReactNode;
   tone?: "link" | "name";
@@ -239,7 +239,13 @@ function Peek({
   const [armed, setArmed] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const router = useRouter();
-  const external = href.startsWith("http");
+  const external = href?.startsWith("http");
+  const internal = href !== undefined && !external;
+  const linkClass = `sentence-link ${
+    tone === "name"
+      ? "text-ink decoration-dotted decoration-ink/30 hover:decoration-ink/70"
+      : "text-rose italic decoration-rose/30 hover:decoration-rose"
+  }`;
 
   const report = (word: SentenceWord | null) => {
     onHover?.(word);
@@ -258,7 +264,7 @@ function Peek({
       }
       setArmed(false);
     }
-    if (!external) {
+    if (internal) {
       event.preventDefault();
       router.navigate({ href });
     }
@@ -283,7 +289,7 @@ function Peek({
           return;
         }
         report(hoverKey);
-        if (!external) {
+        if (internal) {
           router
             .preloadRoute({ href } as Parameters<typeof router.preloadRoute>[0])
             .catch(() => undefined);
@@ -296,24 +302,25 @@ function Peek({
       }}
       ref={wrapperRef}
     >
-      <a
-        className={`sentence-link ${
-          tone === "name"
-            ? "text-ink decoration-dotted decoration-ink/30 hover:decoration-ink/70"
-            : "text-rose italic decoration-rose/30 hover:decoration-rose"
-        }`}
-        href={href}
-        onClick={handleClick}
-        onPointerEnter={(event) => {
-          if (event.pointerType !== "touch") {
-            sfx("pop");
-          }
-        }}
-        rel={external ? "noopener noreferrer" : undefined}
-        target={external ? "_blank" : undefined}
-      >
-        {children}
-      </a>
+      {href ? (
+        <a
+          className={linkClass}
+          href={href}
+          onClick={handleClick}
+          onPointerEnter={(event) => {
+            if (event.pointerType !== "touch") {
+              sfx("pop");
+            }
+          }}
+          rel={external ? "noopener noreferrer" : undefined}
+          target={external ? "_blank" : undefined}
+        >
+          {children}
+        </a>
+      ) : (
+        // Nothing to link to (e.g. spotify unreachable); still colours the word and drives the rose on hover.
+        <span className={linkClass}>{children}</span>
+      )}
       {peek ? <span className="peek">{peek}</span> : null}
       {armed ? (
         // biome-ignore lint/a11y/noStaticElementInteractions: tap-catcher; dismissal also works via focus loss
