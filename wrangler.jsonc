@@ -26,8 +26,7 @@
       }
     }
   ],
-  // The Room DO lives in workers/room (`bun run deploy:room`). Workers that
-  // implement a DO themselves don't get preview URLs, so it's kept out of here.
+  // Room lives in workers/room: a worker that implements a DO gets no preview URLs.
   "durable_objects": {
     "bindings": [
       {

@@ -1,7 +1,7 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "www-room",
-  "main": "index.ts",
+  "main": "../../src/server/room.ts",
   "compatibility_date": "2026-09-01",
   "workers_dev": false,
   "observability": {
@@ -15,7 +15,7 @@
       }
     ]
   },
-  // Pulls the existing namespace (and its SQLite data) over from `www`.
+  // Takes the namespace (and its data) over from `www`.
   "migrations": [
     {
       "tag": "v1",

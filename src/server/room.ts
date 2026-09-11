@@ -212,3 +212,8 @@ export class Room extends DurableObject {
     );
   }
 }
+
+// Deployed as its own worker (workers/room); wrangler wants a module default.
+export default {
+  fetch: () => new Response(null, { status: 404 }),
+} satisfies ExportedHandler;
