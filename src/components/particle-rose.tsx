@@ -61,6 +61,10 @@ const GARDEN_CENTERS: [number, number][] = [
 const GARDEN_SCALE = 0.34;
 
 const RAMP_GLYPHS = ["@#S", "%?", "*+", ";:"];
+// Canvas text never triggers @font-face loading on its own, so ask for the
+// exact glyphs we draw before the first frame. "hi" covers the wave sampler.
+const CANVAS_FONT = '600 32px "Geist Mono Variable"';
+const CANVAS_GLYPHS = `hi${RAMP_GLYPHS.join("")}`;
 
 const PALETTE_VARS: [string, Rgb][] = [
   ["--rose-0", [124, 16, 48]],
@@ -714,7 +718,12 @@ export default function ParticleRose({
         start();
       }
     };
-    document.fonts.ready.then(() => {
+    // Wait for the real font before the intro; otherwise Safari paints a
+    // fallback-font rose, then tears it down and replays the bloom.
+    Promise.all([
+      document.fonts.load(CANVAS_FONT, CANVAS_GLYPHS).catch(() => undefined),
+      document.fonts.ready,
+    ]).then(() => {
       if (!cancelled) {
         restart(true);
       }
@@ -722,7 +731,9 @@ export default function ParticleRose({
     wakeRef.current = start;
 
     const resizeObserver = new ResizeObserver(() => {
-      if (container.clientWidth * BLEED !== size) {
+      // The initial observation fires before fonts resolve; leave the first
+      // draw to the font promise so the intro plays exactly once.
+      if (initialized && container.clientWidth * BLEED !== size) {
         restart(false);
       }
     });

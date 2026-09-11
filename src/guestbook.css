@@ -17,7 +17,11 @@
   transition: color 150ms;
 }
 
-.guestbook:hover .guestbook-line,
+/* Nothing to open until stats land (desktop hides the line entirely below). */
+.guestbook[data-loading] .guestbook-line {
+  cursor: default;
+}
+
 .guestbook[data-open] .guestbook-line {
   color: var(--rose);
 }
@@ -27,11 +31,11 @@
   transition: transform 260ms var(--ease-strong);
 }
 
-.guestbook:hover .paren:first-child {
+.guestbook[data-open] .paren:first-child {
   transform: translateX(-3px);
 }
 
-.guestbook:hover .paren:last-child {
+.guestbook[data-open] .paren:last-child {
   transform: translateX(3px);
 }
 
@@ -73,24 +77,59 @@
     visibility 0s 220ms;
 }
 
-.guestbook:hover .guestbook-peek,
-.guestbook:focus-within .guestbook-peek,
+.guestbook:has(:focus-visible) .guestbook-peek,
 .guestbook[data-open] .guestbook-peek {
   transform: none;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transition:
-    transform 220ms var(--ease-strong),
-    opacity 150ms var(--ease-strong),
+    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 160ms var(--ease-strong),
     visibility 0s;
 }
 
-.guestbook:hover .peek-card > *,
-.guestbook:focus-within .peek-card > *,
+.guestbook:has(:focus-visible) .peek-card > *,
 .guestbook[data-open] .peek-card > * {
   opacity: 1;
   translate: 0 0;
+}
+
+/* Hover opens only for real pointers; iOS fakes :hover on tap and it sticks. */
+@media (hover: hover) and (pointer: fine) {
+  .guestbook:hover .guestbook-line {
+    color: var(--rose);
+  }
+
+  .guestbook:hover .paren:first-child {
+    transform: translateX(-3px);
+  }
+
+  .guestbook:hover .paren:last-child {
+    transform: translateX(3px);
+  }
+
+  .guestbook:hover .guestbook-peek {
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 160ms var(--ease-strong),
+      visibility 0s;
+  }
+
+  .guestbook:hover .peek-card > * {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .guestbook[data-loading] {
+    display: none;
+  }
 }
 
 .guestbook-card {
@@ -480,7 +519,8 @@
     margin-top: 0.625rem;
     letter-spacing: 0;
     text-align: center;
-    animation-delay: 0ms;
+    /* Rides in with the rose column (.rise) instead of on its own clock. */
+    animation: none;
   }
 
   .gb-corner {
@@ -491,16 +531,30 @@
     display: inline;
   }
 
+  /* Same treatment as the sentence peeks: a card pinned to the bottom edge
+     that slides up, instead of an absolute popover that pops in over the rose. */
   .guestbook-peek {
+    position: fixed;
+    top: auto;
     left: 50%;
-    transform: translateX(-50%) scale(0.92) translateY(6px);
+    bottom: max(1.5rem, env(safe-area-inset-bottom));
+    padding-bottom: 0;
+    transform: translateX(-50%) translateY(14px) scale(0.96);
     transform-origin: bottom center;
+    transition:
+      transform 240ms var(--ease-strong),
+      opacity 180ms var(--ease-strong),
+      visibility 0s 240ms;
+    z-index: 40;
   }
 
-  .guestbook:hover .guestbook-peek,
-  .guestbook:focus-within .guestbook-peek,
+  .guestbook:has(:focus-visible) .guestbook-peek,
   .guestbook[data-open] .guestbook-peek {
     transform: translateX(-50%);
+    transition:
+      transform 420ms var(--ease-strong),
+      opacity 240ms var(--ease-strong),
+      visibility 0s;
   }
 
   .guestbook-card {

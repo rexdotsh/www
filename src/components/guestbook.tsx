@@ -78,18 +78,18 @@ export default function Guestbook({ caption }: { caption: string }) {
     return () => clearTimeout(timer);
   }, [fresh]);
 
-  if (!stats) {
-    return null;
-  }
-
   const latest = recent[index % Math.max(1, recent.length)];
 
+  // Render the line before stats arrive: on mobile it's in-flow under the
+  // rose, so mounting it late would shove the rose up mid-intro. The peek is
+  // the only part that actually needs data.
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: relays focus loss of the button and card inside it
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same; the interactive elements are the children
     <span
       className="guestbook"
-      data-open={open ? "" : undefined}
+      data-loading={stats ? undefined : ""}
+      data-open={open && stats ? "" : undefined}
       onBlur={(event) => {
         if (!rootRef.current?.contains(event.relatedTarget)) {
           setOpen(false);
@@ -97,110 +97,117 @@ export default function Guestbook({ caption }: { caption: string }) {
       }}
       ref={rootRef}
     >
-      <span className="guestbook-peek">
-        <span className="peek-card guestbook-card">
-          <span className="peek-tab">
-            {mode === "write" ? "leave a line" : "guestbook"}
-          </span>
-
-          {mode === "write" ? (
-            <SignForm
-              key="write"
-              onBack={() => setMode("read")}
-              onSigned={(entry) => {
-                setFresh(entry.id);
-                setMode("read");
-              }}
-            />
-          ) : (
-            <span className="gb-view" key="read">
-              {recent.length > 0 ? (
-                <span className="gb-section">
-                  <span className="gb-label">here lately</span>
-                  {recent.slice(0, 3).map((guest) => (
-                    <span
-                      className="guest"
-                      key={`${guest.place}-${guest.ago}-${guest.path}`}
-                    >
-                      <span className="guest-place">{guest.place}</span>
-                      <span className="guest-page">{guest.path}</span>
-                      <span className="guest-ago">{guest.ago}</span>
-                    </span>
-                  ))}
-                </span>
-              ) : null}
-
-              <span className="gb-section">
-                <span className="gb-label">
-                  signed
-                  {stats.signed > GUESTBOOK_LIMITS.shown ? (
-                    <span className="gb-count"> · {stats.signed}</span>
-                  ) : null}
-                </span>
-                {stats.guestbook.length === 0 ? (
-                  <span className="signature-empty">nobody yet.</span>
-                ) : (
-                  stats.guestbook.map((entry) => (
-                    <span
-                      className="signature"
-                      data-fresh={entry.id === fresh ? "" : undefined}
-                      key={entry.id}
-                    >
-                      <span className="signature-msg">“{entry.message}”</span>
-                      <span className="signature-by">
-                        <span className="dash">—</span> {entry.name}
-                        {entry.place === "somewhere" ? "" : `, ${entry.place}`}
-                        <span className="text-faint"> · {entry.ago}</span>
-                      </span>
-                    </span>
-                  ))
-                )}
-                {fresh === null ? (
-                  <button
-                    className="gb-write-link"
-                    onClick={() => {
-                      sfx("tick");
-                      setMode("write");
-                      setOpen(true);
-                    }}
-                    type="button"
-                  >
-                    leave a line <span className="arrow">→</span>
-                  </button>
-                ) : (
-                  <span className="gb-thanks swap-in">
-                    ( signed. thank you. )
-                  </span>
-                )}
-              </span>
-
-              <span className="guest-foot">
-                <span>
-                  {stats.today} today · {stats.week.toLocaleString("en-US")}{" "}
-                  this week
-                </span>
-                <span className="guest-no">
-                  you are visitor №{" "}
-                  <span className="text-ink tabular-nums">
-                    {stats.total.toLocaleString("en-US")}
-                  </span>
-                </span>
-              </span>
+      {stats ? (
+        <span className="guestbook-peek">
+          <span className="peek-card guestbook-card">
+            <span className="peek-tab">
+              {mode === "write" ? "leave a line" : "guestbook"}
             </span>
-          )}
+
+            {mode === "write" ? (
+              <SignForm
+                key="write"
+                onBack={() => setMode("read")}
+                onSigned={(entry) => {
+                  setFresh(entry.id);
+                  setMode("read");
+                }}
+              />
+            ) : (
+              <span className="gb-view" key="read">
+                {recent.length > 0 ? (
+                  <span className="gb-section">
+                    <span className="gb-label">here lately</span>
+                    {recent.slice(0, 3).map((guest) => (
+                      <span
+                        className="guest"
+                        key={`${guest.place}-${guest.ago}-${guest.path}`}
+                      >
+                        <span className="guest-place">{guest.place}</span>
+                        <span className="guest-page">{guest.path}</span>
+                        <span className="guest-ago">{guest.ago}</span>
+                      </span>
+                    ))}
+                  </span>
+                ) : null}
+
+                <span className="gb-section">
+                  <span className="gb-label">
+                    signed
+                    {stats.signed > GUESTBOOK_LIMITS.shown ? (
+                      <span className="gb-count"> · {stats.signed}</span>
+                    ) : null}
+                  </span>
+                  {stats.guestbook.length === 0 ? (
+                    <span className="signature-empty">nobody yet.</span>
+                  ) : (
+                    stats.guestbook.map((entry) => (
+                      <span
+                        className="signature"
+                        data-fresh={entry.id === fresh ? "" : undefined}
+                        key={entry.id}
+                      >
+                        <span className="signature-msg">“{entry.message}”</span>
+                        <span className="signature-by">
+                          <span className="dash">—</span> {entry.name}
+                          {entry.place === "somewhere"
+                            ? ""
+                            : `, ${entry.place}`}
+                          <span className="text-faint"> · {entry.ago}</span>
+                        </span>
+                      </span>
+                    ))
+                  )}
+                  {fresh === null ? (
+                    <button
+                      className="gb-write-link"
+                      onClick={() => {
+                        sfx("tick");
+                        setMode("write");
+                        setOpen(true);
+                      }}
+                      type="button"
+                    >
+                      leave a line <span className="arrow">→</span>
+                    </button>
+                  ) : (
+                    <span className="gb-thanks swap-in">
+                      ( signed. thank you. )
+                    </span>
+                  )}
+                </span>
+
+                <span className="guest-foot">
+                  <span>
+                    {stats.today} today · {stats.week.toLocaleString("en-US")}{" "}
+                    this week
+                  </span>
+                  <span className="guest-no">
+                    you are visitor №{" "}
+                    <span className="text-ink tabular-nums">
+                      {stats.total.toLocaleString("en-US")}
+                    </span>
+                  </span>
+                </span>
+              </span>
+            )}
+          </span>
         </span>
-      </span>
+      ) : null}
 
       <button
-        aria-expanded={open}
+        aria-expanded={open && stats !== null}
         aria-label="guestbook: who else is here"
         className="guestbook-line"
         onClick={() => {
+          if (!stats) {
+            return;
+          }
           sfx(open ? "pause" : "pop");
           setOpen((v) => !v);
         }}
         onPointerEnter={(event) => {
-          if (event.pointerType !== "touch") {
+          if (stats && event.pointerType !== "touch") {
             sfx("pop");
           }
         }}
@@ -211,15 +218,22 @@ export default function Guestbook({ caption }: { caption: string }) {
         </span>{" "}
         <span className="guest-dot" />
         <span className="gb-corner">
-          {Math.max(1, stats.online)} here
-          {latest ? (
+          {stats ? (
             <>
-              <span aria-hidden="true" className="text-faint">
-                {" · "}
-              </span>
-              <span className="swap-in" key={`${latest.place}-${latest.ago}`}>
-                last from {latest.place}, {latest.ago}
-              </span>
+              {Math.max(1, stats.online)} here
+              {latest ? (
+                <>
+                  <span aria-hidden="true" className="text-faint">
+                    {" · "}
+                  </span>
+                  <span
+                    className="swap-in"
+                    key={`${latest.place}-${latest.ago}`}
+                  >
+                    last from {latest.place}, {latest.ago}
+                  </span>
+                </>
+              ) : null}
             </>
           ) : null}
         </span>
