@@ -15,8 +15,7 @@ import {
 } from "@/lib/stats";
 
 const ROTATE_MS = 6000;
-const THANKS_MS = 2600;
-const FRESH_MS = 1800;
+const SETTLE_MS = 2600;
 
 type Mode = "read" | "write";
 type SignState = "idle" | "sending" | "cooldown" | "rude" | "failed";
@@ -35,7 +34,6 @@ export default function Guestbook({ caption }: { caption: string }) {
   const [mode, setMode] = useState<Mode>("read");
   const [index, setIndex] = useState(0);
   const [fresh, setFresh] = useState<number | null>(null);
-  const [thanks, setThanks] = useState(false);
   const rootRef = useRef<HTMLSpanElement>(null);
   const recent = stats?.recent ?? [];
 
@@ -76,17 +74,9 @@ export default function Guestbook({ caption }: { caption: string }) {
     if (fresh === null) {
       return;
     }
-    const timer = setTimeout(() => setFresh(null), FRESH_MS);
+    const timer = setTimeout(() => setFresh(null), SETTLE_MS);
     return () => clearTimeout(timer);
   }, [fresh]);
-
-  useEffect(() => {
-    if (!thanks) {
-      return;
-    }
-    const timer = setTimeout(() => setThanks(false), THANKS_MS);
-    return () => clearTimeout(timer);
-  }, [thanks]);
 
   if (!stats) {
     return null;
@@ -119,7 +109,6 @@ export default function Guestbook({ caption }: { caption: string }) {
               onBack={() => setMode("read")}
               onSigned={(entry) => {
                 setFresh(entry.id);
-                setThanks(true);
                 setMode("read");
               }}
             />
@@ -166,11 +155,7 @@ export default function Guestbook({ caption }: { caption: string }) {
                     </span>
                   ))
                 )}
-                {thanks ? (
-                  <span className="gb-thanks swap-in">
-                    ( signed. thank you. )
-                  </span>
-                ) : (
+                {fresh === null ? (
                   <button
                     className="gb-write-link"
                     onClick={() => {
@@ -182,6 +167,10 @@ export default function Guestbook({ caption }: { caption: string }) {
                   >
                     leave a line <span className="arrow">→</span>
                   </button>
+                ) : (
+                  <span className="gb-thanks swap-in">
+                    ( signed. thank you. )
+                  </span>
                 )}
               </span>
 
@@ -264,7 +253,7 @@ function SignForm({
   const fail = (next: SignState) => {
     setState(next);
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setState("idle"), THANKS_MS);
+    timer.current = setTimeout(() => setState("idle"), SETTLE_MS);
   };
 
   const submit = async (event?: FormEvent) => {

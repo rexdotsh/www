@@ -103,10 +103,20 @@ export class Room extends DurableObject {
       .toArray()) {
       paths[row.path] = row.views;
     }
+    const counts = this.first<{ online: number; today: number; week: number }>(
+      `SELECT
+        count(DISTINCT CASE WHEN ts > ? THEN visitor END) AS online,
+        sum(ts > ?) AS today,
+        count(*) AS week
+      FROM visits WHERE ts > ?`,
+      now - ONLINE_WINDOW,
+      now - DAY,
+      now - 7 * DAY
+    );
     return {
-      online: this.visitsSince(now - ONLINE_WINDOW, "DISTINCT visitor"),
-      today: this.visitsSince(now - DAY),
-      week: this.visitsSince(now - 7 * DAY),
+      online: counts?.online ?? 0,
+      today: counts?.today ?? 0,
+      week: counts?.week ?? 0,
       total: this.count("total"),
       recent: this.sql
         .exec<{ city: string; path: string; ts: number }>(
@@ -191,15 +201,6 @@ export class Room extends DurableObject {
   ) {
     const [row] = this.sql.exec<T>(query, ...bindings).toArray();
     return row;
-  }
-
-  private visitsSince(ts: number, what = "*") {
-    return (
-      this.first<{ n: number }>(
-        `SELECT count(${what}) AS n FROM visits WHERE ts > ?`,
-        ts
-      )?.n ?? 0
-    );
   }
 
   private bump(key: string) {

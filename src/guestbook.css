@@ -185,6 +185,7 @@
 }
 
 .signature-msg {
+  display: block;
   font-family:
     var(--font-serif-body), var(--font-serif-display), Georgia, serif;
   font-style: italic;
@@ -193,12 +194,7 @@
   color: var(--ink);
 }
 
-.signature-msg {
-  display: block;
-}
-
-.signature-by,
-.sign-by {
+.signature-by {
   display: flex;
   align-items: baseline;
   gap: 0.4em;

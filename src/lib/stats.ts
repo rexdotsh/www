@@ -66,47 +66,6 @@ export const ago = (then: number, now = Date.now()) => {
   return `${Math.round(h / 24)}d`;
 };
 
-export const FALLBACK_STATS: SiteStats = {
-  mock: true,
-  online: 3,
-  today: 41,
-  week: 1204,
-  total: 48_213,
-  recent: [
-    { place: "tokyo", ago: "just now", path: "/" },
-    { place: "berlin", ago: "4m", path: "/blog/parabox" },
-    { place: "austin", ago: "11m", path: "/" },
-    { place: "bengaluru", ago: "26m", path: "/" },
-    { place: "somewhere", ago: "1h", path: "/blog" },
-  ],
-  paths: { "/": 5802, "/blog/parabox": 2214, "/blog": 1037 },
-  hi: 12,
-  signed: 17,
-  guestbook: [
-    {
-      id: 3,
-      name: "maya",
-      message: "found you through the parabox writeup. the rose is unfair.",
-      place: "berlin",
-      ago: "2h",
-    },
-    {
-      id: 2,
-      name: "anonymous",
-      message: "hi back.",
-      place: "austin",
-      ago: "1d",
-    },
-    {
-      id: 1,
-      name: "k",
-      message: "what font is this",
-      place: "tokyo",
-      ago: "3d",
-    },
-  ],
-};
-
 const VISITOR_KEY = "visitor";
 let visitorId: string | null = null;
 
@@ -195,7 +154,7 @@ export function useBeacon(path: string) {
 const REFRESH_MS = 60_000;
 
 let cache: SiteStats | null = null;
-let inflight: Promise<SiteStats | null> | null = null;
+let timer: ReturnType<typeof setInterval> | undefined;
 const listeners = new Set<(stats: SiteStats) => void>();
 
 const publish = (stats: SiteStats) => {
@@ -205,20 +164,24 @@ const publish = (stats: SiteStats) => {
   }
 };
 
-const load = () => {
-  inflight ??= fetch("/api/stats")
+const load = () =>
+  fetch("/api/stats")
     .then((response) =>
       response.ok ? (response.json() as Promise<SiteStats>) : null
     )
-    .catch(() => null)
-    .then((stats) => {
-      inflight = null;
-      if (stats) {
-        publish(stats);
-      }
-      return stats;
-    });
-  return inflight;
+    .then((stats) => stats && publish(stats))
+    .catch(() => undefined);
+
+const start = () => {
+  if (timer) {
+    return;
+  }
+  load();
+  timer = setInterval(() => {
+    if (document.visibilityState === "visible") {
+      load();
+    }
+  }, REFRESH_MS);
 };
 
 export const patchStats = (patch: (stats: SiteStats) => SiteStats) => {
@@ -235,28 +198,20 @@ export function useSiteStats() {
     if (cache) {
       setStats(cache);
     }
-
-    let timer: ReturnType<typeof setInterval> | undefined;
-    const start = () => {
-      load();
-      timer = setInterval(() => {
-        if (document.visibilityState === "visible") {
-          load();
-        }
-      }, REFRESH_MS);
-    };
-
-    const idle =
-      "requestIdleCallback" in window ? requestIdleCallback(start) : undefined;
-    const delay = idle === undefined ? setTimeout(start, 1200) : undefined;
+    const hasIdle = "requestIdleCallback" in window;
+    const idle = hasIdle ? requestIdleCallback(start) : 0;
+    const delay = hasIdle ? undefined : setTimeout(start, 1200);
 
     return () => {
       listeners.delete(setStats);
-      if (idle !== undefined) {
+      if (hasIdle) {
         cancelIdleCallback(idle);
       }
       clearTimeout(delay);
-      clearInterval(timer);
+      if (listeners.size === 0) {
+        clearInterval(timer);
+        timer = undefined;
+      }
     };
   }, []);
 
