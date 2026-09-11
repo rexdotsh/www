@@ -1,6 +1,7 @@
 import {
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
   useEffect,
   useRef,
   useState,
@@ -31,6 +32,7 @@ const PARENS_RE = /^\(\s*|\s*\)$/g;
 export default function Guestbook({ caption }: { caption: string }) {
   const stats = useSiteStats();
   const [open, setOpen] = useState(false);
+  const [hover, setHover] = useState(false);
   const [mode, setMode] = useState<Mode>("read");
   const [index, setIndex] = useState(0);
   const [fresh, setFresh] = useState<number | null>(null);
@@ -78,175 +80,192 @@ export default function Guestbook({ caption }: { caption: string }) {
     return () => clearTimeout(timer);
   }, [fresh]);
 
+  // Keep the line in flow before stats land so the rose doesn't jump on mobile.
+  if (!stats) {
+    return (
+      <span className="guestbook" data-loading="">
+        <span className="guestbook-line">
+          <Caption caption={caption} />
+        </span>
+      </span>
+    );
+  }
+
   const latest = recent[index % Math.max(1, recent.length)];
 
-  // Render the line before stats arrive: on mobile it's in-flow under the
-  // rose, so mounting it late would shove the rose up mid-intro. The peek is
-  // the only part that actually needs data.
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: relays focus loss of the button and card inside it
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same; the interactive elements are the children
     <span
       className="guestbook"
-      data-loading={stats ? undefined : ""}
-      data-open={open && stats ? "" : undefined}
+      data-open={open || hover ? "" : undefined}
       onBlur={(event) => {
         if (!rootRef.current?.contains(event.relatedTarget)) {
           setOpen(false);
         }
       }}
+      // Hover is JS-side so iOS's fake :hover-on-tap can't stick it open.
+      onPointerEnter={(event) => {
+        if (event.pointerType !== "touch") {
+          setHover(true);
+        }
+      }}
+      onPointerLeave={() => setHover(false)}
       ref={rootRef}
     >
-      {stats ? (
-        <span className="guestbook-peek">
-          <span className="peek-card guestbook-card">
-            <span className="peek-tab">
-              {mode === "write" ? "leave a line" : "guestbook"}
-            </span>
+      <span className="guestbook-peek">
+        <span className="peek-card guestbook-card">
+          <span className="peek-tab">
+            {mode === "write" ? "leave a line" : "guestbook"}
+          </span>
 
-            {mode === "write" ? (
-              <SignForm
-                key="write"
-                onBack={() => setMode("read")}
-                onSigned={(entry) => {
-                  setFresh(entry.id);
-                  setMode("read");
-                }}
-              />
-            ) : (
-              <span className="gb-view" key="read">
-                {recent.length > 0 ? (
-                  <span className="gb-section">
-                    <span className="gb-label">here lately</span>
-                    {recent.slice(0, 3).map((guest) => (
-                      <span
-                        className="guest"
-                        key={`${guest.place}-${guest.ago}-${guest.path}`}
-                      >
-                        <span className="guest-place">{guest.place}</span>
-                        <span className="guest-page">{guest.path}</span>
-                        <span className="guest-ago">{guest.ago}</span>
-                      </span>
-                    ))}
-                  </span>
-                ) : null}
-
+          {mode === "write" ? (
+            <SignForm
+              key="write"
+              onBack={() => setMode("read")}
+              onSigned={(entry) => {
+                setFresh(entry.id);
+                setMode("read");
+              }}
+            />
+          ) : (
+            <span className="gb-view" key="read">
+              {recent.length > 0 ? (
                 <span className="gb-section">
-                  <span className="gb-label">
-                    signed
-                    {stats.signed > GUESTBOOK_LIMITS.shown ? (
-                      <span className="gb-count"> · {stats.signed}</span>
-                    ) : null}
-                  </span>
-                  {stats.guestbook.length === 0 ? (
-                    <span className="signature-empty">nobody yet.</span>
-                  ) : (
-                    stats.guestbook.map((entry) => (
-                      <span
-                        className="signature"
-                        data-fresh={entry.id === fresh ? "" : undefined}
-                        key={entry.id}
-                      >
-                        <span className="signature-msg">“{entry.message}”</span>
-                        <span className="signature-by">
-                          <span className="dash">—</span> {entry.name}
-                          {entry.place === "somewhere"
-                            ? ""
-                            : `, ${entry.place}`}
-                          <span className="text-faint"> · {entry.ago}</span>
-                        </span>
-                      </span>
-                    ))
-                  )}
-                  {fresh === null ? (
-                    <button
-                      className="gb-write-link"
-                      onClick={() => {
-                        sfx("tick");
-                        setMode("write");
-                        setOpen(true);
-                      }}
-                      type="button"
+                  <span className="gb-label">here lately</span>
+                  {recent.slice(0, 3).map((guest) => (
+                    <span
+                      className="guest"
+                      key={`${guest.place}-${guest.ago}-${guest.path}`}
                     >
-                      leave a line <span className="arrow">→</span>
-                    </button>
-                  ) : (
-                    <span className="gb-thanks swap-in">
-                      ( signed. thank you. )
+                      <span className="guest-place">{guest.place}</span>
+                      <span className="guest-page">{guest.path}</span>
+                      <span className="guest-ago">{guest.ago}</span>
                     </span>
-                  )}
+                  ))}
                 </span>
+              ) : null}
 
-                <span className="guest-foot">
-                  <span>
-                    {stats.today} today · {stats.week.toLocaleString("en-US")}{" "}
-                    this week
-                  </span>
-                  <span className="guest-no">
-                    you are visitor №{" "}
-                    <span className="text-ink tabular-nums">
-                      {stats.total.toLocaleString("en-US")}
+              <span className="gb-section">
+                <span className="gb-label">
+                  signed
+                  {stats.signed > GUESTBOOK_LIMITS.shown ? (
+                    <span className="gb-count"> · {stats.signed}</span>
+                  ) : null}
+                </span>
+                {stats.guestbook.length === 0 ? (
+                  <span className="signature-empty">nobody yet.</span>
+                ) : (
+                  stats.guestbook.map((entry) => (
+                    <span
+                      className="signature"
+                      data-fresh={entry.id === fresh ? "" : undefined}
+                      key={entry.id}
+                    >
+                      <span className="signature-msg">“{entry.message}”</span>
+                      <span className="signature-by">
+                        <span className="dash">—</span> {entry.name}
+                        {entry.place === "somewhere" ? "" : `, ${entry.place}`}
+                        <span className="text-faint"> · {entry.ago}</span>
+                      </span>
                     </span>
+                  ))
+                )}
+                {fresh === null ? (
+                  <button
+                    className="gb-write-link"
+                    onClick={() => {
+                      sfx("tick");
+                      setMode("write");
+                      setOpen(true);
+                    }}
+                    type="button"
+                  >
+                    leave a line <span className="arrow">→</span>
+                  </button>
+                ) : (
+                  <span className="gb-thanks swap-in">
+                    ( signed. thank you. )
+                  </span>
+                )}
+              </span>
+
+              <span className="guest-foot">
+                <span>
+                  {stats.today} today · {stats.week.toLocaleString("en-US")}{" "}
+                  this week
+                </span>
+                <span className="guest-no">
+                  you are visitor №{" "}
+                  <span className="text-ink tabular-nums">
+                    {stats.total.toLocaleString("en-US")}
                   </span>
                 </span>
               </span>
-            )}
-          </span>
+            </span>
+          )}
         </span>
-      ) : null}
+      </span>
 
       <button
-        aria-expanded={open && stats !== null}
+        aria-expanded={open}
         aria-label="guestbook: who else is here"
         className="guestbook-line"
         onClick={() => {
-          if (!stats) {
-            return;
-          }
           sfx(open ? "pause" : "pop");
           setOpen((v) => !v);
         }}
         onPointerEnter={(event) => {
-          if (stats && event.pointerType !== "touch") {
+          if (event.pointerType !== "touch") {
             sfx("pop");
           }
         }}
         type="button"
       >
-        <span aria-hidden="true" className="paren">
-          (
-        </span>{" "}
-        <span className="guest-dot" />
-        <span className="gb-corner">
-          {stats ? (
-            <>
-              {Math.max(1, stats.online)} here
-              {latest ? (
-                <>
-                  <span aria-hidden="true" className="text-faint">
-                    {" · "}
-                  </span>
-                  <span
-                    className="swap-in"
-                    key={`${latest.place}-${latest.ago}`}
-                  >
-                    last from {latest.place}, {latest.ago}
-                  </span>
-                </>
-              ) : null}
-            </>
-          ) : null}
-        </span>
-        <span className="gb-caption">
-          <span className="swap-in" key={caption}>
-            {caption.replace(PARENS_RE, "")}
+        <Caption caption={caption}>
+          <span className="gb-corner">
+            {Math.max(1, stats.online)} here
+            {latest ? (
+              <>
+                <span aria-hidden="true" className="text-faint">
+                  {" · "}
+                </span>
+                <span className="swap-in" key={`${latest.place}-${latest.ago}`}>
+                  last from {latest.place}, {latest.ago}
+                </span>
+              </>
+            ) : null}
           </span>
-        </span>{" "}
-        <span aria-hidden="true" className="paren">
-          )
-        </span>
+        </Caption>
       </button>
     </span>
+  );
+}
+
+// "( • corner-or-caption )": desktop shows the corner, mobile the caption.
+function Caption({
+  caption,
+  children,
+}: {
+  caption: string;
+  children?: ReactNode;
+}) {
+  return (
+    <>
+      <span aria-hidden="true" className="paren">
+        (
+      </span>{" "}
+      <span className="guest-dot" />
+      {children}
+      <span className="gb-caption">
+        <span className="swap-in" key={caption}>
+          {caption.replace(PARENS_RE, "")}
+        </span>
+      </span>{" "}
+      <span aria-hidden="true" className="paren">
+        )
+      </span>
+    </>
   );
 }
 
