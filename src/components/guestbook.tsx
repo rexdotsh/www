@@ -1,4 +1,5 @@
 import {
+  type CSSProperties,
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
@@ -17,6 +18,31 @@ import {
 
 const ROTATE_MS = 6000;
 const SETTLE_MS = 2600;
+
+// How much of the layout viewport the on-screen keyboard is covering. iOS only
+// shrinks the *visual* viewport, so a fixed-bottom sheet needs lifting by hand.
+function useKeyboardInset(active: boolean) {
+  const [inset, setInset] = useState(0);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!(active && viewport)) {
+      return;
+    }
+    const update = () =>
+      setInset(
+        Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+      );
+    update();
+    viewport.addEventListener("resize", update);
+    viewport.addEventListener("scroll", update);
+    return () => {
+      viewport.removeEventListener("resize", update);
+      viewport.removeEventListener("scroll", update);
+      setInset(0);
+    };
+  }, [active]);
+  return inset;
+}
 
 type Mode = "read" | "write";
 type SignState = "idle" | "sending" | "cooldown" | "rude" | "failed";
@@ -38,6 +64,7 @@ export default function Guestbook({ caption }: { caption: string }) {
   const [fresh, setFresh] = useState<number | null>(null);
   const rootRef = useRef<HTMLSpanElement>(null);
   const recent = stats?.recent ?? [];
+  const keyboard = useKeyboardInset(open);
 
   useEffect(() => {
     if (recent.length < 2) {
@@ -100,8 +127,13 @@ export default function Guestbook({ caption }: { caption: string }) {
     <span
       className="guestbook"
       data-open={open || hover ? "" : undefined}
+      // Only when focus moves to another element (tabbing out). A null target
+      // is the iOS keyboard being dismissed; outside taps close via pointerdown.
       onBlur={(event) => {
-        if (!rootRef.current?.contains(event.relatedTarget)) {
+        if (
+          event.relatedTarget &&
+          !rootRef.current?.contains(event.relatedTarget)
+        ) {
           setOpen(false);
         }
       }}
@@ -146,7 +178,21 @@ export default function Guestbook({ caption }: { caption: string }) {
         </Caption>
       </button>
 
-      <span className="guestbook-peek">
+      {/* Mobile only: dims the page behind the sheet; tap to close. */}
+      <span
+        aria-hidden="true"
+        className="gb-scrim"
+        onClick={() => {
+          sfx("pause");
+          setOpen(false);
+          setHover(false);
+        }}
+      />
+
+      <span
+        className="guestbook-peek"
+        style={{ "--kb": `${keyboard}px` } as CSSProperties}
+      >
         <span className="peek-card guestbook-card">
           <span className="peek-tab">
             {mode === "write" ? "leave a line" : "guestbook"}

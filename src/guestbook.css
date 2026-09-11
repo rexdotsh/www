@@ -472,7 +472,8 @@
   font-style: italic;
 }
 
-.gb-caption {
+.gb-caption,
+.gb-scrim {
   display: none;
 }
 
@@ -496,28 +497,64 @@
     display: inline;
   }
 
-  /* Bottom sheet, same as the sentence peeks. */
+  /* Bottom sheet. --kb is set from visualViewport so it rides above the
+     keyboard; iOS only shrinks the visual viewport, not the layout one. */
   .guestbook-peek {
     position: fixed;
     top: auto;
     left: 50%;
-    bottom: max(1.5rem, env(safe-area-inset-bottom));
+    bottom: calc(max(1.5rem, env(safe-area-inset-bottom)) + var(--kb, 0px));
     padding-bottom: 0;
-    transform: translateX(-50%) translateY(14px) scale(0.96);
+    transform: translateX(-50%) translateY(28px) scale(0.96);
     transform-origin: bottom center;
     transition:
-      transform 240ms var(--ease-strong),
-      opacity 180ms var(--ease-strong),
-      visibility 0s 240ms;
+      transform 260ms var(--ease-strong),
+      opacity 200ms var(--ease-strong),
+      bottom 220ms var(--ease-strong),
+      visibility 0s 260ms;
     z-index: 40;
   }
 
   .guestbook:is([data-open], :has(:focus-visible)) .guestbook-peek {
     transform: translateX(-50%);
     transition:
-      transform 420ms var(--ease-strong),
+      transform 480ms var(--ease-strong),
       opacity 240ms var(--ease-strong),
+      bottom 220ms var(--ease-strong),
       visibility 0s;
+  }
+
+  /* Same move as the sentence peeks blurring the other words: the page
+     recedes so the sheet reads as a mode. The colour lives on ::before so
+     Safari's toolbar tinting (which only reads the fixed box) ignores it. */
+  .gb-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    opacity: 0;
+    transition:
+      opacity 260ms var(--ease-strong),
+      display 260ms allow-discrete;
+  }
+
+  .gb-scrim::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: color-mix(in oklab, var(--background) 55%, transparent);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+  }
+
+  .guestbook[data-open] .gb-scrim {
+    display: block;
+    opacity: 1;
+  }
+
+  @starting-style {
+    .guestbook[data-open] .gb-scrim {
+      opacity: 0;
+    }
   }
 
   .guestbook-card {
