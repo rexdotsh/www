@@ -67,7 +67,7 @@
   unicode-range: U+2500, U+2514, U+251C, U+2588, U+2591;
 }
 
-/* Metric-matched local fallbacks (via @capsizecss/metrics) so text painted before the webfont lands occupies the same box and nothing reflows on swap. */
+/* Metric-matched local fallbacks so the swap doesn't reflow (numbers via @capsizecss/metrics). */
 @font-face {
   font-family: "Instrument Serif Fallback";
   font-style: normal;
