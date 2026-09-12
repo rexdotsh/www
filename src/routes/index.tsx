@@ -124,7 +124,7 @@ function useRoseNote(idle: boolean, stats: SiteStats | null) {
     if (!host) {
       return;
     }
-    setNote(`( hello, ${host} )`);
+    setNote(`( ${host} sent you. hi. )`);
     const timer = setTimeout(() => setNote(null), GREETING_MS);
     return () => clearTimeout(timer);
   }, []);
