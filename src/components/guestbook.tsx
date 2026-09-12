@@ -1,6 +1,7 @@
 import {
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
   useEffect,
   useRef,
   useState,
@@ -31,6 +32,7 @@ const PARENS_RE = /^\(\s*|\s*\)$/g;
 export default function Guestbook({ caption }: { caption: string }) {
   const stats = useSiteStats();
   const [open, setOpen] = useState(false);
+  const [hover, setHover] = useState(false);
   const [mode, setMode] = useState<Mode>("read");
   const [index, setIndex] = useState(0);
   const [fresh, setFresh] = useState<number | null>(null);
@@ -78,8 +80,16 @@ export default function Guestbook({ caption }: { caption: string }) {
     return () => clearTimeout(timer);
   }, [fresh]);
 
+  // Keep the line in flow before stats land so the rose doesn't jump on mobile.
+  // Same element shape as below so React patches it instead of remounting.
   if (!stats) {
-    return null;
+    return (
+      <span className="guestbook" data-loading="">
+        <button className="guestbook-line" type="button">
+          <Caption caption={caption} />
+        </button>
+      </span>
+    );
   }
 
   const latest = recent[index % Math.max(1, recent.length)];
@@ -89,14 +99,53 @@ export default function Guestbook({ caption }: { caption: string }) {
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same; the interactive elements are the children
     <span
       className="guestbook"
-      data-open={open ? "" : undefined}
+      data-open={open || hover ? "" : undefined}
       onBlur={(event) => {
         if (!rootRef.current?.contains(event.relatedTarget)) {
           setOpen(false);
         }
       }}
+      // Hover is JS-side so iOS's fake :hover-on-tap can't stick it open.
+      onPointerEnter={(event) => {
+        if (event.pointerType !== "touch") {
+          setHover(true);
+        }
+      }}
+      onPointerLeave={() => setHover(false)}
       ref={rootRef}
     >
+      <button
+        aria-expanded={open}
+        aria-label="guestbook: who else is here"
+        className="guestbook-line"
+        onClick={() => {
+          sfx(open ? "pause" : "pop");
+          setOpen((v) => !v);
+        }}
+        onPointerEnter={(event) => {
+          if (event.pointerType !== "touch") {
+            sfx("pop");
+          }
+        }}
+        type="button"
+      >
+        <Caption caption={caption}>
+          <span className="gb-corner">
+            {Math.max(1, stats.online)} here
+            {latest ? (
+              <>
+                <span aria-hidden="true" className="text-faint">
+                  {" · "}
+                </span>
+                <span className="swap-in" key={`${latest.place}-${latest.ago}`}>
+                  last from {latest.place}, {latest.ago}
+                </span>
+              </>
+            ) : null}
+          </span>
+        </Caption>
+      </button>
+
       <span className="guestbook-peek">
         <span className="peek-card guestbook-card">
           <span className="peek-tab">
@@ -190,49 +239,34 @@ export default function Guestbook({ caption }: { caption: string }) {
           )}
         </span>
       </span>
-
-      <button
-        aria-expanded={open}
-        aria-label="guestbook: who else is here"
-        className="guestbook-line"
-        onClick={() => {
-          sfx(open ? "pause" : "pop");
-          setOpen((v) => !v);
-        }}
-        onPointerEnter={(event) => {
-          if (event.pointerType !== "touch") {
-            sfx("pop");
-          }
-        }}
-        type="button"
-      >
-        <span aria-hidden="true" className="paren">
-          (
-        </span>{" "}
-        <span className="guest-dot" />
-        <span className="gb-corner">
-          {Math.max(1, stats.online)} here
-          {latest ? (
-            <>
-              <span aria-hidden="true" className="text-faint">
-                {" · "}
-              </span>
-              <span className="swap-in" key={`${latest.place}-${latest.ago}`}>
-                last from {latest.place}, {latest.ago}
-              </span>
-            </>
-          ) : null}
-        </span>
-        <span className="gb-caption">
-          <span className="swap-in" key={caption}>
-            {caption.replace(PARENS_RE, "")}
-          </span>
-        </span>{" "}
-        <span aria-hidden="true" className="paren">
-          )
-        </span>
-      </button>
     </span>
+  );
+}
+
+// "( • corner-or-caption )": desktop shows the corner, mobile the caption.
+function Caption({
+  caption,
+  children,
+}: {
+  caption: string;
+  children?: ReactNode;
+}) {
+  return (
+    <>
+      <span aria-hidden="true" className="paren">
+        (
+      </span>{" "}
+      <span className="guest-dot" />
+      {children}
+      <span className="gb-caption">
+        <span className="swap-in" key={caption}>
+          {caption.replace(PARENS_RE, "")}
+        </span>
+      </span>{" "}
+      <span aria-hidden="true" className="paren">
+        )
+      </span>
+    </>
   );
 }
 

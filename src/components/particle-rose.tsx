@@ -61,6 +61,9 @@ const GARDEN_CENTERS: [number, number][] = [
 const GARDEN_SCALE = 0.34;
 
 const RAMP_GLYPHS = ["@#S", "%?", "*+", ";:"];
+// Canvas text doesn't trigger @font-face loads; request our glyphs explicitly.
+const CANVAS_FONT = '600 32px "Geist Mono Variable"';
+const CANVAS_GLYPHS = `hi${RAMP_GLYPHS.join("")}`;
 
 const PALETTE_VARS: [string, Rgb][] = [
   ["--rose-0", [124, 16, 48]],
@@ -714,7 +717,11 @@ export default function ParticleRose({
         start();
       }
     };
-    document.fonts.ready.then(() => {
+    // Intro waits for the real font, else Safari draws it twice.
+    Promise.all([
+      document.fonts.load(CANVAS_FONT, CANVAS_GLYPHS).catch(() => undefined),
+      document.fonts.ready,
+    ]).then(() => {
       if (!cancelled) {
         restart(true);
       }
@@ -722,7 +729,8 @@ export default function ParticleRose({
     wakeRef.current = start;
 
     const resizeObserver = new ResizeObserver(() => {
-      if (container.clientWidth * BLEED !== size) {
+      // First draw belongs to the font promise above.
+      if (initialized && container.clientWidth * BLEED !== size) {
         restart(false);
       }
     });
