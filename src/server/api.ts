@@ -52,7 +52,7 @@ export const placeOf = (request: Request) => {
   const cf = incoming(request.cf) ? request.cf : undefined;
   const city = cf?.city ?? request.headers.get("cf-ipcity");
   if (city) {
-    return city.toLowerCase();
+    return city.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
   }
   const country = cf?.country ?? request.headers.get("cf-ipcountry");
   if (!country || country === "XX" || country === "T1") {
