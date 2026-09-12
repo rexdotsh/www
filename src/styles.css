@@ -42,6 +42,13 @@
   --rose-4: light-dark(#f0a0b2, #f9bccb);
   --rose-glow: light-dark(#ef7f9a, #ffd6df);
   --shade: light-dark(rgb(23 20 15 / 0.045), transparent);
+  --sheet-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  --card-shadow:
+    0 1px 0 0 color-mix(in oklab, var(--ink) 4%, transparent) inset,
+    0 2px 6px -2px rgb(23 20 15 / 0.12),
+    0 20px 48px -20px color-mix(in oklab, var(--rose) 30%, rgb(23 20 15 / 0.45)),
+    0 0 36px -4px
+    light-dark(color-mix(in oklab, var(--rose) 26%, transparent), transparent);
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncG type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncB type='linear' slope='1.6' intercept='-0.3'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --grain-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='0.45' intercept='0.275'/%3E%3CfeFuncG type='linear' slope='0.45' intercept='0.275'/%3E%3CfeFuncB type='linear' slope='0.45' intercept='0.275'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --paper-grain: var(--grain);
@@ -101,6 +108,35 @@ body {
     100% 100%;
   background-repeat: repeat, no-repeat;
   background-blend-mode: overlay, normal;
+}
+
+/* Safari 26 ends the layout viewport at its bar and paints the bar one flat
+   colour (sampled from .tint-strip), so any vignette/grain in the last rows
+   reads as a seam. On iOS move them to a fixed pseudo-element that fades to
+   flat paper at the bottom edge. */
+@supports (-webkit-touch-callout: none) {
+  .paper-lit {
+    background-image: none;
+  }
+
+  .paper-lit::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--background);
+    background-image:
+      var(--paper-grain),
+      radial-gradient(130% 100% at 50% 38%, transparent 62%, var(--shade));
+    background-size:
+      160px 160px,
+      100% 100%;
+    background-repeat: repeat, no-repeat;
+    background-blend-mode: overlay, normal;
+    -webkit-mask-image: linear-gradient(#000 calc(100% - 10rem), #0000);
+    mask-image: linear-gradient(#000 calc(100% - 10rem), #0000);
+  }
 }
 
 :focus-visible {
@@ -302,6 +338,21 @@ html[data-vt="theme"]::view-transition-new(root) {
 @media (max-width: 767px) {
   .corner-notes {
     position: absolute;
+  }
+
+  /* Card shadows stay inside the 1.5rem sheet margin: Safari 26 ends the
+     layout viewport at its bar, so anything past the edge is cut off. */
+  :root {
+    --card-shadow:
+      0 1px 0 0 color-mix(in oklab, var(--ink) 4%, transparent) inset,
+      0 2px 6px -2px rgb(23 20 15 / 0.12),
+      0 8px 28px -12px color-mix(
+        in oklab,
+        var(--rose) 30%,
+        rgb(23 20 15 / 0.45)
+      ),
+      0 0 28px -6px
+      light-dark(color-mix(in oklab, var(--rose) 26%, transparent), transparent);
   }
 }
 

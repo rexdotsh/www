@@ -2,7 +2,6 @@ import {
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
-  type RefObject,
   useEffect,
   useRef,
   useState,
@@ -18,30 +17,6 @@ import {
 
 const ROTATE_MS = 6000;
 const SETTLE_MS = 2600;
-
-// iOS only shrinks the visual viewport for the keyboard; lift the sheet by hand.
-function useKeyboardLift(ref: RefObject<HTMLElement | null>, active: boolean) {
-  useEffect(() => {
-    const viewport = window.visualViewport;
-    const el = ref.current;
-    if (!(active && viewport && el)) {
-      return;
-    }
-    const update = () =>
-      el.style.setProperty(
-        "--kb",
-        `${Math.max(0, innerHeight - viewport.height - viewport.offsetTop)}px`
-      );
-    update();
-    viewport.addEventListener("resize", update);
-    viewport.addEventListener("scroll", update);
-    return () => {
-      viewport.removeEventListener("resize", update);
-      viewport.removeEventListener("scroll", update);
-      el.style.removeProperty("--kb");
-    };
-  }, [ref, active]);
-}
 
 type Mode = "read" | "write";
 type SignState = "idle" | "sending" | "cooldown" | "rude" | "failed";
@@ -62,9 +37,7 @@ export default function Guestbook({ caption }: { caption: string }) {
   const [index, setIndex] = useState(0);
   const [fresh, setFresh] = useState<number | null>(null);
   const rootRef = useRef<HTMLSpanElement>(null);
-  const peekRef = useRef<HTMLSpanElement>(null);
   const recent = stats?.recent ?? [];
-  useKeyboardLift(peekRef, open);
 
   useEffect(() => {
     if (recent.length < 2) {
@@ -182,7 +155,7 @@ export default function Guestbook({ caption }: { caption: string }) {
         }}
       />
 
-      <span className="guestbook-peek" ref={peekRef}>
+      <span className="guestbook-peek">
         <span className="peek-card guestbook-card">
           <span className="peek-tab">
             {mode === "write" ? "leave a line" : "guestbook"}
@@ -470,7 +443,9 @@ function Editable({
   }, [value]);
 
   useEffect(() => {
-    if (autoFocus) {
+    // Programmatic focus on iOS opens the keyboard without panning the field
+    // into view; let touch users tap the field themselves.
+    if (autoFocus && !matchMedia("(hover: none)").matches) {
       ref.current?.focus();
     }
   }, [autoFocus]);
