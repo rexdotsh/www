@@ -91,8 +91,8 @@ const roseNotes = (stats: SiteStats | null) => {
 
 const HOST_PREFIX_RE = /^(?:www|m|l|lm|old|mobile|out|link)\./;
 const HOST_ALIASES: Record<string, string> = {
-  "t.co": "twitter.com",
-  "x.com": "twitter.com",
+  "t.co": "x.com",
+  "twitter.com": "x.com",
   "lnkd.in": "linkedin.com",
   "news.ycombinator.com": "hacker news",
   "com.google.android.gm": "gmail",
