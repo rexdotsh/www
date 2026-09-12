@@ -89,10 +89,26 @@ const roseNotes = (stats: SiteStats | null) => {
   return notes;
 };
 
+const HOST_PREFIX_RE = /^(?:www|m|l|lm|old|mobile|out|link)\./;
+const HOST_ALIASES: Record<string, string> = {
+  "t.co": "twitter.com",
+  "x.com": "twitter.com",
+  "lnkd.in": "linkedin.com",
+  "news.ycombinator.com": "hacker news",
+  "com.google.android.gm": "gmail",
+  "mail.google.com": "gmail",
+};
+
 const referrerHost = () => {
   try {
-    const host = new URL(document.referrer).hostname.replace(/^www\./, "");
-    return host && host !== location.hostname ? host : null;
+    const host = new URL(document.referrer).hostname.replace(
+      HOST_PREFIX_RE,
+      ""
+    );
+    if (!host || host === location.hostname) {
+      return null;
+    }
+    return HOST_ALIASES[host] ?? host;
   } catch {
     return null;
   }
