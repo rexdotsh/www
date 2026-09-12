@@ -42,6 +42,8 @@
   --rose-4: light-dark(#f0a0b2, #f9bccb);
   --rose-glow: light-dark(#ef7f9a, #ffd6df);
   --shade: light-dark(rgb(23 20 15 / 0.045), transparent);
+  /* Where fixed bottom sheets sit; raised on iOS to clear Safari 26's bar. */
+  --sheet-bottom: max(1.5rem, env(safe-area-inset-bottom));
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncG type='linear' slope='1.6' intercept='-0.3'/%3E%3CfeFuncB type='linear' slope='1.6' intercept='-0.3'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --grain-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='0.45' intercept='0.275'/%3E%3CfeFuncG type='linear' slope='0.45' intercept='0.275'/%3E%3CfeFuncB type='linear' slope='0.45' intercept='0.275'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --paper-grain: var(--grain);
@@ -103,13 +105,18 @@ body {
   background-blend-mode: overlay, normal;
 }
 
-/* Safari 26 paints its bottom bar flat paper (sampled from .tint-strip), so the
-   vignette + grain end in a hard seam at the bar. On iOS move them to a fixed
-   pseudo-element and fade it out above the bar; the page meets the bar flat. */
+/* Safari 26 paints its bottom bar flat paper (sampled from .tint-strip) and
+   the layout viewport ends at the bar's top edge, so the vignette + grain end
+   in a hard seam there. On iOS move them to a fixed pseudo-element that fades
+   out into the bottom edge, and lift fixed sheets so their glow clears the bar. */
 @supports (-webkit-touch-callout: none) {
+  :root {
+    --sheet-bottom: calc(max(1.5rem, env(safe-area-inset-bottom)) + 2.5rem);
+  }
+
   .paper-lit {
-    --bar-fade-end: 7rem;
-    --bar-fade: 8rem;
+    --bar-fade: 10rem;
+    --bar-fade-end: env(safe-area-inset-bottom);
     background-image: none;
   }
 

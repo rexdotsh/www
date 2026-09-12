@@ -502,7 +502,7 @@
     position: fixed;
     top: auto;
     left: 50%;
-    bottom: calc(max(1.5rem, env(safe-area-inset-bottom)) + var(--kb, 0px));
+    bottom: calc(var(--sheet-bottom) + var(--kb, 0px));
     padding-bottom: 0;
     transform: translateX(-50%) translateY(28px) scale(0.96);
     transform-origin: bottom center;
