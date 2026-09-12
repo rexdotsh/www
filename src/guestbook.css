@@ -497,19 +497,18 @@
     display: inline;
   }
 
-  /* Bottom sheet; --kb lifts it above the keyboard (see useKeyboardLift). */
+  /* Bottom sheet. */
   .guestbook-peek {
     position: fixed;
     top: auto;
     left: 50%;
-    bottom: calc(var(--sheet-bottom) + var(--kb, 0px));
+    bottom: var(--sheet-bottom);
     padding-bottom: 0;
     transform: translateX(-50%) translateY(28px) scale(0.96);
     transform-origin: bottom center;
     transition:
       transform 260ms var(--ease-strong),
       opacity 200ms var(--ease-strong),
-      bottom 220ms var(--ease-strong),
       visibility 0s 260ms;
     z-index: 40;
   }
@@ -519,7 +518,6 @@
     transition:
       transform 480ms var(--ease-strong),
       opacity 240ms var(--ease-strong),
-      bottom 220ms var(--ease-strong),
       visibility 0s;
   }
 

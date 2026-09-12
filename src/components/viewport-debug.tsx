@@ -1,7 +1,7 @@
 import { type CSSProperties, useEffect, useState } from "react";
 
-// PR-only viewport/safe-area readout for on-device layout debugging. Always on.
-// Query knobs: ?fade=<len> (--bar-fade, 0 = off) ?glow=full ?lift=<px> ?hide
+// PR-only viewport/safe-area readout for on-device layout debugging (?debug).
+// Knobs: ?fade=<len> (--bar-fade, 0 = off) ?glow=full ?lift=<px> ?hide
 export default function ViewportDebug() {
   const [info, setInfo] = useState<string[] | null>(null);
   const [collapsed, setCollapsed] = useState(false);
@@ -9,6 +9,9 @@ export default function ViewportDebug() {
 
   useEffect(() => {
     const q = new URLSearchParams(location.search);
+    if (!q.has("debug")) {
+      return;
+    }
     const html = document.documentElement;
     if (q.has("fade")) {
       html.style.setProperty("--bar-fade", q.get("fade") || "0px");
