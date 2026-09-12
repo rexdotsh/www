@@ -1,0 +1,16 @@
+{
+  "name": "video",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "all": "bun capture.ts && bun sfx-render.ts && bun frame.ts && bun finish.ts",
+    "capture": "bun capture.ts",
+    "finish": "bun finish.ts",
+    "frame": "bun frame.ts",
+    "sfx": "bun sfx-render.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "playwright-core": "1.58.2"
+  }
+}

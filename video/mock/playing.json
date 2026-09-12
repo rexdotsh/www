@@ -1,0 +1,22 @@
+{
+  "isPlaying": true,
+  "name": "Heavy",
+  "artist": "The Marías",
+  "album": "CINEMA",
+  "image": [
+    {
+      "#text": "https://i.scdn.co/image/ab67616d0000b273cinema",
+      "size": "large"
+    },
+    {
+      "#text": "https://i.scdn.co/image/ab67616d00001e02cinema",
+      "size": "medium"
+    },
+    {
+      "#text": "https://i.scdn.co/image/ab67616d00004851cinema",
+      "size": "small"
+    }
+  ],
+  "url": "https://open.spotify.com/track/0m9QvlqO1zeJ2dO0nxyD5X",
+  "id": "cinema-heavy"
+}
