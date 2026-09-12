@@ -497,8 +497,7 @@
     display: inline;
   }
 
-  /* Bottom sheet. --kb is set from visualViewport so it rides above the
-     keyboard; iOS only shrinks the visual viewport, not the layout one. */
+  /* Bottom sheet; --kb lifts it above the keyboard (see useKeyboardLift). */
   .guestbook-peek {
     position: fixed;
     top: auto;
@@ -524,9 +523,8 @@
       visibility 0s;
   }
 
-  /* Same move as the sentence peeks blurring the other words: the page
-     recedes so the sheet reads as a mode. The colour lives on ::before so
-     Safari's toolbar tinting (which only reads the fixed box) ignores it. */
+  /* Page recedes like the sentence peeks. Paint is on ::before because
+     Safari 26 tints its toolbar from fixed boxes' own background. */
   .gb-scrim {
     position: fixed;
     inset: 0;
