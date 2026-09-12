@@ -48,15 +48,42 @@ const incoming = (
   cf: CfProperties | undefined
 ): cf is IncomingRequestCfProperties => Boolean(cf && "country" in cf);
 
+const plain = (name: string) =>
+  name.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+const INDIAN_METROS = new Set([
+  "bengaluru",
+  "mumbai",
+  "delhi",
+  "new delhi",
+  "hyderabad",
+  "chennai",
+  "kolkata",
+  "pune",
+  "ahmedabad",
+  "jaipur",
+  "lucknow",
+  "chandigarh",
+  "kochi",
+  "gurugram",
+  "noida",
+  "indore",
+  "bhopal",
+  "surat",
+  "nagpur",
+  "coimbatore",
+]);
+
 export const placeOf = (request: Request) => {
   const cf = incoming(request.cf) ? request.cf : undefined;
   const country = cf?.country ?? request.headers.get("cf-ipcountry");
+  const city = cf?.city ?? request.headers.get("cf-ipcity");
   const place =
-    (country === "IN" ? cf?.region : undefined) ??
-    cf?.city ??
-    request.headers.get("cf-ipcity");
+    country === "IN" && city && !INDIAN_METROS.has(plain(city))
+      ? (cf?.region ?? city)
+      : city;
   if (place) {
-    return place.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+    return plain(place);
   }
   if (!country || country === "XX" || country === "T1") {
     return "somewhere";
