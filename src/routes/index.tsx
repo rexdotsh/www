@@ -4,7 +4,6 @@ import Guestbook from "@/components/guestbook";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
-import ViewportDebug from "@/components/viewport-debug";
 import { type SiteStats, useSiteStats } from "@/lib/stats";
 import { type SpotifyTrack, useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
@@ -275,7 +274,6 @@ function Home() {
         </div>
       </div>
       <TintStrips />
-      <ViewportDebug />
     </main>
   );
 }

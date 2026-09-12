@@ -497,7 +497,6 @@
     display: inline;
   }
 
-  /* Bottom sheet. */
   .guestbook-peek {
     position: fixed;
     top: auto;

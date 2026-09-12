@@ -116,7 +116,6 @@ body {
    flat paper at the bottom edge. */
 @supports (-webkit-touch-callout: none) {
   .paper-lit {
-    --bar-fade: 10rem;
     background-image: none;
   }
 
@@ -135,11 +134,8 @@ body {
       100% 100%;
     background-repeat: repeat, no-repeat;
     background-blend-mode: overlay, normal;
-    -webkit-mask-image: linear-gradient(
-      #000 calc(100% - var(--bar-fade)),
-      #0000
-    );
-    mask-image: linear-gradient(#000 calc(100% - var(--bar-fade)), #0000);
+    -webkit-mask-image: linear-gradient(#000 calc(100% - 10rem), #0000);
+    mask-image: linear-gradient(#000 calc(100% - 10rem), #0000);
   }
 }
 
@@ -346,7 +342,7 @@ html[data-vt="theme"]::view-transition-new(root) {
 
   /* Card shadows stay inside the 1.5rem sheet margin: Safari 26 ends the
      layout viewport at its bar, so anything past the edge is cut off. */
-  html:not([data-glow="full"]) {
+  :root {
     --card-shadow:
       0 1px 0 0 color-mix(in oklab, var(--ink) 4%, transparent) inset,
       0 2px 6px -2px rgb(23 20 15 / 0.12),
