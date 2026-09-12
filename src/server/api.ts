@@ -50,11 +50,14 @@ const incoming = (
 
 export const placeOf = (request: Request) => {
   const cf = incoming(request.cf) ? request.cf : undefined;
-  const city = cf?.city ?? request.headers.get("cf-ipcity");
-  if (city) {
-    return city.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
-  }
   const country = cf?.country ?? request.headers.get("cf-ipcountry");
+  const place =
+    (country === "IN" ? cf?.region : undefined) ??
+    cf?.city ??
+    request.headers.get("cf-ipcity");
+  if (place) {
+    return place.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+  }
   if (!country || country === "XX" || country === "T1") {
     return "somewhere";
   }
