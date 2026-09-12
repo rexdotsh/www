@@ -103,6 +103,42 @@ body {
   background-blend-mode: overlay, normal;
 }
 
+/* Safari 26 paints its bottom bar flat paper (sampled from .tint-strip), so the
+   vignette + grain end in a hard seam at the bar. On iOS move them to a fixed
+   pseudo-element and fade it out above the bar; the page meets the bar flat. */
+@supports (-webkit-touch-callout: none) {
+  .paper-lit {
+    --bar-fade-end: 7rem;
+    --bar-fade: 8rem;
+    background-image: none;
+  }
+
+  .paper-lit::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-color: var(--background);
+    background-image:
+      var(--paper-grain),
+      radial-gradient(130% 100% at 50% 38%, transparent 62%, var(--shade));
+    background-size:
+      160px 160px,
+      100% 100%;
+    background-repeat: repeat, no-repeat;
+    background-blend-mode: overlay, normal;
+    -webkit-mask-image: linear-gradient(
+      #000 calc(100% - var(--bar-fade-end) - var(--bar-fade)),
+      #0000 calc(100% - var(--bar-fade-end))
+    );
+    mask-image: linear-gradient(
+      #000 calc(100% - var(--bar-fade-end) - var(--bar-fade)),
+      #0000 calc(100% - var(--bar-fade-end))
+    );
+  }
+}
+
 :focus-visible {
   outline: 1.5px solid var(--rose);
   outline-offset: 3px;
