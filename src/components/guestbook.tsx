@@ -365,7 +365,7 @@ function SignForm({
           placeholder="say something, anything"
           value={message}
         />
-        ”
+        <span className="sign-quote-close">”</span>
         <br />
         <span className="text-muted">— </span>
         <Editable

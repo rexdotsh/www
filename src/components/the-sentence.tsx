@@ -22,6 +22,8 @@ export type SentenceWord =
   | "hi"
   | "resume";
 
+const PUNCTUATION = /^[,.;:!?]+/;
+
 const NOTES: Record<SentenceWord, number> = {
   name: SCALE[0],
   builds: SCALE[1],
@@ -76,16 +78,23 @@ export const TheSentence = memo(function TheSentence({
     );
   };
 
-  const wrap = (node: ReactNode): ReactNode =>
+  // Punctuation after a linked word stays in its inline-block so it can't wrap alone.
+  const wrap = (node: ReactNode, tail?: string): ReactNode =>
     wordStagger ? (
       <span
         className="word-in inline-block"
         style={{ animationDelay: `${nextDelay()}ms` }}
       >
-        <span className="word-body inline-block">{node}</span>
+        <span className="word-body inline-block">
+          {node}
+          {tail}
+        </span>
       </span>
     ) : (
-      node
+      <>
+        {node}
+        {tail}
+      </>
     );
 
   const parts: (
@@ -155,9 +164,16 @@ export const TheSentence = memo(function TheSentence({
   return (
     <>
       <h1 className={className}>
-        {parts.map((part) =>
-          typeof part === "string" ? (
-            <Fragment key={part}>{w(part)}</Fragment>
+        {parts.map((part, index) => {
+          const next = parts[index + 1];
+          return typeof part === "string" ? (
+            <Fragment key={part}>
+              {w(
+                typeof parts[index - 1] === "object"
+                  ? part.replace(PUNCTUATION, "")
+                  : part
+              )}
+            </Fragment>
           ) : (
             <Fragment key={part.key}>
               {wrap(
@@ -169,11 +185,12 @@ export const TheSentence = memo(function TheSentence({
                   tone={part.tone}
                 >
                   {part.text}
-                </Peek>
+                </Peek>,
+                typeof next === "string" ? PUNCTUATION.exec(next)?.[0] : ""
               )}
             </Fragment>
-          )
-        )}
+          );
+        })}
         {wrap(
           <>
             {"say "}

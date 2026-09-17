@@ -277,6 +277,11 @@
   letter-spacing: -0.01em;
 }
 
+/* Italic text leans into the upright ”; match the gap the slant leaves after “. */
+.sign-quote-close {
+  margin-inline-start: 0.1em;
+}
+
 .sign[data-state="cooldown"] .sign-text,
 .sign[data-state="rude"] .sign-text,
 .sign[data-state="failed"] .sign-text {
