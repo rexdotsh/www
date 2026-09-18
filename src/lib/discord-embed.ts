@@ -1,120 +1,44 @@
 import { getIdentity, LINKS } from "@/lib/content";
-import type { TocEntry } from "@/lib/posts";
-import type { PostMeta } from "@/lib/posts-meta";
+import type { getPost } from "@/lib/posts";
 import type { NowPlaying } from "@/lib/spotify";
 
-// Discord component embeds: a read-only Components v2 layout that replaces the
-// Open Graph card when a link is unfurled. Only the component types below are
-// allowed and buttons must be link-style.
 // https://github.com/discord/discord-api-docs/pull/8606
-
 export const EMBED_REL = "discord:component-embed";
 
-// --rose (light) as an integer
-const ROSE = 0xb3_12_3a;
+type Component = Record<string, unknown>;
 
-const T = {
-  ActionRow: 1,
-  Button: 2,
-  Section: 9,
-  Text: 10,
-  Thumbnail: 11,
-  Gallery: 12,
-  Separator: 14,
-  Container: 17,
-} as const;
-
-interface Media {
-  url: string;
-}
-
-interface Button {
-  label: string;
-  style: 5;
-  type: typeof T.Button;
-  url: string;
-}
-
-interface Text {
-  content: string;
-  type: typeof T.Text;
-}
-
-interface Thumbnail {
-  description?: string;
-  media: Media;
-  type: typeof T.Thumbnail;
-}
-
-type Child =
-  | { type: typeof T.ActionRow; components: Button[] }
-  | {
-      type: typeof T.Section;
-      components: Text[];
-      accessory: Thumbnail | Button;
-    }
-  | Text
-  | {
-      type: typeof T.Gallery;
-      items: Array<{ media: Media; description?: string }>;
-    }
-  | { type: typeof T.Separator; divider?: boolean; spacing?: 1 | 2 };
-
-export interface ComponentEmbed {
-  component: {
-    type: typeof T.Container;
-    accent_color: number;
-    components: Child[];
-  };
-}
-
-const text = (content: string): Text => ({ type: T.Text, content });
-const link = (label: string, url: string): Button => ({
-  type: T.Button,
+const text = (content: string) => ({ type: 10, content });
+const link = (label: string, url: string) => ({
+  type: 2,
   style: 5,
   url,
   label,
 });
-const thumb = (url: string, description?: string): Thumbnail => ({
-  type: T.Thumbnail,
-  media: { url },
-  description,
-});
-const section = (content: string, accessory: Thumbnail | Button): Child => ({
-  type: T.Section,
+const thumb = (url: string) => ({ type: 11, media: { url } });
+const section = (content: string, accessory: Component) => ({
+  type: 9,
   components: [text(content)],
   accessory,
 });
-const row = (...buttons: Button[]): Child => ({
-  type: T.ActionRow,
-  components: buttons,
-});
-const gallery = (url: string, description?: string): Child => ({
-  type: T.Gallery,
-  items: [{ media: { url }, description }],
-});
-const rule: Child = { type: T.Separator };
-
-const container = (components: Child[]): ComponentEmbed => ({
-  component: { type: T.Container, accent_color: ROSE, components },
+const row = (...components: Component[]) => ({ type: 1, components });
+const gallery = (url: string) => ({ type: 12, items: [{ media: { url } }] });
+const rule = { type: 14 };
+const container = (components: Component[]) => ({
+  component: { type: 17, accent_color: 0xb3_12_3a, components },
 });
 
-export function homeEmbed({
-  baseUrl,
-  hostname,
-  track,
-}: {
-  baseUrl: string;
-  hostname: string;
-  track: NowPlaying | null;
-}): ComponentEmbed {
+export function homeEmbed(
+  baseUrl: string,
+  hostname: string,
+  track: NowPlaying | null
+) {
   const identity = getIdentity(hostname);
   const blog = new URL(LINKS.blog, baseUrl).href;
   const something = track ? `[something](${track.url})` : "something";
   return container([
     section(
       `# hi, i'm ${identity.name}.\ni [build things](${LINKS.github}), i [write](${blog}) about some of them, share a [workshop](${LINKS.flora}) with friends, and usually have ${something} on. say [hi back](${LINKS.twitter}).`,
-      thumb(new URL("/image.png", baseUrl).href, "a rose")
+      thumb(new URL("/image.png", baseUrl).href)
     ),
     row(
       link("github", LINKS.github),
@@ -125,43 +49,33 @@ export function homeEmbed({
   ]);
 }
 
-const TOC_MAX = 10;
-
-export function postEmbed({
-  baseUrl,
-  imageUrl,
-  post,
-  readingMinutes,
-  toc,
-}: {
-  baseUrl: string;
-  imageUrl: string;
-  post: Pick<PostMeta, "dateLabel" | "description" | "meta" | "slug" | "title">;
-  readingMinutes: number;
-  toc: TocEntry[];
-}): ComponentEmbed {
+export function postEmbed(
+  baseUrl: string,
+  imageUrl: string,
+  post: NonNullable<ReturnType<typeof getPost>>
+) {
   const url = `${baseUrl}/blog/${post.slug}`;
-  const blog = new URL(LINKS.blog, baseUrl).href;
-  const meta = [post.dateLabel, ...post.meta, `${readingMinutes} min read`];
-  const parts: Child[] = [
-    gallery(imageUrl, post.title),
-    text(
-      `# [${post.title}](${url})\n${post.description}\n-# ${meta.join(" · ")}`
-    ),
+  const meta = [
+    post.dateLabel,
+    ...post.meta,
+    `${post.readingMinutes} min read`,
   ];
-
-  const headings = toc.filter((entry) => entry.depth < 4).slice(0, TOC_MAX);
-  if (headings.length > 0) {
-    const items = headings.map(
+  const toc = post.toc
+    .filter((entry) => entry.depth < 4)
+    .slice(0, 10)
+    .map(
       (entry) =>
         `${entry.depth === 3 ? "  " : ""}- [${entry.text}](${url}#${entry.id})`
     );
-    if (toc.length > headings.length) {
-      items.push("- …");
-    }
-    parts.push(rule, text(`**contents**\n${items.join("\n")}`));
-  }
-
-  parts.push(row(link("read", url), link("more writing", blog)));
-  return container(parts);
+  return container([
+    gallery(imageUrl),
+    text(
+      `# [${post.title}](${url})\n${post.description}\n-# ${meta.join(" · ")}`
+    ),
+    ...(toc.length > 0 ? [rule, text(`**contents**\n${toc.join("\n")}`)] : []),
+    row(
+      link("read", url),
+      link("more writing", new URL(LINKS.blog, baseUrl).href)
+    ),
+  ]);
 }

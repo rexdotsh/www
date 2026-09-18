@@ -5,6 +5,7 @@ import { PostBody } from "@/components/post-body";
 import { EMBED_REL, postEmbed } from "@/lib/discord-embed";
 import { preloadFont, RSS_LINK } from "@/lib/head";
 import { getPost, type TocEntry } from "@/lib/posts";
+import { getPostMeta } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
 import { ogImageUrl } from "@/lib/utils";
 import newsreaderItalicWoff2 from "../../fonts/newsreader-latin-italic.woff2?url";
@@ -18,30 +19,12 @@ export const Route = createFileRoute("/blog/$slug")({
   component: PostPage,
   notFoundComponent: BlogNotFound,
   loader: ({ params }) => {
-    const post = getPost(params.slug);
+    const post = getPostMeta(params.slug);
     if (!post) {
       throw notFound();
     }
-    const {
-      date,
-      dateLabel,
-      description,
-      meta,
-      readingMinutes,
-      slug,
-      title,
-      toc,
-    } = post;
-    return {
-      date,
-      dateLabel,
-      description,
-      meta,
-      readingMinutes,
-      slug,
-      title,
-      toc,
-    };
+    const { date, description, slug, title } = post;
+    return { date, description, slug, title };
   },
   head: ({ loaderData, matches }) => {
     if (!loaderData) {
@@ -52,6 +35,7 @@ export const Route = createFileRoute("/blog/$slug")({
       DEFAULT_BASE_URL;
     const url = `${baseUrl}/blog/${loaderData.slug}`;
     const imageUrl = ogImageUrl(`/og/${loaderData.slug}.png`, baseUrl);
+    const post = getPost(loaderData.slug);
     return {
       meta: [
         { title: loaderData.title },
@@ -90,19 +74,15 @@ export const Route = createFileRoute("/blog/$slug")({
             url,
           }),
         },
-        {
-          id: EMBED_REL,
-          type: "application/json",
-          children: JSON.stringify(
-            postEmbed({
-              baseUrl,
-              imageUrl,
-              post: loaderData,
-              readingMinutes: loaderData.readingMinutes,
-              toc: loaderData.toc,
-            })
-          ),
-        },
+        ...(post
+          ? [
+              {
+                id: EMBED_REL,
+                type: "application/json",
+                children: JSON.stringify(postEmbed(baseUrl, imageUrl, post)),
+              },
+            ]
+          : []),
       ],
     };
   },

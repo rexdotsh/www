@@ -15,21 +15,15 @@ const rootRoute = getRouteApi("__root__");
 
 export const Route = createFileRoute("/")({
   component: Home,
-  head: ({ matches }) => {
-    const baseUrl =
-      (matches[0]?.loaderData as { baseUrl?: string } | undefined)?.baseUrl ??
-      DEFAULT_BASE_URL;
-    return {
-      links: [
-        // Live Discord link preview; the JSON is built per crawl.
-        {
-          rel: EMBED_REL,
-          type: "application/json",
-          href: `${baseUrl}/api/embed.json`,
-        },
-      ],
-    };
-  },
+  head: ({ matches }) => ({
+    links: [
+      {
+        rel: EMBED_REL,
+        type: "application/json",
+        href: `${(matches[0]?.loaderData as { baseUrl?: string } | undefined)?.baseUrl ?? DEFAULT_BASE_URL}/api/embed.json`,
+      },
+    ],
+  }),
   headers: () => ({
     "Cache-Control": "public, max-age=0",
     "Cloudflare-CDN-Cache-Control":
