@@ -147,7 +147,13 @@ export function homeEmbed({
 
   if (stats) {
     const lines = [
-      `${stats.online} here now · ${stats.today} today · ${compact(stats.total)} all time`,
+      [
+        stats.online > 0 && `${stats.online} here now`,
+        `${stats.today} today`,
+        `${compact(stats.total)} all time`,
+      ]
+        .filter(Boolean)
+        .join(" · "),
     ];
     if (stats.hi > 0) {
       lines.push(
