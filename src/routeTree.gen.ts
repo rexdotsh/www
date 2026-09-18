@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiBeaconRouteImport } from './routes/api/beacon'
+import { Route as ApiEmbedDotjsonRouteImport } from './routes/api/embed[.]json'
 import { Route as ApiGuestbookRouteImport } from './routes/api/guestbook'
 import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
@@ -42,6 +43,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ApiBeaconRoute = ApiBeaconRouteImport.update({
   id: '/api/beacon',
   path: '/api/beacon',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEmbedDotjsonRoute = ApiEmbedDotjsonRouteImport.update({
+  id: '/api/embed.json',
+  path: '/api/embed.json',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGuestbookRoute = ApiGuestbookRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/beacon': typeof ApiBeaconRoute
+  '/api/embed.json': typeof ApiEmbedDotjsonRoute
   '/api/guestbook': typeof ApiGuestbookRoute
   '/api/stats': typeof ApiStatsRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/beacon': typeof ApiBeaconRoute
+  '/api/embed.json': typeof ApiEmbedDotjsonRoute
   '/api/guestbook': typeof ApiGuestbookRoute
   '/api/stats': typeof ApiStatsRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/beacon': typeof ApiBeaconRoute
+  '/api/embed.json': typeof ApiEmbedDotjsonRoute
   '/api/guestbook': typeof ApiGuestbookRoute
   '/api/stats': typeof ApiStatsRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api/beacon'
+    | '/api/embed.json'
     | '/api/guestbook'
     | '/api/stats'
     | '/blog/$slug'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api/beacon'
+    | '/api/embed.json'
     | '/api/guestbook'
     | '/api/stats'
     | '/blog/$slug'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/sitemap.xml'
     | '/api/beacon'
+    | '/api/embed.json'
     | '/api/guestbook'
     | '/api/stats'
     | '/blog/$slug'
@@ -200,6 +212,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiBeaconRoute: typeof ApiBeaconRoute
+  ApiEmbedDotjsonRoute: typeof ApiEmbedDotjsonRoute
   ApiGuestbookRoute: typeof ApiGuestbookRoute
   ApiStatsRoute: typeof ApiStatsRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -240,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/api/beacon'
       fullPath: '/api/beacon'
       preLoaderRoute: typeof ApiBeaconRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/embed.json': {
+      id: '/api/embed.json'
+      path: '/api/embed.json'
+      fullPath: '/api/embed.json'
+      preLoaderRoute: typeof ApiEmbedDotjsonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/guestbook': {
@@ -320,6 +340,7 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiBeaconRoute: ApiBeaconRoute,
+  ApiEmbedDotjsonRoute: ApiEmbedDotjsonRoute,
   ApiGuestbookRoute: ApiGuestbookRoute,
   ApiStatsRoute: ApiStatsRoute,
   BlogSlugRoute: BlogSlugRoute,

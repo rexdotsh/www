@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import BackLink from "@/components/back-link";
 import { PostBody } from "@/components/post-body";
+import { EMBED_REL, postEmbed } from "@/lib/discord-embed";
 import { preloadFont, RSS_LINK } from "@/lib/head";
 import { getPost, type TocEntry } from "@/lib/posts";
 import { getPostMeta } from "@/lib/posts-meta";
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/blog/$slug")({
       DEFAULT_BASE_URL;
     const url = `${baseUrl}/blog/${loaderData.slug}`;
     const imageUrl = ogImageUrl(`/og/${loaderData.slug}.png`, baseUrl);
+    const post = getPost(loaderData.slug);
     return {
       meta: [
         { title: loaderData.title },
@@ -72,6 +74,15 @@ export const Route = createFileRoute("/blog/$slug")({
             url,
           }),
         },
+        ...(post
+          ? [
+              {
+                id: EMBED_REL,
+                type: "application/json",
+                children: JSON.stringify(postEmbed(baseUrl, imageUrl, post)),
+              },
+            ]
+          : []),
       ],
     };
   },
