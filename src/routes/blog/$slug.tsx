@@ -2,9 +2,9 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import BackLink from "@/components/back-link";
 import { PostBody } from "@/components/post-body";
+import { EMBED_REL, postEmbed } from "@/lib/discord-embed";
 import { preloadFont, RSS_LINK } from "@/lib/head";
 import { getPost, type TocEntry } from "@/lib/posts";
-import { getPostMeta } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
 import { ogImageUrl } from "@/lib/utils";
 import newsreaderItalicWoff2 from "../../fonts/newsreader-latin-italic.woff2?url";
@@ -18,12 +18,30 @@ export const Route = createFileRoute("/blog/$slug")({
   component: PostPage,
   notFoundComponent: BlogNotFound,
   loader: ({ params }) => {
-    const post = getPostMeta(params.slug);
+    const post = getPost(params.slug);
     if (!post) {
       throw notFound();
     }
-    const { date, description, slug, title } = post;
-    return { date, description, slug, title };
+    const {
+      date,
+      dateLabel,
+      description,
+      meta,
+      readingMinutes,
+      slug,
+      title,
+      toc,
+    } = post;
+    return {
+      date,
+      dateLabel,
+      description,
+      meta,
+      readingMinutes,
+      slug,
+      title,
+      toc,
+    };
   },
   head: ({ loaderData, matches }) => {
     if (!loaderData) {
@@ -71,6 +89,19 @@ export const Route = createFileRoute("/blog/$slug")({
             mainEntityOfPage: url,
             url,
           }),
+        },
+        {
+          id: EMBED_REL,
+          type: "application/json",
+          children: JSON.stringify(
+            postEmbed({
+              baseUrl,
+              imageUrl,
+              post: loaderData,
+              readingMinutes: loaderData.readingMinutes,
+              toc: loaderData.toc,
+            })
+          ),
         },
       ],
     };
