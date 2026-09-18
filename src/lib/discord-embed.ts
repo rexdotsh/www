@@ -2,7 +2,6 @@ import { getIdentity, LINKS } from "@/lib/content";
 import type { TocEntry } from "@/lib/posts";
 import type { PostMeta } from "@/lib/posts-meta";
 import type { NowPlaying } from "@/lib/spotify";
-import { compact, type SiteStats } from "@/lib/stats";
 
 // Discord component embeds: a read-only Components v2 layout that replaces the
 // Open Graph card when a link is unfurled. Only the component types below are
@@ -100,85 +99,30 @@ const container = (components: Child[]): ComponentEmbed => ({
   component: { type: T.Container, accent_color: ROSE, components },
 });
 
-// Visitor-written text ends up inside Discord markdown; neutralise it.
-const MARKDOWN_RE = /[\\*_~`|>[\]#-]/g;
-const plain = (value: string) =>
-  value
-    .replace(/\s+/g, " ")
-    .replace(MARKDOWN_RE, "\\$&")
-    .replaceAll("@", "@\u200b")
-    .trim();
-
-const albumArt = (track: NowPlaying) =>
-  track.image.find((img) => img.size === "medium")?.["#text"] ??
-  track.image[0]?.["#text"];
-
 export function homeEmbed({
   baseUrl,
   hostname,
-  stats,
   track,
 }: {
   baseUrl: string;
   hostname: string;
-  stats: SiteStats | null;
   track: NowPlaying | null;
 }): ComponentEmbed {
   const identity = getIdentity(hostname);
   const blog = new URL(LINKS.blog, baseUrl).href;
   const something = track ? `[something](${track.url})` : "something";
-  const parts: Child[] = [
+  return container([
     section(
       `# hi, i'm ${identity.name}.\ni [build things](${LINKS.github}), i [write](${blog}) about some of them, share a [workshop](${LINKS.flora}) with friends, and usually have ${something} on. say [hi back](${LINKS.twitter}).`,
       thumb(new URL("/image.png", baseUrl).href, "a rose")
     ),
-  ];
-
-  if (track) {
-    const art = albumArt(track);
-    const body = `-# ♪ ${track.isPlaying ? "now playing" : "last played"}\n**[${plain(track.name)}](${track.url})**\n${plain(track.artist)}`;
-    parts.push(
-      rule,
-      art
-        ? section(body, thumb(art, plain(track.album)))
-        : section(body, link("listen", track.url))
-    );
-  }
-
-  if (stats) {
-    const lines = [
-      [
-        stats.online > 0 && `${stats.online} here now`,
-        `${stats.today} today`,
-        `${compact(stats.total)} all time`,
-      ]
-        .filter(Boolean)
-        .join(" · "),
-    ];
-    if (stats.hi > 0) {
-      lines.push(
-        `${stats.hi === 1 ? "one person" : `${stats.hi} people`} said hi this month`
-      );
-    }
-    const [latest] = stats.guestbook;
-    if (latest) {
-      lines.push(
-        `> ${plain(latest.message)}\n> — ${plain(latest.name)}, from ${plain(latest.place)} · ${latest.ago} ago`
-      );
-    }
-    parts.push(rule, text(lines.join("\n")));
-  }
-
-  parts.push(
     row(
       link("github", LINKS.github),
       link("x", LINKS.twitter),
       link("writing", blog),
       link(identity.otherDomain.replace("https://", ""), identity.otherDomain)
-    )
-  );
-
-  return container(parts);
+    ),
+  ]);
 }
 
 const TOC_MAX = 10;
