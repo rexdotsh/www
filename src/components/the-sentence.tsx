@@ -132,14 +132,14 @@ export const TheSentence = memo(function TheSentence({
     },
     ", i ",
     { key: "writes", href: LINKS.blog, text: "write", peek: <PostsPeek /> },
-    " about some of them, run a ",
+    " about some of them, keep a ",
     {
       key: "workshop",
       href: "/status",
       text: <span style={{ viewTransitionName: "workshop" }}>workshop</span>,
       peek: <WorkshopPeek />,
     },
-    " for friends, and usually have ",
+    " mostly running, and usually have ",
     {
       key: "music",
       href: track?.url,
