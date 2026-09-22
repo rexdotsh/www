@@ -10,6 +10,8 @@ TanStack Start + Router (file-based routes in `src/routes/`), React 19, Vite 8, 
 
 No database, no auth, no user accounts, no tests, no UI library — everything is bespoke. Analytics is self-hosted Umami, injected in `src/routes/__root.tsx`. Storage is the `SPOTIFY_TOKENS` KV binding and the `Room` Durable Object (visitor stats + guestbook, `src/server/room.ts`). The DO is deployed as its own worker (`workers/room`, `bun run deploy:room`) because Cloudflare won't issue preview URLs to a worker that implements one.
 
+`/status` ("the workshop") shows the four servers. The per-box sampler is `rexdotsh/fleet-agent`, checked out as the `agent/` submodule (`git submodule update --init`). Shapes and the service whitelist live in `src/lib/fleet.ts`.
+
 ## Commands
 
 ```bash

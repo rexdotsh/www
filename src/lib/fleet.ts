@@ -1,8 +1,106 @@
-// Shapes for the workshop (/status). Mock data for now; the Fleet DO will
-// return the same `Fleet` once the agents are reporting.
+// Shapes for the workshop (/status), plus the whitelist of what it shows.
+// Mock data for now; the Fleet DO will return the same `Fleet` once the
+// agents (rexdotsh/fleet-agent, checked out at agent/) are reporting.
 
 // `off` is a machine that's meant to be off (the desk); `down` is one that isn't.
-export type Health = "up" | "slow" | "down" | "off";
+export type Health = "up" | "down" | "off";
+
+// What the page shows for each host. Anything the agent reports that isn't
+// listed here is dropped at ingest and never stored.
+export const HOSTS: Record<
+  string,
+  { role: string; spec: string; intermittent?: boolean; private?: boolean }
+> = {
+  media: { role: "films, shows, music. the busy one", spec: "singapore" },
+  misc: { role: "everything that isn't media", spec: "oracle, us east" },
+  home: {
+    role: "the dev box. off when the power is",
+    spec: "a desk",
+    intermittent: true,
+  },
+  work: { role: "not mine to show", spec: "somewhere", private: true },
+};
+
+// Exact docker names on the box; several names means all must be running.
+export const SERVICES: {
+  id: string;
+  blurb: string;
+  host: string;
+  container: string | string[];
+}[] = [
+  {
+    id: "jellyfin",
+    blurb: "films and shows, the whole library",
+    host: "media",
+    container: "jellyfin",
+  },
+  {
+    id: "jellyseerr",
+    blurb: "requests, so nobody has to text me",
+    host: "media",
+    container: "jellyseerr",
+  },
+  {
+    id: "the arrs",
+    blurb: "sonarr, radarr, prowlarr. the plumbing",
+    host: "media",
+    container: ["sonarr", "radarr", "prowlarr"],
+  },
+  {
+    id: "navidrome",
+    blurb: "the flac collection, streamed",
+    host: "media",
+    container: "navidrome",
+  },
+  {
+    id: "immich",
+    blurb: "every photo since 2014, backed up nightly",
+    host: "media",
+    container: "immich_server",
+  },
+  {
+    id: "vaultwarden",
+    blurb: "passwords, held by nobody but me",
+    host: "misc",
+    container: "vaultwarden",
+  },
+  {
+    id: "forgejo",
+    blurb: "git, for what shouldn't be on github",
+    host: "misc",
+    container: "forgejo",
+  },
+  {
+    id: "miniflux",
+    blurb: "rss. the internet at reading speed",
+    host: "misc",
+    container: "miniflux",
+  },
+  {
+    id: "headscale",
+    blurb: "the mesh stitching all of this together",
+    host: "misc",
+    container: "headscale",
+  },
+  {
+    id: "conduit",
+    blurb: "matrix, for the chat that left discord",
+    host: "misc",
+    container: "conduit",
+  },
+  {
+    id: "restic",
+    blurb: "everything above, copied offsite nightly",
+    host: "misc",
+    container: "restic",
+  },
+  {
+    id: "ollama",
+    blurb: "local models, when the desk is on",
+    host: "home",
+    container: "ollama",
+  },
+];
 
 export interface Host {
   /** last 90 heartbeats, one a minute */
@@ -23,40 +121,25 @@ export interface Host {
   memUsed: number;
   /** what it's for, one line */
   role: string;
-  /** os @ where, shape not address */
+  /** os · cpus · ram · where, from the agent plus HOSTS */
   spec: string;
-  swapTotal: number;
-  swapUsed: number;
   upSince: number;
 }
 
 export interface Service {
-  /** what it is, prose */
   blurb: string;
   health: Health;
   host: string;
   id: string;
-  latency: number;
-  name: string;
-  /** last 90 checks from outside, oldest first */
+  /** container memory, MB */
+  mem: number;
+  /** last 90 minutes of container state, oldest first */
   strip: Health[];
   uptime30: number;
-  /** who it's for */
-  who: string;
-}
-
-export interface Incident {
-  /** seconds */
-  duration: number;
-  note: string;
-  resolved: boolean;
-  service: string;
-  ts: number;
 }
 
 export interface Fleet {
   hosts: Host[];
-  incidents: Incident[];
   measuredAt: number;
   mock?: boolean;
   services: Service[];
@@ -103,7 +186,6 @@ const strip = (n: number, blips: number[]): Health[] => {
   const out: Health[] = Array.from({ length: n }, () => "up");
   for (const i of blips) {
     out[i] = "down";
-    if (out[i + 1]) out[i + 1] = "slow";
   }
   return out;
 };
@@ -145,15 +227,13 @@ export const mockFleet = (now = Date.now()): Fleet => ({
   hosts: [
     {
       id: "media",
-      role: "films, shows, music. the busy one",
-      spec: "ubuntu 24 · 4 vcpu · 16 gb · singapore",
+      ...HOSTS.media,
+      spec: `ubuntu 24 · 4 vcpu · 16 gb · ${HOSTS.media.spec}`,
       cpu: 41,
       cpuSpark: series(11, 48, 38, 22),
       memUsed: 9870,
       memTotal: 15_990,
       memSpark: series(12, 48, 61, 6),
-      swapUsed: 412,
-      swapTotal: 4096,
       diskUsed: 1318,
       diskTotal: 1863,
       diskTrend: climb(13, 30, 1140, 1318),
@@ -166,15 +246,13 @@ export const mockFleet = (now = Date.now()): Fleet => ({
     },
     {
       id: "misc",
-      role: "everything that isn't media",
-      spec: "ubuntu 24 · 4 ocpu · 24 gb · oracle, us east",
+      ...HOSTS.misc,
+      spec: `ubuntu 24 · 4 ocpu · 24 gb · ${HOSTS.misc.spec}`,
       cpu: 9,
       cpuSpark: series(21, 48, 8, 8),
       memUsed: 6412,
       memTotal: 23_931,
       memSpark: series(22, 48, 27, 4),
-      swapUsed: 0,
-      swapTotal: 0,
       diskUsed: 61.4,
       diskTotal: 196.2,
       diskTrend: climb(23, 30, 58.8, 61.4),
@@ -187,15 +265,13 @@ export const mockFleet = (now = Date.now()): Fleet => ({
     },
     {
       id: "home",
-      role: "the dev box. off when the power is",
-      spec: "arch · 16 cores · 64 gb · a desk",
+      ...HOSTS.home,
+      spec: `ubuntu 24 · 16 cores · 64 gb · ${HOSTS.home.spec}`,
       cpu: 0,
       cpuSpark: series(41, 48, 0, 0),
       memUsed: 0,
       memTotal: 64_000,
       memSpark: series(42, 48, 0, 0),
-      swapUsed: 0,
-      swapTotal: 0,
       diskUsed: 812,
       diskTotal: 1863,
       diskTrend: climb(43, 30, 790, 812),
@@ -208,15 +284,13 @@ export const mockFleet = (now = Date.now()): Fleet => ({
     },
     {
       id: "work",
-      role: "not mine to show",
-      spec: "debian 13 · 2 vcpu · 8 gb · somewhere",
+      ...HOSTS.work,
+      spec: `ubuntu 24 · 2 vcpu · 8 gb · ${HOSTS.work.spec}`,
       cpu: 17,
       cpuSpark: series(31, 48, 15, 10),
       memUsed: 3230,
       memTotal: 7890,
       memSpark: series(32, 48, 40, 3),
-      swapUsed: 0,
-      swapTotal: 2048,
       diskUsed: 27.9,
       diskTotal: 78.2,
       diskTrend: climb(33, 30, 26.1, 27.9),
@@ -228,51 +302,37 @@ export const mockFleet = (now = Date.now()): Fleet => ({
       containers: 5,
     },
   ],
-  services: [
-    svc("jellyfin", "films and shows, the whole library", "media", 84),
-    svc("jellyseerr", "requests, so nobody has to text me", "media", 121),
-    svc("the arrs", "sonarr, radarr, prowlarr. the plumbing", "media", 43),
-    svc("navidrome", "the flac collection, streamed", "media", 38),
-    svc("immich", "every photo since 2014, backed up nightly", "media", 131),
-    svc("vaultwarden", "passwords, held by nobody but me", "misc", 31),
-    svc("forgejo", "git, for what shouldn't be on github", "misc", 56),
-    svc("miniflux", "rss. the internet at reading speed", "misc", 38),
-    svc("headscale", "the mesh stitching all of this together", "misc", 12),
-    svc("conduit", "matrix, for the chat that left discord", "misc", 74),
-    svc("restic", "everything above, copied offsite nightly", "misc", 9),
-    svc("this page", "the workshop watching itself", "misc", 6),
-    {
-      ...svc("ollama", "local models, when the desk is on", "home", 0),
-      health: "off",
-      strip: strip(90, []).map(() => "off" as Health),
-      uptime30: 0,
-    },
-  ],
-  incidents: [],
+  services: SERVICES.map((svc) => {
+    const off = svc.host === "home";
+    return {
+      id: svc.id,
+      blurb: svc.blurb,
+      host: svc.host,
+      health: off ? "off" : "up",
+      mem: off ? 0 : (MOCK_MEM[svc.id] ?? 64),
+      strip: strip(90, []).map((h) => (off ? "off" : h)),
+      uptime30: off ? 0 : 100,
+    };
+  }),
 });
 
-const svc = (
-  name: string,
-  blurb: string,
-  host: string,
-  latency: number
-): Service => ({
-  id: name.replace(/\s+/g, "-"),
-  name,
-  blurb,
-  who: "",
-  host,
-  health: "up",
-  latency,
-  strip: strip(90, []),
-  uptime30: 100,
-});
+const MOCK_MEM: Record<string, number> = {
+  jellyfin: 1240,
+  jellyseerr: 210,
+  "the arrs": 890,
+  navidrome: 96,
+  immich: 1810,
+  vaultwarden: 58,
+  forgejo: 310,
+  miniflux: 41,
+  headscale: 27,
+  conduit: 180,
+  restic: 12,
+};
 
 // The one-line version of the page: what's awake, what isn't, who's loudest.
 export const summarize = (fleet: Fleet) => {
-  const awake = fleet.hosts.filter(
-    (h) => h.health === "up" || h.health === "slow"
-  ).length;
+  const awake = fleet.hosts.filter((h) => h.health === "up").length;
   const off = fleet.hosts.filter((h) => h.health === "off");
   const listed = fleet.services.filter((s) => s.health !== "off");
   const answering = listed.filter((s) => s.health === "up").length;
@@ -291,7 +351,6 @@ export const summarize = (fleet: Fleet) => {
 
 export const HEALTH_LABEL: Record<Health, string> = {
   up: "answering",
-  slow: "slow to answer",
   down: "quiet",
   off: "off",
 };

@@ -197,7 +197,7 @@ function StatusPage() {
         <div className="svc-head rise mt-12" style={rows()}>
           <span />
           <span />
-          <span className="text-right">latency</span>
+          <span className="text-right">memory</span>
           <span className="text-right">30d</span>
           <span>last 45 checks</span>
         </div>
@@ -347,13 +347,11 @@ function ServiceRow({
     <div className="svc rise" data-health={service.health} style={style}>
       <p className="svc-name">
         <Lamp health={service.health} />
-        {service.name}
+        {service.id}
       </p>
       <p className="svc-blurb">{service.blurb}</p>
       <p className="svc-lat">
-        {service.health === "up" || service.health === "slow"
-          ? `${service.latency}ms`
-          : "—"}
+        {service.health === "up" ? fmtMb(service.mem) : "—"}
       </p>
       <p className="svc-pct">{off ? "—" : `${service.uptime30.toFixed(1)}%`}</p>
       <span className="svc-strip">

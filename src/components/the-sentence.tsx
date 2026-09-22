@@ -602,9 +602,7 @@ function WorkshopPeek() {
             max={100}
           />
           <span className="text-right text-[10px] text-muted tabular-nums">
-            {host.health === "up" || host.health === "slow"
-              ? `${host.cpu}%`
-              : host.health}
+            {host.health === "up" ? `${host.cpu}%` : host.health}
           </span>
         </span>
       ))}
