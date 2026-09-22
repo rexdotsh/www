@@ -51,58 +51,35 @@ export const Route = createFileRoute("/status")({
   }),
 });
 
-const WORDS = [
-  "no",
-  "one",
-  "two",
-  "three",
-  "four",
-  "five",
-  "six",
-  "seven",
-  "eight",
-  "nine",
-  "ten",
-  "eleven",
-  "twelve",
-  "thirteen",
-  "fourteen",
-  "fifteen",
-  "sixteen",
-  "seventeen",
-  "eighteen",
-  "nineteen",
-  "twenty",
-];
+const WORDS =
+  "no one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen twenty".split(
+    " "
+  );
 const words = (n: number) => WORDS[n] ?? String(n);
 
 const TICK_MS = 30_000;
 
-const agoS = (then: number, now: number) => {
-  const s = Math.max(0, Math.round((now - then) / 1000));
-  if (s < 60) return `${s}s`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m`;
-  const h = Math.floor(m / 60);
-  return `${h}h ${m % 60}m`;
+const ago = (then: number, now: number) => {
+  const m = Math.max(0, Math.floor((now - then) / 60_000));
+  return m < 1
+    ? `${Math.max(0, Math.round((now - then) / 1000))}s`
+    : m < 60
+      ? `${m}m`
+      : `${Math.floor(m / 60)}h ${m % 60}m`;
 };
 
-const utc = (ts: number) => {
-  const d = new Date(ts);
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} utc`;
-};
+const utc = (ts: number) => `${new Date(ts).toISOString().slice(11, 19)} utc`;
 
-const clamp = (n: number, lo: number, hi: number) =>
-  Math.max(lo, Math.min(hi, n));
-
-// Nudge the live numbers so the mock breathes locally. Real data polls /api/fleet.
-const breathe = (fleet: Fleet): Fleet => ({
-  ...fleet,
+// Locally the mock just wobbles; deployed, the page polls the snapshot.
+const wobble = (f: Fleet): Fleet => ({
+  ...f,
   measuredAt: Date.now() - 600,
-  hosts: fleet.hosts.map((h) => {
+  hosts: f.hosts.map((h) => {
     if (h.health !== "up") return h;
-    const cpu = clamp(h.cpu + Math.round((Math.random() - 0.5) * 9), 1, 99);
+    const cpu = Math.min(
+      99,
+      Math.max(1, h.cpu + Math.round((Math.random() - 0.5) * 9))
+    );
     return {
       ...h,
       cpu,
@@ -115,15 +92,11 @@ const breathe = (fleet: Fleet): Fleet => ({
 function useLiveFleet(initial: Fleet) {
   const [fleet, setFleet] = useState(initial);
   const [now, setNow] = useState(initial.measuredAt + 12_000);
-
   useEffect(() => {
     const clock = setInterval(() => setNow(Date.now()), 1000);
     const tick = setInterval(() => {
       if (document.visibilityState !== "visible") return;
-      if (initial.mock) {
-        setFleet(breathe);
-        return;
-      }
+      if (initial.mock) return setFleet(wobble);
       fetch("/api/fleet")
         .then((r) => (r.ok ? (r.json() as Promise<Fleet>) : null))
         .then((f) => f && setFleet(f))
@@ -134,16 +107,15 @@ function useLiveFleet(initial: Fleet) {
       clearInterval(tick);
     };
   }, [initial.mock]);
-
   return { fleet, now };
 }
 
-// Blocks rise in order; each call hands out the next slot.
 const stagger = (start: number, step: number) => {
-  let n = -1;
+  let n = 0;
   return () => {
+    const style = { animationDelay: `${start + n * step}ms` } as CSSProperties;
     n += 1;
-    return { animationDelay: `${start + n * step}ms` } as CSSProperties;
+    return style;
   };
 };
 
@@ -212,7 +184,7 @@ function StatusPage() {
         ))}
 
         <footer className="rise mt-10 text-faint" style={rows()}>
-          <p>measured {agoS(fleet.measuredAt, now)} ago</p>
+          <p>measured {ago(fleet.measuredAt, now)} ago</p>
         </footer>
       </div>
     </main>
@@ -297,7 +269,7 @@ function Panel({
         {host.containers > 0 ? ` · ${host.containers} containers` : ""}
         {" · "}
         <span className={stale ? "text-rose" : undefined}>
-          {off ? "last seen" : "seen"} {agoS(host.lastSeen, now)} ago
+          {off ? "last seen" : "seen"} {ago(host.lastSeen, now)} ago
         </span>
       </p>
     </article>

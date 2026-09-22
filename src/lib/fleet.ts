@@ -1,13 +1,8 @@
-// Shapes for the workshop (/status), plus the whitelist of what it shows.
-// Mock data for now; the Fleet DO will return the same `Fleet` once the
-// agents (rexdotsh/fleet-agent, checked out at agent/) are reporting.
-
-// `off` is a machine that's meant to be off (the desk); `down` is one that
-// isn't. `none` is a cell with no data yet.
+// The workshop (/status): what it shows, and the whitelist of what it may show.
+// `off` is a box that's meant to be off; `down` one that isn't; `none` no data yet.
 export type Health = "up" | "down" | "off" | "none";
 
-// What the page shows for each host. Anything the agent reports that isn't
-// listed here is dropped at ingest and never stored.
+// Anything the agent reports that isn't listed here is dropped at ingest.
 export const HOSTS: Record<
   string,
   { role: string; spec: string; intermittent?: boolean; private?: boolean }
@@ -22,7 +17,7 @@ export const HOSTS: Record<
   work: { role: "not mine to show", spec: "somewhere", private: true },
 };
 
-// Exact docker names on the box; several names means all must be running.
+// Exact docker names; several means all must be running.
 export const SERVICES: {
   id: string;
   blurb: string;
@@ -104,7 +99,6 @@ export const SERVICES: {
 ];
 
 export interface Host {
-  /** last 90 heartbeats, one a minute */
   beats: Health[];
   containers: number;
   cpu: number;
@@ -117,9 +111,7 @@ export interface Host {
   load: [number, number, number];
   memTotal: number;
   memUsed: number;
-  /** what it's for, one line */
   role: string;
-  /** os · cpus · ram · where, from the agent plus HOSTS */
   spec: string;
   upSince: number;
 }
@@ -129,14 +121,12 @@ export interface Service {
   health: Health;
   host: string;
   id: string;
-  /** container memory, MB */
   mem: number;
-  /** last 90 minutes of container state, oldest first */
   strip: Health[];
   uptime30: number;
 }
 
-// What the agent posts. Memory and disk in MB, `boot` in epoch seconds.
+// What the agent posts: MB for memory and disk, epoch seconds for boot.
 export interface Sample {
   boot: number;
   containers: { n: string; s: string; m?: number }[];
@@ -155,154 +145,70 @@ export interface Fleet {
   services: Service[];
 }
 
-const MINUTE = 60_000;
-const HOUR = 60 * MINUTE;
+const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
 
-// Deterministic noise so SSR and the client agree. A small LCG; the modulus
-// keeps every value under 2^53 so no bit-twiddling is needed.
-const MOD = 2_147_483_647;
-const rng = (seed: number) => {
-  let s = (seed + 1) % MOD;
-  return () => {
-    s = (s * 48_271) % MOD;
-    return s / MOD;
-  };
-};
-
-const series = (seed: number, n: number, base: number, wobble: number) => {
-  const next = rng(seed);
-  let v = base;
-  return Array.from({ length: n }, () => {
-    v += (next() - 0.5) * wobble;
-    v = Math.max(0, Math.min(100, v * 0.92 + base * 0.08));
-    return Math.round(v);
-  });
-};
-
-const strip = (n: number, blips: number[]): Health[] => {
-  const out: Health[] = Array.from({ length: n }, () => "up");
-  for (const i of blips) {
-    out[i] = "down";
-  }
-  return out;
-};
-
-export const fmtGb = (gb: number) => {
-  if (gb >= 1024) return `${(gb / 1024).toFixed(1)}t`;
-  if (gb >= 100) return `${Math.round(gb)}g`;
-  return `${gb.toFixed(1)}g`;
-};
+export const fmtGb = (gb: number) =>
+  gb >= 1024
+    ? `${(gb / 1024).toFixed(1)}t`
+    : gb >= 100
+      ? `${Math.round(gb)}g`
+      : `${gb.toFixed(1)}g`;
 
 export const fmtMb = (mb: number) =>
   mb >= 1024 ? `${(mb / 1024).toFixed(1)}g` : `${Math.round(mb)}m`;
 
 export const fmtUptime = (since: number, now = Date.now()) => {
-  const s = Math.max(0, Math.round((now - since) / 1000));
-  const d = Math.floor(s / 86_400);
-  const h = Math.floor((s % 86_400) / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  if (d > 0) return `${d}d ${h}h`;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
-};
-
-export const fmtDuration = (s: number) => {
-  if (s < 60) return `${s}s`;
-  const m = Math.round(s / 60);
-  if (m < 60) return `${m}m`;
-  const h = Math.floor(m / 60);
-  return `${h}h ${m % 60}m`;
+  const m = Math.max(0, Math.floor((now - since) / 60_000));
+  const [d, h] = [Math.floor(m / 1440), Math.floor((m % 1440) / 60)];
+  return d ? `${d}d ${h}h` : h ? `${h}h ${m % 60}m` : `${m}m`;
 };
 
 export const pct = (used: number, total: number) =>
-  total === 0 ? 0 : Math.round((used / total) * 100);
+  total ? Math.round((used / total) * 100) : 0;
 
-export const mockFleet = (now = Date.now()): Fleet => ({
-  mock: true,
-  measuredAt: now - 12_000,
-  hosts: [
-    {
-      id: "media",
-      ...HOSTS.media,
-      spec: `ubuntu 24 · 4 vcpu · 16 gb · ${HOSTS.media.spec}`,
-      cpu: 41,
-      cpuSpark: series(11, 48, 38, 22),
-      memUsed: 9870,
-      memTotal: 15_990,
-      diskUsed: 1318,
-      diskTotal: 1863,
-      load: [1.21, 0.97, 0.9],
-      upSince: now - 41 * DAY - 6 * HOUR,
-      lastSeen: now - 12_000,
-      health: "up",
-      beats: strip(90, []),
-      containers: 11,
-    },
-    {
-      id: "misc",
-      ...HOSTS.misc,
-      spec: `ubuntu 24 · 4 ocpu · 24 gb · ${HOSTS.misc.spec}`,
-      cpu: 9,
-      cpuSpark: series(21, 48, 8, 8),
-      memUsed: 6412,
-      memTotal: 23_931,
-      diskUsed: 61.4,
-      diskTotal: 196.2,
-      load: [0.14, 0.11, 0.09],
-      upSince: now - 132 * DAY - 2 * HOUR,
-      lastSeen: now - 9000,
-      health: "up",
-      beats: strip(90, []),
-      containers: 8,
-    },
-    {
-      id: "home",
-      ...HOSTS.home,
-      spec: `ubuntu 24 · 16 cores · 64 gb · ${HOSTS.home.spec}`,
-      cpu: 0,
-      cpuSpark: series(41, 48, 0, 0),
-      memUsed: 0,
-      memTotal: 64_000,
-      diskUsed: 812,
-      diskTotal: 1863,
-      load: [0, 0, 0],
-      upSince: 0,
-      lastSeen: now - 6 * HOUR - 40 * MINUTE,
-      health: "off",
-      beats: strip(90, []).map(() => "off" as Health),
-      containers: 0,
-    },
-    {
-      id: "work",
-      ...HOSTS.work,
-      spec: `ubuntu 24 · 2 vcpu · 8 gb · ${HOSTS.work.spec}`,
-      cpu: 17,
-      cpuSpark: series(31, 48, 15, 10),
-      memUsed: 3230,
-      memTotal: 7890,
-      diskUsed: 27.9,
-      diskTotal: 78.2,
-      load: [0.42, 0.51, 0.48],
-      upSince: now - 77 * DAY - 22 * HOUR,
-      lastSeen: now - 14_000,
-      health: "up",
-      beats: strip(90, []),
-      containers: 5,
-    },
-  ],
-  services: SERVICES.map((svc) => {
-    const off = svc.host === "home";
-    return {
-      id: svc.id,
-      blurb: svc.blurb,
-      host: svc.host,
-      health: off ? "off" : "up",
-      mem: off ? 0 : (MOCK_MEM[svc.id] ?? 64),
-      strip: strip(90, []).map((h) => (off ? "off" : h)),
-      uptime30: off ? 0 : 100,
-    };
-  }),
+export const summarize = (fleet: Fleet) => {
+  const listed = fleet.services.filter((s) => s.health !== "off");
+  return {
+    hosts: fleet.hosts.length,
+    off: fleet.hosts.filter((h) => h.health === "off"),
+    services: listed.length,
+    answering: listed.filter((s) => s.health === "up").length,
+  };
+};
+
+// Seeded so SSR and the client draw the same line.
+const wobble = (seed: number, base: number, spread: number) => {
+  let s = seed;
+  let v = base;
+  return Array.from({ length: 48 }, () => {
+    s = (s * 48_271) % 2_147_483_647;
+    v = Math.min(
+      100,
+      Math.max(0, v * 0.92 + base * 0.08 + (s / 2_147_483_647 - 0.5) * spread)
+    );
+    return Math.round(v);
+  });
+};
+
+const fill = <T>(n: number, v: T) => new Array(n).fill(v);
+
+const mockHost = (id: string, h: Partial<Host>, now: number): Host => ({
+  id,
+  ...HOSTS[id],
+  health: "up",
+  cpu: 0,
+  cpuSpark: fill(48, 0),
+  memUsed: 0,
+  memTotal: 0,
+  diskUsed: 0,
+  diskTotal: 0,
+  load: [0, 0, 0],
+  upSince: 0,
+  lastSeen: now - 10_000,
+  beats: fill(90, "up"),
+  containers: 0,
+  ...h,
 });
 
 const MOCK_MEM: Record<string, number> = {
@@ -319,28 +225,82 @@ const MOCK_MEM: Record<string, number> = {
   restic: 12,
 };
 
-// The one-line version of the page: what's awake, what isn't, who's loudest.
-export const summarize = (fleet: Fleet) => {
-  const awake = fleet.hosts.filter((h) => h.health === "up").length;
-  const off = fleet.hosts.filter((h) => h.health === "off");
-  const listed = fleet.services.filter((s) => s.health !== "off");
-  const answering = listed.filter((s) => s.health === "up").length;
-  const quiet = fleet.services.filter((s) => s.health === "down");
-  const [loud] = [...fleet.hosts].sort((a, b) => b.cpu - a.cpu);
-  return {
-    awake,
-    hosts: fleet.hosts.length,
-    answering,
-    services: listed.length,
-    off,
-    quiet,
-    loud,
-  };
-};
-
-export const HEALTH_LABEL: Record<Health, string> = {
-  up: "answering",
-  down: "quiet",
-  off: "off",
-  none: "no data",
-};
+export const mockFleet = (now = Date.now()): Fleet => ({
+  mock: true,
+  measuredAt: now - 12_000,
+  hosts: [
+    mockHost(
+      "media",
+      {
+        spec: `ubuntu 24 · 4 vcpu · 16 gb · ${HOSTS.media.spec}`,
+        cpu: 41,
+        cpuSpark: wobble(11, 38, 22),
+        memUsed: 9870,
+        memTotal: 15_990,
+        diskUsed: 1318,
+        diskTotal: 1863,
+        load: [1.21, 0.97, 0.9],
+        upSince: now - 41 * DAY - 6 * HOUR,
+        containers: 11,
+      },
+      now
+    ),
+    mockHost(
+      "misc",
+      {
+        spec: `ubuntu 24 · 4 ocpu · 24 gb · ${HOSTS.misc.spec}`,
+        cpu: 9,
+        cpuSpark: wobble(21, 8, 8),
+        memUsed: 6412,
+        memTotal: 23_931,
+        diskUsed: 61.4,
+        diskTotal: 196.2,
+        load: [0.14, 0.11, 0.09],
+        upSince: now - 132 * DAY - 2 * HOUR,
+        containers: 8,
+      },
+      now
+    ),
+    mockHost(
+      "home",
+      {
+        spec: `ubuntu 24 · 16 cores · 64 gb · ${HOSTS.home.spec}`,
+        health: "off",
+        memTotal: 64_000,
+        diskUsed: 812,
+        diskTotal: 1863,
+        lastSeen: now - 6 * HOUR - 40 * 60_000,
+        beats: fill(90, "off"),
+      },
+      now
+    ),
+    mockHost(
+      "work",
+      {
+        spec: `ubuntu 24 · 2 vcpu · 8 gb · ${HOSTS.work.spec}`,
+        cpu: 17,
+        cpuSpark: wobble(31, 15, 10),
+        memUsed: 3230,
+        memTotal: 7890,
+        diskUsed: 27.9,
+        diskTotal: 78.2,
+        load: [0.42, 0.51, 0.48],
+        upSince: now - 77 * DAY - 22 * HOUR,
+        containers: 5,
+      },
+      now
+    ),
+  ],
+  services: SERVICES.map((s) => {
+    const off = s.host === "home";
+    return {
+      id: s.id,
+      blurb: s.blurb,
+      host: s.host,
+      health: off ? "off" : "up",
+      mem: off ? 0 : (MOCK_MEM[s.id] ?? 64),
+      strip: fill(90, off ? "off" : "up"),
+      uptime30: off ? 0 : 100,
+    };
+  }),
+});

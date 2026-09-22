@@ -1,32 +1,32 @@
 import { env } from "cloudflare:workers";
 import { HOSTS, type Sample } from "@/lib/fleet";
 
-const SKEW_S = 5 * 60;
+const SKEW_S = 300;
 const MAX_BODY = 16 * 1024;
+const SIG_RE = /^[0-9a-f]{64}$/;
 
 export const fleet = () =>
   import.meta.env.DEV || !env.FLEET
     ? null
     : env.FLEET.get(env.FLEET.idFromName("fleet"));
 
-const encoder = new TextEncoder();
-const hex = (bytes: ArrayBuffer) =>
-  Array.from(new Uint8Array(bytes), (b) =>
-    b.toString(16).padStart(2, "0")
-  ).join("");
+const enc = new TextEncoder();
 
 const hmac = async (key: string, message: string) => {
   const k = await crypto.subtle.importKey(
     "raw",
-    encoder.encode(key),
+    enc.encode(key),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"]
   );
-  return hex(await crypto.subtle.sign("HMAC", k, encoder.encode(message)));
+  const mac = await crypto.subtle.sign("HMAC", k, enc.encode(message));
+  return Array.from(new Uint8Array(mac), (b) =>
+    b.toString(16).padStart(2, "0")
+  ).join("");
 };
 
-// Each box's key is derived from one master secret; `bun run fleet:key <host>` prints it.
+// A box's key is derived from the one master secret: `bun run fleet:key <host>`.
 export const hostKey = (secret: string, host: string) =>
   hmac(secret, `fleet:${host}`);
 
@@ -34,11 +34,8 @@ export const hostKey = (secret: string, host: string) =>
 const subtle = crypto.subtle as SubtleCrypto & {
   timingSafeEqual: (a: BufferSource, b: BufferSource) => boolean;
 };
-const same = (a: string, b: string) =>
-  a.length === b.length &&
-  subtle.timingSafeEqual(encoder.encode(a), encoder.encode(b));
 
-export type Verified =
+type Verified =
   | { ok: true; host: string; sample: Sample; ts: number }
   | { ok: false; status: number };
 
@@ -46,24 +43,18 @@ export async function verify(request: Request): Promise<Verified> {
   const host = request.headers.get("x-fleet-host") ?? "";
   const ts = Number(request.headers.get("x-fleet-ts"));
   const sig = request.headers.get("x-fleet-sig") ?? "";
-  if (
-    !(host in HOSTS) ||
-    !Number.isInteger(ts) ||
-    !/^[0-9a-f]{64}$/.test(sig)
-  ) {
+  if (!(host in HOSTS && Number.isInteger(ts) && SIG_RE.test(sig)))
     return { ok: false, status: 400 };
-  }
-  if (Math.abs(Date.now() / 1000 - ts) > SKEW_S) {
+  if (Math.abs(Date.now() / 1000 - ts) > SKEW_S)
     return { ok: false, status: 401 };
-  }
   const body = await request.text();
-  if (body.length > MAX_BODY) {
-    return { ok: false, status: 413 };
-  }
-  const key = await hostKey(env.FLEET_SECRET, host);
-  if (!same(await hmac(key, `${ts}.${body}`), sig)) {
+  if (body.length > MAX_BODY) return { ok: false, status: 413 };
+  const expected = await hmac(
+    await hostKey(env.FLEET_SECRET, host),
+    `${ts}.${body}`
+  );
+  if (!subtle.timingSafeEqual(enc.encode(expected), enc.encode(sig)))
     return { ok: false, status: 401 };
-  }
   const sample = parse(body);
   return sample
     ? { ok: true, host, sample, ts: ts * 1000 }
@@ -72,8 +63,8 @@ export async function verify(request: Request): Promise<Verified> {
 
 const num = (v: unknown): v is number =>
   typeof v === "number" && Number.isFinite(v);
-const pair = (v: unknown): v is [number, number] =>
-  Array.isArray(v) && v.length === 2 && v.every(num);
+const nums = (v: unknown, n: number): v is number[] =>
+  Array.isArray(v) && v.length === n && v.every(num);
 
 const parse = (text: string): Sample | null => {
   let raw: Record<string, unknown>;
@@ -84,30 +75,37 @@ const parse = (text: string): Sample | null => {
   }
   const { boot, containers, cpu, cpus, disk, load, mem, os } = raw;
   if (
-    !(num(boot) && num(cpu) && num(cpus) && pair(disk) && pair(mem)) ||
-    !(Array.isArray(load) && load.length === 3 && load.every(num)) ||
-    typeof os !== "string"
+    !(
+      num(boot) &&
+      num(cpu) &&
+      num(cpus) &&
+      nums(disk, 2) &&
+      nums(mem, 2) &&
+      nums(load, 3) &&
+      typeof os === "string"
+    )
   ) {
     return null;
   }
+  // `containers` is a list, or just a count from boxes that keep names to themselves.
   const list = Array.isArray(containers)
     ? containers.flatMap((c) =>
-        c && typeof c.n === "string" && typeof c.s === "string"
+        typeof c?.n === "string" && typeof c.s === "string"
           ? [{ n: c.n, s: c.s, m: num(c.m) ? c.m : undefined }]
           : []
       )
-    : Array.from({ length: num(containers) ? containers : 0 }, () => ({
+    : new Array(num(containers) ? containers : 0).fill({
         n: "",
         s: "",
-      }));
+      });
   return {
     boot,
     containers: list,
     cpu: Math.round(cpu),
     cpus,
-    disk,
+    disk: disk as [number, number],
     load: load as [number, number, number],
-    mem,
+    mem: mem as [number, number],
     os: os.slice(0, 32),
   };
 };
