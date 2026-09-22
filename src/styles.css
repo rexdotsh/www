@@ -2,6 +2,7 @@
 @import "./fonts.css";
 @import "./sentence.css";
 @import "./guestbook.css";
+@import "./fleet.css";
 
 @theme inline {
   --font-mono:

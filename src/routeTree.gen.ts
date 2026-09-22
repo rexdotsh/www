@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as StatusRouteImport } from './routes/status'
 import { Route as ApiBeaconRouteImport } from './routes/api/beacon'
 import { Route as ApiEmbedDotjsonRouteImport } from './routes/api/embed[.]json'
 import { Route as ApiGuestbookRouteImport } from './routes/api/guestbook'
@@ -38,6 +39,11 @@ const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiBeaconRoute = ApiBeaconRouteImport.update({
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/status': typeof StatusRoute
   '/api/beacon': typeof ApiBeaconRoute
   '/api/embed.json': typeof ApiEmbedDotjsonRoute
   '/api/guestbook': typeof ApiGuestbookRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/status': typeof StatusRoute
   '/api/beacon': typeof ApiBeaconRoute
   '/api/embed.json': typeof ApiEmbedDotjsonRoute
   '/api/guestbook': typeof ApiGuestbookRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/status': typeof StatusRoute
   '/api/beacon': typeof ApiBeaconRoute
   '/api/embed.json': typeof ApiEmbedDotjsonRoute
   '/api/guestbook': typeof ApiGuestbookRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/status'
     | '/api/beacon'
     | '/api/embed.json'
     | '/api/guestbook'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/status'
     | '/api/beacon'
     | '/api/embed.json'
     | '/api/guestbook'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/status'
     | '/api/beacon'
     | '/api/embed.json'
     | '/api/guestbook'
@@ -211,6 +223,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  StatusRoute: typeof StatusRoute
   ApiBeaconRoute: typeof ApiBeaconRoute
   ApiEmbedDotjsonRoute: typeof ApiEmbedDotjsonRoute
   ApiGuestbookRoute: typeof ApiGuestbookRoute
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/beacon': {
@@ -339,6 +359,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  StatusRoute: StatusRoute,
   ApiBeaconRoute: ApiBeaconRoute,
   ApiEmbedDotjsonRoute: ApiEmbedDotjsonRoute,
   ApiGuestbookRoute: ApiGuestbookRoute,

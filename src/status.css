@@ -1,0 +1,322 @@
+/* the workshop (/status): a terminal, on paper */
+
+.tty {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--body);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Lines print in order, no easing, like a terminal. */
+.tty-line {
+  animation: tty-in 1ms steps(1) backwards;
+}
+
+@keyframes tty-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.tty-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.75ch;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.tty-rule::before {
+  content: "──";
+  color: color-mix(in oklab, var(--ink) 22%, transparent);
+}
+
+.tty-rule::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: color-mix(in oklab, var(--ink) 12%, transparent);
+  transform-origin: left;
+  animation: draw-rule 700ms var(--ease-strong) backwards;
+  animation-delay: inherit;
+}
+
+.tty-rule b {
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+@keyframes draw-rule {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Host panels: ┌ name ─────┐ drawn with borders so the corners stay crisp. */
+.panel {
+  position: relative;
+  border: 1px solid color-mix(in oklab, var(--ink) 14%, transparent);
+  border-radius: 3px;
+  padding: 1.1rem 1.1rem 0.9rem;
+  background: color-mix(in oklab, var(--card) 55%, transparent);
+  transition:
+    border-color 200ms var(--ease-strong),
+    box-shadow 300ms var(--ease-strong);
+}
+
+.panel:hover {
+  border-color: color-mix(in oklab, var(--rose) 45%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--rose) 6%, transparent);
+}
+
+.panel-title {
+  position: absolute;
+  top: 0;
+  left: 0.8rem;
+  transform: translateY(-50%);
+  padding: 0 0.6ch;
+  background: var(--background);
+  color: var(--ink);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7ch;
+}
+
+.panel[data-health="down"] .panel-title {
+  color: var(--faint);
+}
+
+.panel-role {
+  color: var(--muted);
+  font-style: italic;
+  font-family: var(--font-serif-body);
+  font-size: 14px;
+}
+
+.panel-row {
+  display: grid;
+  grid-template-columns: 4ch minmax(0, 1fr) auto;
+  gap: 1.2ch;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.panel-row .k {
+  color: var(--faint);
+}
+
+.panel-row .v {
+  color: var(--ink);
+  text-align: right;
+}
+
+.panel-row .v small {
+  color: var(--faint);
+  font-size: 1em;
+}
+
+.panel-foot {
+  color: var(--faint);
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed color-mix(in oklab, var(--ink) 12%, transparent);
+}
+
+/* health lamp: ● ok, ◌ slow, ○ down (drawn, not glyphs, the font has none) */
+.lamp {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--rose);
+  vertical-align: 0;
+}
+
+.lamp[data-health="slow"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--rose-3);
+  animation: lamp-blink 1.4s steps(1) infinite;
+}
+
+.lamp[data-health="down"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--faint);
+}
+
+@keyframes lamp-blink {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* Services */
+.svc-head,
+.svc {
+  gap: 0.35rem 1.25rem;
+}
+
+.svc {
+  display: grid;
+}
+
+.svc-head {
+  display: none;
+  grid-template-columns: 8rem minmax(0, 1fr) 5.5rem 19rem;
+  color: var(--faint);
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--ink) 12%, transparent);
+}
+
+@media (min-width: 768px) {
+  .svc-head {
+    display: grid;
+  }
+}
+
+.svc {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name lat"
+    "blurb blurb"
+    "strip strip";
+  padding: 0.6rem 0;
+  border-bottom: 1px solid color-mix(in oklab, var(--ink) 7%, transparent);
+  transition: background-color 150ms;
+}
+
+@media (min-width: 768px) {
+  .svc {
+    grid-template-columns: 8rem minmax(0, 1fr) 5.5rem 19rem;
+    grid-template-areas: "name blurb lat strip";
+    align-items: center;
+    padding: 0.5rem 0;
+  }
+
+  .svc:hover {
+    background: color-mix(in oklab, var(--rose) 4%, transparent);
+    box-shadow: 0 0 0 0.6rem color-mix(in oklab, var(--rose) 4%, transparent);
+    border-radius: 2px;
+  }
+}
+
+.svc-name {
+  grid-area: name;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 0.9ch;
+}
+
+.svc[data-health="down"] .svc-name {
+  color: var(--faint);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in oklab, var(--rose) 60%, transparent);
+}
+
+.svc-blurb {
+  grid-area: blurb;
+  min-width: 0;
+}
+
+.svc-blurb .what {
+  display: block;
+  color: var(--body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.svc-blurb .who {
+  display: block;
+  font-size: 11px;
+  color: var(--faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.svc-lat {
+  grid-area: lat;
+  text-align: right;
+  color: var(--muted);
+}
+
+.svc-strip {
+  grid-area: strip;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.svc-lat .pct {
+  color: var(--faint);
+  font-size: 11px;
+}
+
+/* Narrow screens keep the most recent glyphs: 30 of 60 checks, 16 of 24 bars. */
+@media (max-width: 767px) {
+  .svc-strip .seismo > span:nth-child(-n + 15),
+  .trim .seismo > span:nth-child(-n + 8),
+  .bars.trim > span:nth-child(-n + 8) {
+    display: none;
+  }
+}
+
+/* The log */
+.log {
+  display: grid;
+  grid-template-columns: 6.5rem 6.5rem minmax(0, 1fr);
+  gap: 0.35rem 1.25rem;
+  align-items: baseline;
+}
+
+.log .when {
+  color: var(--faint);
+}
+
+.log .who {
+  color: var(--ink);
+}
+
+.log .note {
+  color: var(--body);
+}
+
+.log .dur {
+  color: var(--faint);
+}
+
+.ongoing {
+  color: var(--rose);
+  animation: lamp-blink 1.4s steps(1) infinite;
+}
+
+@media (max-width: 640px) {
+  .log {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+  }
+  .log .note {
+    grid-column: 1 / -1;
+    padding-left: 0;
+  }
+}
+
+.lead {
+  color: var(--ink);
+}
+
+.lead b {
+  font-weight: 500;
+  color: var(--rose);
+}
+
+kbd.cmd {
+  font-family: var(--font-mono);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in oklab, var(--ink) 12%, transparent);
+  background: color-mix(in oklab, var(--ink) 3%, transparent);
+  color: var(--muted);
+}
