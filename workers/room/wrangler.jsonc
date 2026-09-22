@@ -1,7 +1,7 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "www-room",
-  "main": "../../src/server/room.ts",
+  "main": "./index.ts",
   "compatibility_date": "2026-09-01",
   "workers_dev": false,
   "observability": {
@@ -12,6 +12,10 @@
       {
         "name": "ROOM",
         "class_name": "Room"
+      },
+      {
+        "name": "FLEET",
+        "class_name": "FleetStore"
       }
     ]
   },
@@ -26,6 +30,10 @@
           "to": "Room"
         }
       ]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["FleetStore"]
     }
   ]
 }

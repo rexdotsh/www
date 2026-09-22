@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { fleet } from "@/server/fleet-auth";
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import BackLink from "@/components/back-link";
 import { Gauge, Lamp, Sparkline, Strip, useTween } from "@/components/fleet";
@@ -22,8 +23,15 @@ const DESCRIPTION = "four machines and what they run.";
 
 export const Route = createFileRoute("/status")({
   component: StatusPage,
-  // Mock for now. Seeded from the server clock so SSR and hydration agree.
-  loader: () => ({ fleet: mockFleet(Date.now()) }),
+  loader: async () => {
+    const stub = fleet();
+    if (!stub) {
+      return { fleet: mockFleet(Date.now()) };
+    }
+    // RPC results carry Symbol.dispose and widen tuples; the DO built a real Fleet.
+    const { hosts, services, measuredAt } = await stub.snapshot();
+    return { fleet: { hosts, services, measuredAt } as Fleet };
+  },
   head: () => ({
     meta: [
       { title: "the workshop" },
@@ -68,7 +76,7 @@ const WORDS = [
 ];
 const words = (n: number) => WORDS[n] ?? String(n);
 
-const TICK_MS = 2500;
+const TICK_MS = 30_000;
 
 const agoS = (then: number, now: number) => {
   const s = Math.max(0, Math.round((now - then) / 1000));
@@ -88,25 +96,17 @@ const utc = (ts: number) => {
 const clamp = (n: number, lo: number, hi: number) =>
   Math.max(lo, Math.min(hi, n));
 
-// Nudge the live numbers so the mock breathes. Goes away with real data.
+// Nudge the live numbers so the mock breathes locally. Real data polls /api/fleet.
 const breathe = (fleet: Fleet): Fleet => ({
   ...fleet,
   measuredAt: Date.now() - 600,
-  sweep: clamp(fleet.sweep + Math.round((Math.random() - 0.5) * 90), 380, 940),
   hosts: fleet.hosts.map((h) => {
-    if (h.health === "down" || h.health === "off") return h;
+    if (h.health !== "up") return h;
     const cpu = clamp(h.cpu + Math.round((Math.random() - 0.5) * 9), 1, 99);
-    const mem = clamp(
-      h.memUsed + Math.round((Math.random() - 0.5) * h.memTotal * 0.01),
-      0,
-      h.memTotal
-    );
     return {
       ...h,
       cpu,
-      memUsed: mem,
       cpuSpark: [...h.cpuSpark.slice(1), cpu],
-      memSpark: [...h.memSpark.slice(1), pct(mem, h.memTotal)],
       lastSeen: Date.now() - 600,
     };
   }),
@@ -119,15 +119,21 @@ function useLiveFleet(initial: Fleet) {
   useEffect(() => {
     const clock = setInterval(() => setNow(Date.now()), 1000);
     const tick = setInterval(() => {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState !== "visible") return;
+      if (initial.mock) {
         setFleet(breathe);
+        return;
       }
+      fetch("/api/fleet")
+        .then((r) => (r.ok ? (r.json() as Promise<Fleet>) : null))
+        .then((f) => f && setFleet(f))
+        .catch(() => undefined);
     }, TICK_MS);
     return () => {
       clearInterval(clock);
       clearInterval(tick);
     };
-  }, []);
+  }, [initial.mock]);
 
   return { fleet, now };
 }
@@ -206,9 +212,7 @@ function StatusPage() {
         ))}
 
         <footer className="rise mt-10 text-faint" style={rows()}>
-          <p>
-            measured {agoS(fleet.measuredAt, now)} ago · {fleet.sweep}ms
-          </p>
+          <p>measured {agoS(fleet.measuredAt, now)} ago</p>
         </footer>
       </div>
     </main>

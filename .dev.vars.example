@@ -9,3 +9,5 @@ TELEGRAM_BOT_TOKEN=
 TELEGRAM_CHAT_ID=
 # Bearer for DELETE /api/guestbook?id=N (hides an entry).
 GUESTBOOK_ADMIN_TOKEN=
+# Master secret for the workshop; each box's key is derived from it (bun run fleet:key <host>).
+FLEET_SECRET=

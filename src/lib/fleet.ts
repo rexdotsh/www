@@ -2,8 +2,9 @@
 // Mock data for now; the Fleet DO will return the same `Fleet` once the
 // agents (rexdotsh/fleet-agent, checked out at agent/) are reporting.
 
-// `off` is a machine that's meant to be off (the desk); `down` is one that isn't.
-export type Health = "up" | "down" | "off";
+// `off` is a machine that's meant to be off (the desk); `down` is one that
+// isn't. `none` is a cell with no data yet.
+export type Health = "up" | "down" | "off" | "none";
 
 // What the page shows for each host. Anything the agent reports that isn't
 // listed here is dropped at ingest and never stored.
@@ -109,14 +110,11 @@ export interface Host {
   cpu: number;
   cpuSpark: number[];
   diskTotal: number;
-  /** ~30d of daily disk-used readings, GB */
-  diskTrend: number[];
   diskUsed: number;
   health: Health;
   id: string;
   lastSeen: number;
   load: [number, number, number];
-  memSpark: number[];
   memTotal: number;
   memUsed: number;
   /** what it's for, one line */
@@ -138,13 +136,23 @@ export interface Service {
   uptime30: number;
 }
 
+// What the agent posts. Memory and disk in MB, `boot` in epoch seconds.
+export interface Sample {
+  boot: number;
+  containers: { n: string; s: string; m?: number }[];
+  cpu: number;
+  cpus: number;
+  disk: [number, number];
+  load: [number, number, number];
+  mem: [number, number];
+  os: string;
+}
+
 export interface Fleet {
   hosts: Host[];
   measuredAt: number;
   mock?: boolean;
   services: Service[];
-  /** ms, how long the sweep took */
-  sweep: number;
 }
 
 const MINUTE = 60_000;
@@ -169,16 +177,6 @@ const series = (seed: number, n: number, base: number, wobble: number) => {
     v += (next() - 0.5) * wobble;
     v = Math.max(0, Math.min(100, v * 0.92 + base * 0.08));
     return Math.round(v);
-  });
-};
-
-const climb = (seed: number, n: number, from: number, to: number) => {
-  const next = rng(seed);
-  return Array.from({ length: n }, (_, i) => {
-    const t = i / (n - 1);
-    return (
-      Math.round((from + (to - from) * t + (next() - 0.5) * 1.4) * 10) / 10
-    );
   });
 };
 
@@ -223,7 +221,6 @@ export const pct = (used: number, total: number) =>
 export const mockFleet = (now = Date.now()): Fleet => ({
   mock: true,
   measuredAt: now - 12_000,
-  sweep: 641,
   hosts: [
     {
       id: "media",
@@ -233,10 +230,8 @@ export const mockFleet = (now = Date.now()): Fleet => ({
       cpuSpark: series(11, 48, 38, 22),
       memUsed: 9870,
       memTotal: 15_990,
-      memSpark: series(12, 48, 61, 6),
       diskUsed: 1318,
       diskTotal: 1863,
-      diskTrend: climb(13, 30, 1140, 1318),
       load: [1.21, 0.97, 0.9],
       upSince: now - 41 * DAY - 6 * HOUR,
       lastSeen: now - 12_000,
@@ -252,10 +247,8 @@ export const mockFleet = (now = Date.now()): Fleet => ({
       cpuSpark: series(21, 48, 8, 8),
       memUsed: 6412,
       memTotal: 23_931,
-      memSpark: series(22, 48, 27, 4),
       diskUsed: 61.4,
       diskTotal: 196.2,
-      diskTrend: climb(23, 30, 58.8, 61.4),
       load: [0.14, 0.11, 0.09],
       upSince: now - 132 * DAY - 2 * HOUR,
       lastSeen: now - 9000,
@@ -271,10 +264,8 @@ export const mockFleet = (now = Date.now()): Fleet => ({
       cpuSpark: series(41, 48, 0, 0),
       memUsed: 0,
       memTotal: 64_000,
-      memSpark: series(42, 48, 0, 0),
       diskUsed: 812,
       diskTotal: 1863,
-      diskTrend: climb(43, 30, 790, 812),
       load: [0, 0, 0],
       upSince: 0,
       lastSeen: now - 6 * HOUR - 40 * MINUTE,
@@ -290,10 +281,8 @@ export const mockFleet = (now = Date.now()): Fleet => ({
       cpuSpark: series(31, 48, 15, 10),
       memUsed: 3230,
       memTotal: 7890,
-      memSpark: series(32, 48, 40, 3),
       diskUsed: 27.9,
       diskTotal: 78.2,
-      diskTrend: climb(33, 30, 26.1, 27.9),
       load: [0.42, 0.51, 0.48],
       upSince: now - 77 * DAY - 22 * HOUR,
       lastSeen: now - 14_000,
@@ -353,4 +342,5 @@ export const HEALTH_LABEL: Record<Health, string> = {
   up: "answering",
   down: "quiet",
   off: "off",
+  none: "no data",
 };

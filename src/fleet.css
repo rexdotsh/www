@@ -77,7 +77,8 @@
   background: var(--rose);
 }
 
-.strip > i[data-h="off"] {
+.strip > i[data-h="off"],
+.strip > i[data-h="none"] {
   background: color-mix(in oklab, var(--ink) 5%, transparent);
 }
 

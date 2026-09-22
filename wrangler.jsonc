@@ -33,6 +33,11 @@
         "name": "ROOM",
         "class_name": "Room",
         "script_name": "www-room"
+      },
+      {
+        "name": "FLEET",
+        "class_name": "FleetStore",
+        "script_name": "www-room"
       }
     ]
   }
