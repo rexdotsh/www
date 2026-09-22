@@ -42,6 +42,11 @@ export const PROJECTS = [
     href: "https://github.com/rexdotsh/s3enum-ng",
   },
   {
+    name: "flora",
+    description: "random things for the web, with friends",
+    href: LINKS.flora,
+  },
+  {
     name: "www",
     description: "you are here, source and all",
     href: "https://github.com/rexdotsh/www",

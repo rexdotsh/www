@@ -1,0 +1,95 @@
+/* shared between /status and the homepage peek: text-drawn instruments */
+
+.bars {
+  display: inline-flex;
+  font-variant-ligatures: none;
+  letter-spacing: 0;
+  white-space: pre;
+  color: var(--rose);
+}
+
+.gauge {
+  white-space: pre;
+  letter-spacing: 0;
+}
+
+.gauge .on {
+  color: var(--ink);
+}
+
+.gauge .off {
+  color: color-mix(in oklab, var(--ink) 30%, transparent);
+}
+
+.seismo {
+  display: inline-flex;
+  white-space: pre;
+  letter-spacing: 0;
+  color: color-mix(in oklab, var(--ink) 22%, transparent);
+}
+
+.seismo > span {
+  animation: seismo-in 400ms var(--ease-strong) backwards;
+  transform-origin: bottom;
+}
+
+.seismo > span[data-h="slow"] {
+  color: var(--rose-3);
+}
+
+.seismo > span[data-h="down"] {
+  color: var(--rose);
+}
+
+@keyframes seismo-in {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+}
+
+.cursor {
+  display: inline-block;
+  color: var(--rose);
+  animation: cursor-blink 1.1s steps(1) infinite;
+}
+
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.prompt {
+  color: var(--rose);
+}
+
+/* peek version, on the homepage */
+.tty-peek {
+  display: block;
+  white-space: pre;
+  font-size: 11px;
+  line-height: 1.7;
+  font-variant-numeric: tabular-nums;
+}
+
+.tty-peek .row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) 2.6rem;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.tty-peek .row[data-health="slow"] .bars,
+.tty-peek .row[data-health="down"] .bars {
+  color: var(--faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seismo > span {
+    animation: none;
+  }
+  .cursor {
+    animation: none;
+  }
+}

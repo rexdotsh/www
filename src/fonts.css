@@ -64,7 +64,9 @@
   font-weight: 400 700;
   font-display: swap;
   src: url("./fonts/geist-mono-box.woff2") format("woff2");
-  unicode-range: U+2500, U+2514, U+251C, U+2588, U+2591;
+  unicode-range:
+    U+2500, U+2502, U+250C, U+2510, U+2514, U+2518, U+251C, U+2581-2588, U+258C,
+    U+2591;
 }
 
 /* Metric-matched local fallbacks so the swap doesn't reflow (numbers via @capsizecss/metrics). */
