@@ -7,7 +7,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { Pulse, Sparkline } from "@/components/fleet";
 import { EMAIL, getIdentity, LINKS, PROJECTS } from "@/lib/content";
+import { mockFleet, summarize } from "@/lib/fleet";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
 import { beacon, compact, useSiteStats } from "@/lib/stats";
@@ -17,7 +19,7 @@ export type SentenceWord =
   | "name"
   | "builds"
   | "writes"
-  | "garden"
+  | "workshop"
   | "music"
   | "hi"
   | "resume";
@@ -28,7 +30,7 @@ const NOTES: Record<SentenceWord, number> = {
   name: SCALE[0],
   builds: SCALE[1],
   writes: SCALE[2],
-  garden: SCALE[3],
+  workshop: SCALE[3],
   music: SCALE[4],
   hi: SCALE[5],
   resume: SCALE[5],
@@ -130,22 +132,14 @@ export const TheSentence = memo(function TheSentence({
     },
     ", i ",
     { key: "writes", href: LINKS.blog, text: "write", peek: <PostsPeek /> },
-    " about some of them, share a ",
+    " about some of them, run a ",
     {
-      key: "garden",
-      href: LINKS.flora,
+      key: "workshop",
+      href: "/status",
       text: "workshop",
-      peek: (
-        <TextPeek
-          center
-          href={LINKS.flora}
-          label="the workshop"
-          line="flora"
-          sub="random things for the web"
-        />
-      ),
+      peek: <WorkshopPeek />,
     },
-    " with friends, and usually have ",
+    " for friends, and usually have ",
     {
       key: "music",
       href: track?.url,
@@ -585,6 +579,43 @@ function ProjectsPeek() {
         </a>
       ))}
       {graph && graph.weeks.length > 0 ? <Heatmap {...graph} /> : null}
+    </PeekCard>
+  );
+}
+
+// Seeded, clock-free: the peek shows the same picture on the server and client.
+const WORKSHOP = mockFleet(0);
+const WORKSHOP_SUMMARY = summarize(WORKSHOP);
+
+function WorkshopPeek() {
+  return (
+    <PeekCard label="the workshop">
+      {WORKSHOP.hosts.map((host, index) => (
+        <span
+          className="fleet-peek-row"
+          key={host.id}
+          style={{ animationDelay: `${index * 90}ms` }}
+        >
+          <Pulse health={host.health} />
+          <span className="truncate text-ink text-xs">{host.id}</span>
+          <Sparkline
+            area={false}
+            className={host.health === "up" ? "text-rose" : "text-faint"}
+            data={host.cpuSpark.slice(-24)}
+            delay={index * 90}
+            height={14}
+            max={100}
+            tip={false}
+          />
+          <span className="text-right text-[10px] text-muted tabular-nums">
+            {host.health === "down" ? "—" : `${host.cpu}%`}
+          </span>
+        </span>
+      ))}
+      <span className="mt-3 block border-ink/10 border-t pt-2 text-center text-[9px] text-faint tracking-[0.1em]">
+        {WORKSHOP_SUMMARY.answering} of {WORKSHOP_SUMMARY.services} things
+        answering
+      </span>
     </PeekCard>
   );
 }

@@ -1,0 +1,147 @@
+/* shared between /status and the homepage peek */
+
+/* A dot that breathes when something is alive. */
+.pulse {
+  position: relative;
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--rose);
+  vertical-align: middle;
+}
+
+.pulse[data-health="up"]::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 1px solid var(--rose);
+  animation: pulse-ring 2.4s var(--ease-strong) infinite;
+}
+
+.pulse[data-health="slow"] {
+  background: var(--rose-3);
+  animation: pulse-blink 1.6s steps(1) infinite;
+}
+
+.pulse[data-health="down"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--faint);
+}
+
+@keyframes pulse-ring {
+  from {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* Sparklines ink themselves in. */
+.spark {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.spark path.line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: spark-draw 1400ms var(--ease-strong) forwards;
+  animation-delay: inherit;
+}
+
+.spark path.area {
+  fill: currentColor;
+  opacity: 0;
+  animation: spark-fill 900ms var(--ease-strong) forwards;
+  animation-delay: inherit;
+}
+
+.spark .tip {
+  fill: currentColor;
+  opacity: 0;
+  animation: spark-tip 300ms var(--ease-strong) forwards;
+  animation-delay: inherit;
+}
+
+.spark .cap {
+  stroke: color-mix(in oklab, var(--ink) 18%, transparent);
+  stroke-dasharray: 2 3;
+  stroke-width: 1;
+}
+
+@keyframes spark-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes spark-fill {
+  to {
+    opacity: 0.07;
+  }
+}
+
+@keyframes spark-tip {
+  to {
+    opacity: 1;
+  }
+}
+
+/* peek version, on the homepage */
+.fleet-peek-row {
+  display: grid;
+  grid-template-columns: 7px 4.2rem minmax(0, 1fr) 2.4rem;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.fleet-peek-row + .fleet-peek-row {
+  margin-top: 0.45rem;
+}
+
+.fleet-peek-row .spark {
+  height: 14px;
+}
+
+/* Inside a peek the sparklines wait, and ink in each time the card opens. */
+.peek .spark path.line {
+  animation: none;
+}
+
+.peek-trigger:hover .peek .spark path.line,
+.peek-trigger:focus-within .peek .spark path.line,
+.peek-trigger[data-peek-open] .peek .spark path.line {
+  animation: spark-draw 900ms var(--ease-strong) 120ms forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spark path.line {
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .spark path.area {
+    opacity: 0.07;
+    animation: none;
+  }
+  .spark .tip {
+    opacity: 1;
+    animation: none;
+  }
+}
