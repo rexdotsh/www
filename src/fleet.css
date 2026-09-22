@@ -1,9 +1,13 @@
 /* shared between /status and the homepage peek */
 
+/* Draws in left to right (a clip, not a dash: dashes and non-scaling
+   strokes disagree under the stretched viewBox). */
 .spark {
   display: block;
   width: 100%;
   overflow: visible;
+  clip-path: inset(-4px 100% -4px -4px);
+  animation: spark-draw 1100ms var(--ease-strong) forwards;
 }
 
 .spark .line {
@@ -12,52 +16,31 @@
   stroke-width: 1.2;
   stroke-linejoin: round;
   stroke-linecap: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: spark-draw 1100ms var(--ease-strong) forwards;
-  animation-delay: inherit;
 }
 
 .spark .area {
   fill: currentColor;
-  opacity: 0;
-  animation: spark-fill 800ms var(--ease-strong) forwards;
-  animation-delay: inherit;
+  opacity: 0.07;
 }
 
 .spark .tip {
   fill: currentColor;
-  opacity: 0;
-  animation: spark-tip 300ms var(--ease-strong) forwards;
-  animation-delay: inherit;
 }
 
 @keyframes spark-draw {
   to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes spark-fill {
-  to {
-    opacity: 0.07;
-  }
-}
-
-@keyframes spark-tip {
-  to {
-    opacity: 1;
+    clip-path: inset(-4px -4px -4px -4px);
   }
 }
 
 /* Inside a peek the sparklines wait, and draw each time the card opens. */
-.peek .spark .line {
+.peek .spark {
   animation: none;
 }
 
-.peek-trigger:hover .peek .spark .line,
-.peek-trigger:focus-within .peek .spark .line,
-.peek-trigger[data-peek-open] .peek .spark .line {
+.peek-trigger:hover .peek .spark,
+.peek-trigger:focus-within .peek .spark,
+.peek-trigger[data-peek-open] .peek .spark {
   animation: spark-draw 800ms var(--ease-strong) 100ms forwards;
 }
 
@@ -98,6 +81,10 @@
   background: var(--rose);
 }
 
+.strip > i[data-h="off"] {
+  background: color-mix(in oklab, var(--ink) 5%, transparent);
+}
+
 @keyframes cell-in {
   from {
     transform: scaleY(0);
@@ -122,6 +109,11 @@
 
 .lamp[data-health="down"] {
   background: transparent;
+  box-shadow: inset 0 0 0 1px var(--rose);
+}
+
+.lamp[data-health="off"] {
+  background: transparent;
   box-shadow: inset 0 0 0 1px var(--faint);
 }
 
@@ -129,22 +121,6 @@
   50% {
     opacity: 0.3;
   }
-}
-
-.cursor {
-  display: inline-block;
-  color: var(--rose);
-  animation: cursor-blink 1.1s steps(1) infinite;
-}
-
-@keyframes cursor-blink {
-  50% {
-    opacity: 0;
-  }
-}
-
-.prompt {
-  color: var(--rose);
 }
 
 /* peek version, on the homepage */
@@ -160,22 +136,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spark .line,
-  .peek-trigger:hover .peek .spark .line {
-    stroke-dashoffset: 0;
-    animation: none;
-  }
-  .spark .area {
-    opacity: 0.07;
-    animation: none;
-  }
-  .spark .tip {
-    opacity: 1;
+  .spark,
+  .peek-trigger:hover .peek .spark {
+    clip-path: none;
     animation: none;
   }
   .strip > i,
-  .lamp,
-  .cursor {
+  .lamp {
     animation: none;
   }
 }

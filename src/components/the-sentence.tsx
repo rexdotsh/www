@@ -136,7 +136,7 @@ export const TheSentence = memo(function TheSentence({
     {
       key: "workshop",
       href: "/status",
-      text: "workshop",
+      text: <span style={{ viewTransitionName: "workshop" }}>workshop</span>,
       peek: <WorkshopPeek />,
     },
     " for friends, and usually have ",
@@ -602,7 +602,9 @@ function WorkshopPeek() {
             max={100}
           />
           <span className="text-right text-[10px] text-muted tabular-nums">
-            {host.health === "down" ? "—" : `${host.cpu}%`}
+            {host.health === "up" || host.health === "slow"
+              ? `${host.cpu}%`
+              : host.health}
           </span>
         </span>
       ))}

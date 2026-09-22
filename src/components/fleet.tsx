@@ -1,9 +1,18 @@
-import type { CSSProperties } from "react";
+import {
+  type CSSProperties,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { Health } from "@/lib/fleet";
 
 const W = 100;
+const SLIDE_MS = 900;
 
-// Hand-rolled sparkline; `max` fixes the ceiling. Strokes stay crisp under the
+// Hand-rolled sparkline; `max` fixes the ceiling. The first point sits one
+// step off the left edge so that, when a new sample lands, the whole line can
+// slide left by one step instead of jumping. Strokes stay crisp under the
 // non-uniform viewBox scaling via vector-effect.
 export function Sparkline({
   className = "",
@@ -20,8 +29,9 @@ export function Sparkline({
 }) {
   const H = height;
   const n = data.length;
+  const step = W / Math.max(1, n - 2);
   const pt = (v: number, i: number) => {
-    const x = n === 1 ? W : (i / (n - 1)) * W;
+    const x = (i - 1) * step;
     const y = H - 1.5 - (Math.min(v, max) / max) * (H - 3);
     return [x, y] as const;
   };
@@ -32,6 +42,25 @@ export function Sparkline({
   const last = points.at(-1) ?? [W, H];
   const style = { animationDelay: `${delay}ms` } as CSSProperties;
 
+  const group = useRef<SVGGElement>(null);
+  const mounted = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-run on every new sample
+  useLayoutEffect(() => {
+    const el = group.current;
+    if (!el) {
+      return;
+    }
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    el.style.transition = "none";
+    el.style.transform = `translateX(${step}px)`;
+    el.getBoundingClientRect();
+    el.style.transition = `transform ${SLIDE_MS}ms var(--ease-strong)`;
+    el.style.transform = "translateX(0)";
+  }, [data]);
+
   return (
     <svg
       aria-hidden="true"
@@ -40,24 +69,50 @@ export function Sparkline({
       style={{ height, ...style }}
       viewBox={`0 0 ${W} ${H}`}
     >
-      <path className="area" d={`${line} L${W} ${H} L0 ${H} Z`} style={style} />
-      <path
-        className="line"
-        d={line}
-        pathLength={1}
-        style={style}
-        vectorEffect="non-scaling-stroke"
-      />
-      <circle
-        className="tip"
-        cx={last[0]}
-        cy={last[1]}
-        r={1.6}
-        style={{ animationDelay: `${delay + 900}ms` }}
-        vectorEffect="non-scaling-stroke"
-      />
+      <g ref={group}>
+        <path
+          className="area"
+          d={`${line} L${last[0]} ${H} L${-step} ${H} Z`}
+        />
+        <path className="line" d={line} vectorEffect="non-scaling-stroke" />
+        <circle
+          className="tip"
+          cx={last[0]}
+          cy={last[1]}
+          r={1.6}
+          vectorEffect="non-scaling-stroke"
+        />
+      </g>
     </svg>
   );
+}
+
+const TWEEN_MS = 700;
+const ease = (t: number) => 1 - (1 - t) ** 3;
+
+// Eases a number towards its latest value instead of snapping.
+export function useTween(target: number) {
+  const [value, setValue] = useState(target);
+  const current = useRef(target);
+  useEffect(() => {
+    const start = current.current;
+    if (start === target) {
+      return;
+    }
+    const t0 = performance.now();
+    let frame = 0;
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - t0) / TWEEN_MS);
+      current.current = start + (target - start) * ease(k);
+      setValue(current.current);
+      if (k < 1) {
+        frame = requestAnimationFrame(tick);
+      }
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target]);
+  return value;
 }
 
 export function Gauge({ frac, width = 12 }: { frac: number; width?: number }) {
@@ -97,7 +152,7 @@ export function Strip({
         <i
           data-h={h === "up" ? undefined : h}
           key={`${i}-${h}`}
-          style={{ animationDelay: `${delay + i * 6}ms` }}
+          style={{ animationDelay: `${delay + i * 8}ms` }}
         />
       ))}
     </span>
@@ -106,12 +161,4 @@ export function Strip({
 
 export function Lamp({ health }: { health: Health }) {
   return <i className="lamp" data-health={health} />;
-}
-
-export function Cursor() {
-  return (
-    <span aria-hidden="true" className="cursor">
-      ▌
-    </span>
-  );
 }
