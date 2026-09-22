@@ -146,8 +146,8 @@ function StatusPage() {
   const { fleet, now } = useLiveFleet(initial);
   const sum = summarize(fleet);
   const head = stagger(0, 70);
-  const panels = stagger(380, 110);
-  const rows = stagger(900, 32);
+  const panels = stagger(320, 100);
+  const rows = stagger(780, 30);
 
   return (
     <main className="min-h-dvh paper px-7 py-14 text-ink selection:bg-rose selection:text-paper md:py-20">
@@ -156,7 +156,7 @@ function StatusPage() {
           home
         </BackLink>
 
-        <header className="mt-10 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+        <header className="mt-8 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
           <h1
             className="rise font-serif-display text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
             style={{ ...head(), viewTransitionName: "workshop" }}
@@ -168,7 +168,7 @@ function StatusPage() {
           </p>
         </header>
 
-        <p className="lead rise mt-4" style={head()}>
+        <p className="lead rise mt-2" style={head()}>
           {words(sum.hosts)} machines, {words(sum.services)} services,{" "}
           {sum.answering === sum.services
             ? "all answering."
@@ -182,8 +182,7 @@ function StatusPage() {
           ) : null}
         </p>
 
-        <Rule label="machines" style={panels()} />
-        <div className="mt-8 grid gap-x-6 gap-y-8 md:grid-cols-2">
+        <div className="mt-10 grid gap-x-6 gap-y-7 md:grid-cols-2">
           {fleet.hosts.map((host) => (
             <Panel
               host={host}
@@ -195,11 +194,10 @@ function StatusPage() {
           ))}
         </div>
 
-        <Rule label="services" style={rows()} />
-        <div className="svc-head rise mt-6" style={rows()}>
-          <span>service</span>
+        <div className="svc-head rise mt-12" style={rows()}>
           <span />
-          <span className="text-right">answer</span>
+          <span />
+          <span className="text-right">latency</span>
           <span className="text-right">30d</span>
           <span>last 45 checks</span>
         </div>
@@ -207,21 +205,13 @@ function StatusPage() {
           <ServiceRow key={service.id} service={service} style={rows()} />
         ))}
 
-        <footer className="rise mt-14 text-faint" style={rows()}>
+        <footer className="rise mt-10 text-faint" style={rows()}>
           <p>
             measured {agoS(fleet.measuredAt, now)} ago · {fleet.sweep}ms
           </p>
         </footer>
       </div>
     </main>
-  );
-}
-
-function Rule({ label, style }: { label: string; style: CSSProperties }) {
-  return (
-    <p className="tty-rule rise mt-14" style={style}>
-      <b>{label}</b>
-    </p>
   );
 }
 

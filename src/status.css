@@ -8,41 +8,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.tty-rule {
-  display: flex;
-  align-items: center;
-  gap: 0.75ch;
-  color: var(--faint);
-  white-space: nowrap;
-}
-
-.tty-rule::before {
-  content: "──";
-  color: color-mix(in oklab, var(--ink) 22%, transparent);
-}
-
-.tty-rule::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: color-mix(in oklab, var(--ink) 12%, transparent);
-  transform-origin: left;
-  animation: draw-rule 700ms var(--ease-strong) backwards;
-  animation-delay: inherit;
-}
-
-.tty-rule b {
-  font-weight: 500;
-  color: var(--muted);
-  letter-spacing: 0.04em;
-}
-
-@keyframes draw-rule {
-  from {
-    transform: scaleX(0);
-  }
-}
-
 .lead {
   font-family: var(--font-serif-display);
   font-size: clamp(1.35rem, 3.2vw, 1.7rem);
@@ -185,8 +150,8 @@
   display: none;
   grid-template-columns: 7.5rem minmax(0, 1fr) 4rem 4rem 19rem;
   color: var(--faint);
-  padding-bottom: 0.4rem;
-  border-bottom: 1px solid color-mix(in oklab, var(--ink) 12%, transparent);
+  font-size: 11px;
+  padding-bottom: 0.35rem;
 }
 
 .svc {
