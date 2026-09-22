@@ -210,9 +210,6 @@ function StatusPage() {
           <p>
             measured {agoS(fleet.measuredAt, now)} ago · {fleet.sweep}ms
           </p>
-          <p className="mt-6">
-            <span className="prompt">$</span> <Cursor />
-          </p>
         </footer>
       </div>
     </main>
