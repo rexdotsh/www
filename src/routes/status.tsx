@@ -1,15 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import BackLink from "@/components/back-link";
-import { Bars, Cursor, Gauge, Seismo } from "@/components/fleet";
+import { Cursor, Gauge, Lamp, Sparkline, Strip } from "@/components/fleet";
 import {
   type Fleet,
-  fmtDuration,
   fmtGb,
   fmtMb,
   fmtUptime,
   type Host,
-  type Incident,
   mockFleet,
   pct,
   type Service,
@@ -20,8 +18,7 @@ import newsreaderItalicWoff2 from "../fonts/newsreader-latin-italic.woff2?url";
 import bodyCss from "../fonts-body.css?url";
 import statusCss from "../status.css?url";
 
-const DESCRIPTION =
-  "four machines, the things they run for friends, and whether they're answering.";
+const DESCRIPTION = "four machines and what they run.";
 
 export const Route = createFileRoute("/status")({
   component: StatusPage,
@@ -76,9 +73,9 @@ const LINE_MS = 28;
 
 const agoS = (then: number, now: number) => {
   const s = Math.max(0, Math.round((now - then) / 1000));
-  if (s < 60) return `${s}s ago`;
+  if (s < 60) return `${s}s`;
   const m = Math.floor(s / 60);
-  return `${m}m ${s % 60}s ago`;
+  return `${m}m ${s % 60}s`;
 };
 
 const utc = (ts: number) => {
@@ -148,6 +145,7 @@ function StatusPage() {
   const { fleet, now } = useLiveFleet(initial);
   const sum = summarize(fleet);
   const line = printer();
+  const down = fleet.hosts.filter((h) => h.health !== "up");
 
   return (
     <main className="min-h-dvh paper px-7 py-14 text-ink selection:bg-rose selection:text-paper md:py-20">
@@ -175,7 +173,19 @@ function StatusPage() {
           the workshop<span className="full-stop text-rose">.</span>
         </h1>
 
-        <Lead fleet={fleet} style={line()} sum={sum} />
+        <p className="lead tty-line mt-4" style={line()}>
+          {words(sum.hosts)} machines, {words(sum.services)} services,{" "}
+          {sum.answering === sum.services
+            ? "all answering."
+            : `${words(sum.answering)} answering.`}
+          {down.length > 0 ? (
+            <>
+              {" "}
+              <em>{down.map((h) => h.id).join(", ")}</em>{" "}
+              {down.length === 1 ? "is" : "are"} down.
+            </>
+          ) : null}
+        </p>
 
         <Rule label="machines" style={line(200)} />
         <div className="mt-8 grid gap-x-6 gap-y-8 md:grid-cols-2">
@@ -184,44 +194,23 @@ function StatusPage() {
           ))}
         </div>
 
-        <Rule label="what they run" style={line(400)} />
-        <p className="tty-line mt-5 mb-4 text-faint" style={line(400)}>
-          {sum.answering} of {sum.services} answering. each glyph is one check
-          from outside; flat is good.
-        </p>
-        <div className="svc-head tty-line" style={line(400)}>
+        <Rule label="services" style={line(400)} />
+        <div className="svc-head tty-line mt-6" style={line(400)}>
           <span>service</span>
-          <span>what it is, and for whom</span>
+          <span />
           <span className="text-right">answer</span>
+          <span className="text-right">30d</span>
           <span>last 45 checks</span>
         </div>
         {fleet.services.map((service) => (
           <ServiceRow key={service.id} service={service} style={line(400)} />
         ))}
 
-        <Rule label="the log" style={line(700)} />
-        <ol className="log tty-line mt-6" style={line(700)}>
-          {fleet.incidents.map((incident) => (
-            <LogEntry
-              incident={incident}
-              key={`${incident.ts}-${incident.service}`}
-              now={now}
-            />
-          ))}
-        </ol>
-
-        <Rule style={line(900)} />
-        <footer className="tty-line mt-6 text-faint" style={line(900)}>
+        <footer className="tty-line mt-14 text-faint" style={line(700)}>
           <p>
-            measured {agoS(fleet.measuredAt, now)} · sweep took {fleet.sweep}
-            ms · every machine reports in on its own; nothing here is reachable
-            from this page.
+            measured {agoS(fleet.measuredAt, now)} ago · {fleet.sweep}ms
           </p>
-          <p className="mt-1">
-            this is also exactly what <kbd className="cmd">curl</kbd> prints. in
-            colour, though.
-          </p>
-          <p className="mt-8">
+          <p className="mt-6">
             <span className="prompt">$</span> <Cursor />
           </p>
         </footer>
@@ -230,52 +219,10 @@ function StatusPage() {
   );
 }
 
-const loudNote = (host: Host) => {
-  if (host.cpu > 70) return "something's rendering.";
-  if (host.cpu > 30) return "someone's watching something.";
-  return "which is to say, not very.";
-};
-
-function Lead({
-  fleet,
-  style,
-  sum,
-}: {
-  fleet: Fleet;
-  style: CSSProperties;
-  sum: ReturnType<typeof summarize>;
-}) {
-  const asleep = fleet.hosts.filter((h) => h.health !== "up");
-  const quiet = sum.quiet.map((s) => s.name);
-  return (
-    <p className="prose-lead tty-line mt-6 max-w-3xl" style={style}>
-      {sum.awake === sum.hosts
-        ? `all ${words(sum.hosts)} machines are awake`
-        : `${words(sum.awake)} of ${words(sum.hosts)} machines are awake`}
-      {", "}
-      {sum.answering === sum.services
-        ? "everything is answering"
-        : `${words(sum.answering)} of ${words(sum.services)} things are answering`}
-      {", and the loudest is "}
-      <em>{sum.loud.id}</em>
-      {` at ${sum.loud.cpu}% — ${loudNote(sum.loud)}`}
-      {asleep.length > 0 ? (
-        <>
-          {" "}
-          <em>{asleep.map((h) => h.id).join(" and ")}</em>
-          {asleep.length === 1 ? " has " : " have "}
-          gone quiet
-          {quiet.length > 0 ? `, taking ${quiet.join(" and ")} along.` : "."}
-        </>
-      ) : null}
-    </p>
-  );
-}
-
-function Rule({ label, style }: { label?: string; style: CSSProperties }) {
+function Rule({ label, style }: { label: string; style: CSSProperties }) {
   return (
     <p className="tty-rule tty-line mt-14" style={style}>
-      {label ? <b>{label}</b> : null}
+      <b>{label}</b>
     </p>
   );
 }
@@ -294,7 +241,7 @@ function Panel({
   return (
     <article className="panel tty-line" data-health={host.health} style={style}>
       <h2 className="panel-title">
-        <i className="lamp" data-health={host.health} />
+        <Lamp health={host.health} />
         {host.id}
       </h2>
       <p className="panel-role">{host.role}</p>
@@ -307,15 +254,20 @@ function Panel({
           unit="%"
           value={String(host.cpu)}
         >
-          <Bars className="trim" data={host.cpuSpark} max={100} width={16} />
+          <Sparkline
+            className={down ? "text-faint" : "text-rose"}
+            data={host.cpuSpark}
+            delay={300}
+            max={100}
+          />
         </Vital>
         <Vital
           label="memory"
-          sub={`of ${fmtMb(host.memTotal)}${host.swapTotal > 0 ? ` · swap ${fmtMb(host.swapUsed)}` : ""}`}
+          sub={`of ${fmtMb(host.memTotal)}`}
           unit={`${pct(host.memUsed, host.memTotal)}%`}
           value={fmtMb(host.memUsed)}
         >
-          <Gauge frac={host.memUsed / host.memTotal} width={12} />
+          <Gauge frac={host.memUsed / host.memTotal} />
         </Vital>
         <Vital
           label="disk"
@@ -323,15 +275,13 @@ function Panel({
           unit={`${pct(host.diskUsed, host.diskTotal)}%`}
           value={fmtGb(host.diskUsed)}
         >
-          <Gauge frac={host.diskUsed / host.diskTotal} width={12} />
+          <Gauge frac={host.diskUsed / host.diskTotal} />
         </Vital>
       </div>
 
       <p className="panel-beat mt-4">
-        <span className="k">beat</span>
-        <span className="trim">
-          <Seismo cells={host.beats.slice(-24)} delay={400} />
-        </span>
+        <span className="k">heartbeat</span>
+        <Strip cells={host.beats.slice(-30)} delay={400} />
         <span className="v">
           {down ? "down" : `up ${fmtUptime(host.upSince, now)}`}
         </span>
@@ -340,7 +290,7 @@ function Panel({
       <p className="panel-foot text-[11px]">
         {host.containers > 0 ? `${host.containers} containers · ` : ""}
         <span className={stale ? "text-rose" : undefined}>
-          seen {agoS(host.lastSeen, now)}
+          seen {agoS(host.lastSeen, now)} ago
         </span>
       </p>
     </article>
@@ -369,7 +319,7 @@ function Vital({
         </span>
         {unit ? <small>{unit}</small> : null}
       </p>
-      <p className="vital-bar">{children}</p>
+      <div className="vital-bar">{children}</div>
       <p className="vital-sub">{sub}</p>
     </div>
   );
@@ -385,53 +335,17 @@ function ServiceRow({
   return (
     <div className="svc tty-line" data-health={service.health} style={style}>
       <p className="svc-name">
-        <i className="lamp" data-health={service.health} />
+        <Lamp health={service.health} />
         {service.name}
       </p>
-      <p className="svc-blurb">
-        <span className="what">{service.blurb}</span>
-        <span className="who">
-          for {service.who} · on {service.host}
-        </span>
-      </p>
+      <p className="svc-blurb">{service.blurb}</p>
       <p className="svc-lat">
-        <span className="block">
-          {service.health === "down" ? "—" : `${service.latency}ms`}
-        </span>
-        <span className="pct block">{service.uptime30.toFixed(2)}%</span>
+        {service.health === "down" ? "—" : `${service.latency}ms`}
       </p>
-      <p className="svc-strip">
-        <Seismo cells={service.strip.slice(-45)} delay={600} />
-      </p>
-    </div>
-  );
-}
-
-const DAY_MS = 86_400_000;
-const dateLabel = (ts: number, now: number) => {
-  const days = Math.floor((now - ts) / DAY_MS);
-  if (days === 0) return "today";
-  if (days === 1) return "yesterday";
-  return new Date(ts)
-    .toLocaleDateString("en-GB", { day: "2-digit", month: "short" })
-    .toLowerCase();
-};
-
-function LogEntry({ incident, now }: { incident: Incident; now: number }) {
-  return (
-    <li className="contents">
-      <span className="when">{dateLabel(incident.ts, now)}</span>
-      <span className="who">{incident.service}</span>
-      <span className="note">
-        {incident.note}{" "}
-        <span className="dur">
-          {incident.resolved ? (
-            `· ${fmtDuration(incident.duration)}`
-          ) : (
-            <span className="ongoing">· ongoing</span>
-          )}
-        </span>
+      <p className="svc-pct">{service.uptime30.toFixed(1)}%</p>
+      <span className="svc-strip">
+        <Strip cells={service.strip.slice(-45)} delay={500} />
       </span>
-    </li>
+    </div>
   );
 }

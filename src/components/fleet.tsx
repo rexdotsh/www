@@ -1,40 +1,66 @@
+import type { CSSProperties } from "react";
 import type { Health } from "@/lib/fleet";
 
-// Everything here is text. What the page shows is what `curl` will print,
-// minus the colour.
+const W = 100;
 
-const BLOCKS = "▁▂▃▄▅▆▇█";
-
-export const bars = (data: number[], max: number, width = data.length) =>
-  data
-    .slice(-width)
-    .map((v) => {
-      const i = Math.round((Math.min(v, max) / max) * (BLOCKS.length - 1));
-      return BLOCKS[i] ?? "▁";
-    })
-    .join("");
-
-export function Bars({
+// Hand-rolled sparkline; `max` fixes the ceiling. Strokes stay crisp under the
+// non-uniform viewBox scaling via vector-effect.
+export function Sparkline({
   className = "",
   data,
+  delay = 0,
+  height = 24,
   max,
-  width,
 }: {
   className?: string;
   data: number[];
+  delay?: number;
+  height?: number;
   max: number;
-  width?: number;
 }) {
+  const H = height;
+  const n = data.length;
+  const pt = (v: number, i: number) => {
+    const x = n === 1 ? W : (i / (n - 1)) * W;
+    const y = H - 1.5 - (Math.min(v, max) / max) * (H - 3);
+    return [x, y] as const;
+  };
+  const points = data.map(pt);
+  const line = points
+    .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`)
+    .join(" ");
+  const last = points.at(-1) ?? [W, H];
+  const style = { animationDelay: `${delay}ms` } as CSSProperties;
+
   return (
-    <span aria-hidden="true" className={`bars ${className}`}>
-      {Array.from(bars(data, max, width), (glyph, i) => (
-        <span key={`${i}-${glyph}`}>{glyph}</span>
-      ))}
-    </span>
+    <svg
+      aria-hidden="true"
+      className={`spark ${className}`}
+      preserveAspectRatio="none"
+      style={{ height, ...style }}
+      viewBox={`0 0 ${W} ${H}`}
+    >
+      <path className="area" d={`${line} L${W} ${H} L0 ${H} Z`} style={style} />
+      <path
+        className="line"
+        d={line}
+        pathLength={1}
+        style={style}
+        vectorEffect="non-scaling-stroke"
+      />
+      <circle
+        className="tip"
+        cx={last[0]}
+        cy={last[1]}
+        r={1.6}
+        style={{ animationDelay: `${delay + 900}ms` }}
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
   );
 }
 
-export function Gauge({ frac, width = 20 }: { frac: number; width?: number }) {
+export function Gauge({ frac, width = 12 }: { frac: number; width?: number }) {
   const on = Math.round(Math.max(0, Math.min(1, frac)) * width);
   return (
     <span
@@ -48,10 +74,8 @@ export function Gauge({ frac, width = 20 }: { frac: number; width?: number }) {
   );
 }
 
-const SEISMO: Record<Health, string> = { up: "▁", slow: "▄", down: "█" };
-
-// Uptime as a seismograph: flat is good.
-export function Seismo({
+// One cell per check, oldest on the left.
+export function Strip({
   cells,
   delay = 0,
 }: {
@@ -66,20 +90,22 @@ export function Seismo({
           ? "answered every check"
           : `${off} of ${cells.length} checks off`
       }
-      className="seismo"
+      className="strip"
       role="img"
     >
       {cells.map((h, i) => (
-        <span
+        <i
           data-h={h === "up" ? undefined : h}
           key={`${i}-${h}`}
-          style={{ animationDelay: `${delay + i * 8}ms` }}
-        >
-          {SEISMO[h]}
-        </span>
+          style={{ animationDelay: `${delay + i * 6}ms` }}
+        />
       ))}
     </span>
   );
+}
+
+export function Lamp({ health }: { health: Health }) {
+  return <i className="lamp" data-health={health} />;
 }
 
 export function Cursor() {
@@ -89,9 +115,3 @@ export function Cursor() {
     </span>
   );
 }
-
-export const STATE: Record<Health, string> = {
-  up: "ok",
-  slow: "slow",
-  down: "down",
-};

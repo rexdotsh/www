@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Bars, Cursor } from "@/components/fleet";
+import { Lamp, Sparkline } from "@/components/fleet";
 import { EMAIL, getIdentity, LINKS, PROJECTS } from "@/lib/content";
 import { mockFleet, summarize } from "@/lib/fleet";
 import { PUBLISHED_META } from "@/lib/posts-meta";
@@ -590,23 +590,24 @@ const WORKSHOP_SUMMARY = summarize(WORKSHOP);
 function WorkshopPeek() {
   return (
     <PeekCard label="the workshop">
-      <span className="tty-peek">
-        <span className="block text-faint">
-          <span className="prompt">$</span> status
-        </span>
-        {WORKSHOP.hosts.map((host) => (
-          <span className="row" data-health={host.health} key={host.id}>
-            <span className="truncate text-ink">{host.id}</span>
-            <Bars data={host.cpuSpark} max={100} width={12} />
-            <span className="text-right text-muted">
-              {host.health === "down" ? "—" : `${host.cpu}%`}
-            </span>
+      {WORKSHOP.hosts.map((host, index) => (
+        <span className="fleet-peek-row" key={host.id}>
+          <Lamp health={host.health} />
+          <span className="truncate text-ink text-xs">{host.id}</span>
+          <Sparkline
+            className={host.health === "up" ? "text-rose" : "text-faint"}
+            data={host.cpuSpark.slice(-24)}
+            delay={index * 80}
+            height={14}
+            max={100}
+          />
+          <span className="text-right text-[10px] text-muted tabular-nums">
+            {host.health === "down" ? "—" : `${host.cpu}%`}
           </span>
-        ))}
-      </span>
-      <span className="mt-2.5 block border-ink/10 border-t pt-2 text-[10px] text-faint">
-        {WORKSHOP_SUMMARY.answering} of {WORKSHOP_SUMMARY.services} things
-        answering <Cursor />
+        </span>
+      ))}
+      <span className="mt-3 block border-ink/10 border-t pt-2 text-center text-[9px] text-faint tracking-[0.1em]">
+        {WORKSHOP_SUMMARY.answering} of {WORKSHOP_SUMMARY.services} answering
       </span>
     </PeekCard>
   );

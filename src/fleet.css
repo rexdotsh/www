@@ -1,11 +1,64 @@
-/* shared between /status and the homepage peek: text-drawn instruments */
+/* shared between /status and the homepage peek */
 
-.bars {
-  display: inline-flex;
-  font-variant-ligatures: none;
-  letter-spacing: 0;
-  white-space: pre;
-  color: var(--rose);
+.spark {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.spark .line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: spark-draw 1100ms var(--ease-strong) forwards;
+  animation-delay: inherit;
+}
+
+.spark .area {
+  fill: currentColor;
+  opacity: 0;
+  animation: spark-fill 800ms var(--ease-strong) forwards;
+  animation-delay: inherit;
+}
+
+.spark .tip {
+  fill: currentColor;
+  opacity: 0;
+  animation: spark-tip 300ms var(--ease-strong) forwards;
+  animation-delay: inherit;
+}
+
+@keyframes spark-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes spark-fill {
+  to {
+    opacity: 0.07;
+  }
+}
+
+@keyframes spark-tip {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Inside a peek the sparklines wait, and draw each time the card opens. */
+.peek .spark .line {
+  animation: none;
+}
+
+.peek-trigger:hover .peek .spark .line,
+.peek-trigger:focus-within .peek .spark .line,
+.peek-trigger[data-peek-open] .peek .spark .line {
+  animation: spark-draw 800ms var(--ease-strong) 100ms forwards;
 }
 
 .gauge {
@@ -21,30 +74,60 @@
   color: color-mix(in oklab, var(--ink) 30%, transparent);
 }
 
-.seismo {
-  display: inline-flex;
-  white-space: pre;
-  letter-spacing: 0;
-  color: color-mix(in oklab, var(--ink) 22%, transparent);
+.strip {
+  display: flex;
+  gap: 1px;
+  height: 10px;
+  align-items: stretch;
 }
 
-.seismo > span {
-  animation: seismo-in 400ms var(--ease-strong) backwards;
+.strip > i {
+  flex: 1;
+  min-width: 0;
+  border-radius: 0.5px;
+  background: color-mix(in oklab, var(--ink) 10%, transparent);
   transform-origin: bottom;
+  animation: cell-in 400ms var(--ease-strong) backwards;
 }
 
-.seismo > span[data-h="slow"] {
-  color: var(--rose-3);
+.strip > i[data-h="slow"] {
+  background: var(--rose-3);
 }
 
-.seismo > span[data-h="down"] {
-  color: var(--rose);
+.strip > i[data-h="down"] {
+  background: var(--rose);
 }
 
-@keyframes seismo-in {
+@keyframes cell-in {
   from {
     transform: scaleY(0);
     opacity: 0;
+  }
+}
+
+.lamp {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--rose);
+  vertical-align: 0;
+}
+
+.lamp[data-health="slow"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--rose-3);
+  animation: lamp-blink 1.4s steps(1) infinite;
+}
+
+.lamp[data-health="down"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--faint);
+}
+
+@keyframes lamp-blink {
+  50% {
+    opacity: 0.3;
   }
 }
 
@@ -65,30 +148,33 @@
 }
 
 /* peek version, on the homepage */
-.tty-peek {
-  display: block;
-  white-space: pre;
-  font-size: 11px;
-  line-height: 1.7;
-  font-variant-numeric: tabular-nums;
-}
-
-.tty-peek .row {
+.fleet-peek-row {
   display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr) 2.6rem;
-  gap: 0.6rem;
-  align-items: baseline;
+  grid-template-columns: 7px 4.2rem minmax(0, 1fr) 2.4rem;
+  align-items: center;
+  gap: 0.55rem;
 }
 
-.tty-peek .row[data-health="slow"] .bars,
-.tty-peek .row[data-health="down"] .bars {
-  color: var(--faint);
+.fleet-peek-row + .fleet-peek-row {
+  margin-top: 0.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .seismo > span {
+  .spark .line,
+  .peek-trigger:hover .peek .spark .line {
+    stroke-dashoffset: 0;
     animation: none;
   }
+  .spark .area {
+    opacity: 0.07;
+    animation: none;
+  }
+  .spark .tip {
+    opacity: 1;
+    animation: none;
+  }
+  .strip > i,
+  .lamp,
   .cursor {
     animation: none;
   }
