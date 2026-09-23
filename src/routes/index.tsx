@@ -35,7 +35,7 @@ const MODES: Record<SentenceWord, RoseMode> = {
   name: "shiver",
   builds: "cube",
   writes: "caret",
-  workshop: "pulse",
+  workshop: "garden",
   music: "art",
   hi: "hi",
   resume: "paper",
