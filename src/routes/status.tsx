@@ -13,12 +13,13 @@ import {
   pct,
   summarize,
 } from "@/lib/fleet";
-import { preloadFont } from "@/lib/head";
+import { pageMeta, preloadFont } from "@/lib/head";
 import { SCALE, sfx } from "@/lib/sfx";
-import { ogImageUrl } from "@/lib/utils";
 import newsreaderItalicWoff2 from "../fonts/newsreader-latin-italic.woff2?url";
 import bodyCss from "../fonts-body.css?url";
 import statusCss from "../status.css?url";
+
+const DESCRIPTION = "four machines and what they run.";
 
 // A server fn so client-side navigation doesn't pull cloudflare:workers into the browser bundle.
 const getFleet = createServerFn({ method: "GET" }).handler(
@@ -37,37 +38,20 @@ const getFleet = createServerFn({ method: "GET" }).handler(
 export const Route = createFileRoute("/status")({
   component: StatusPage,
   loader: async () => ({ fleet: await getFleet() }),
-  head: ({ loaderData, matches }) => {
-    const baseUrl =
-      (matches[0]?.loaderData as { baseUrl?: string } | undefined)?.baseUrl ??
-      "https://rex.wf";
-    const description = loaderData
-      ? lead(loaderData.fleet).filter(Boolean).join(" ")
-      : "four machines and what they run.";
-    const image = ogImageUrl("/og/workshop.png", baseUrl);
-    return {
-      meta: [
-        { title: "the workshop" },
-        { name: "description", content: description },
-        { property: "og:title", content: "the workshop" },
-        { property: "og:description", content: description },
-        { property: "og:url", content: `${baseUrl}/status` },
-        { property: "og:image", content: image },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { property: "og:image:alt", content: "the workshop" },
-        { name: "twitter:title", content: "the workshop" },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", content: image },
-        { name: "twitter:image:alt", content: "the workshop" },
-      ],
-      links: [
-        { rel: "stylesheet", href: bodyCss },
-        { rel: "stylesheet", href: statusCss },
-        preloadFont(newsreaderItalicWoff2),
-      ],
-    };
-  },
+  head: ({ matches }) => ({
+    meta: pageMeta({
+      description: DESCRIPTION,
+      image: "/og/workshop.png",
+      matches,
+      path: "/status",
+      title: "the workshop",
+    }),
+    links: [
+      { rel: "stylesheet", href: bodyCss },
+      { rel: "stylesheet", href: statusCss },
+      preloadFont(newsreaderItalicWoff2),
+    ],
+  }),
   headers: () => ({
     "Cache-Control": "public, max-age=0",
     "Cloudflare-CDN-Cache-Control": "public, max-age=30",
@@ -79,16 +63,6 @@ const WORDS =
     " "
   );
 const words = (n: number) => WORDS[n] ?? String(n);
-
-const lead = (fleet: Fleet) => {
-  const { answering, hosts, off, services } = summarize(fleet);
-  return [
-    `${words(hosts)} machines, ${words(services)} services, ${answering === services ? "all" : words(answering)} answering.`,
-    off.length > 0
-      ? `${off.map((h) => h.id).join(", ")} ${off.length === 1 ? "is" : "are"} off, as usual.`
-      : "",
-  ];
-};
 
 const TICK_MS = 30_000;
 
@@ -172,7 +146,7 @@ const rise = (ms: number) => ({ animationDelay: `${ms}ms` });
 function StatusPage() {
   const { fleet: initial } = Route.useLoaderData();
   const fleet = useLiveFleet(initial);
-  const [said, aside] = lead(fleet);
+  const sum = summarize(fleet);
   const head = stagger(0, 70);
   const panels = stagger(320, 100);
   const rows = stagger(780, 30);
@@ -197,8 +171,17 @@ function StatusPage() {
           </h1>
 
           <p className="lead rise mt-2" style={rise(head())}>
-            {said}
-            {aside ? <span className="text-muted"> {aside}</span> : null}
+            {words(sum.hosts)} machines, {words(sum.services)} services,{" "}
+            {sum.answering === sum.services
+              ? "all answering."
+              : `${words(sum.answering)} answering.`}
+            {sum.off.length > 0 ? (
+              <span className="text-muted">
+                {" "}
+                {sum.off.map((h) => h.id).join(", ")}{" "}
+                {sum.off.length === 1 ? "is" : "are"} off, as usual.
+              </span>
+            ) : null}
           </p>
 
           <div className="mt-10 grid gap-x-6 gap-y-7 md:grid-cols-2">

@@ -126,7 +126,7 @@ const siteCard = (name: string, domain: string): Node =>
     ]
   );
 
-const card = (title: string, metaLine: string): Node =>
+const card = (title: string, metaLine: string, label = "writing"): Node =>
   el(
     "div",
     {
@@ -159,7 +159,7 @@ const card = (title: string, metaLine: string): Node =>
               textTransform: "uppercase",
               color: "#a29a89",
             },
-            "writing"
+            label
           ),
           el(
             "div",
@@ -306,6 +306,10 @@ await Promise.all([
     render(siteCard(site.name, site.domain), path.join(PUBLIC_DIR, site.file))
   ),
   render(workshopCard(), path.join(OUT_DIR, "workshop.png")),
+  render(
+    card("writing", "( infrequent. long. )", "blog"),
+    path.join(OUT_DIR, "blog.png")
+  ),
   ...POSTS_META.filter((entry) => !entry.draft).map((post) =>
     render(
       card(post.title, post.dateLabel),

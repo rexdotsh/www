@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import BackLink from "@/components/back-link";
 import { LINKS } from "@/lib/content";
-import { preloadFont, RSS_LINK } from "@/lib/head";
+import { pageMeta, preloadFont, RSS_LINK } from "@/lib/head";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import newsreaderItalicWoff2 from "../../fonts/newsreader-latin-italic.woff2?url";
 import bodyCss from "../../fonts-body.css?url";
@@ -11,13 +11,14 @@ const DESCRIPTION = "occasional writeups and notes.";
 
 export const Route = createFileRoute("/blog/")({
   component: BlogIndex,
-  head: () => ({
-    meta: [
-      { title: "writing" },
-      { name: "description", content: DESCRIPTION },
-      { property: "og:title", content: "writing" },
-      { property: "og:description", content: DESCRIPTION },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta({
+      description: DESCRIPTION,
+      image: "/og/blog.png",
+      matches,
+      path: "/blog",
+      title: "writing",
+    }),
     links: [
       RSS_LINK,
       { rel: "stylesheet", href: bodyCss },
