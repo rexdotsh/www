@@ -8,7 +8,9 @@ Homepage is one interactive "sentence" with peek cards and a particle rose (`src
 
 TanStack Start + Router (file-based routes in `src/routes/`), React 19, Vite 8, Tailwind v4 + plain CSS, MDX, deployed to Cloudflare Workers via Nitro + Wrangler. **Bun** for everything. Biome via `ultracite` for lint/format (lefthook runs it pre-commit).
 
-No database, no auth, no user accounts, no tests, no UI library — everything is bespoke. Analytics is self-hosted Umami, injected in `src/routes/__root.tsx`. Storage is the `SPOTIFY_TOKENS` KV binding and the `Room` Durable Object (visitor stats + guestbook, `src/server/room.ts`). The DO is deployed as its own worker (`workers/room`, `bun run deploy:room`) because Cloudflare won't issue preview URLs to a worker that implements one.
+No database, no auth, no user accounts, no tests, no UI library — everything is bespoke. Analytics is self-hosted Umami, injected in `src/routes/__root.tsx`. Storage is the `SPOTIFY_TOKENS` KV binding and two Durable Objects in `workers/room`: `Room` (visitor stats + guestbook, `src/server/room.ts`) and `FleetStore` (`/status` samples, `src/server/fleet.ts`). The DOs live in their own worker because Cloudflare won't issue preview URLs to a worker that implements one.
+
+**Deploys:** `www` deploys itself via Workers Builds on every push to `main` (PRs get preview builds). Never run `bun run deploy` by hand. The DO worker is not on Workers Builds — after changing anything under `workers/room` or a DO class, run `bun run deploy:room` yourself, and do it *before* merging if `www` binds to a new class.
 
 `/status` ("the workshop") shows the four servers. The per-box sampler is `rexdotsh/fleet-agent`, checked out as the `agent/` submodule (`git submodule update --init`). Shapes and the service whitelist live in `src/lib/fleet.ts`.
 
