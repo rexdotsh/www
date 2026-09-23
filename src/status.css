@@ -168,6 +168,12 @@
   text-align: right;
 }
 
+@media (max-width: 639px) {
+  .panel-beat .strip > i:nth-child(-n + 10) {
+    display: none;
+  }
+}
+
 .panel-foot {
   color: var(--faint);
   margin-top: 0.6rem;
