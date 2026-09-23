@@ -160,7 +160,7 @@ function StatusPage() {
           ) : null}
         </p>
 
-        <div className="mt-10 grid gap-x-6 gap-y-7 md:grid-cols-2">
+        <div className="panels mt-10 grid gap-x-6 gap-y-7 md:grid-cols-2">
           {fleet.hosts.map((host) => (
             <Panel
               host={host}

@@ -26,6 +26,43 @@
   border-radius: 3px;
   padding: 1.1rem 1.1rem 0.9rem;
   background: color-mix(in oklab, var(--card) 55%, transparent);
+  transition:
+    border-color 220ms var(--ease-strong),
+    opacity 240ms var(--ease-strong),
+    filter 240ms var(--ease-strong);
+}
+
+/* 1. hovering one panel quiets the others, as the sentence does with words.
+   2. the hovered one warms, and its lamp rings once. */
+@media (hover: hover) and (pointer: fine) {
+  .panels:has(.panel:hover) .panel:not(:hover) {
+    opacity: 0.45;
+    filter: blur(1.5px);
+  }
+
+  .panel:hover {
+    border-color: color-mix(in oklab, var(--rose) 45%, transparent);
+  }
+
+  .panel:hover .lamp[data-health="up"]::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    border: 1px solid var(--rose);
+    animation: lamp-ring 700ms var(--ease-strong) forwards;
+  }
+}
+
+@keyframes lamp-ring {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(3.2);
+    opacity: 0;
+  }
 }
 
 .panel-title {
@@ -199,9 +236,9 @@
   font-style: italic;
   font-size: 15px;
   color: var(--muted);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .svc[data-health="off"] .svc-name,

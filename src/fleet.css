@@ -68,7 +68,7 @@
   flex: 1;
   min-width: 0;
   border-radius: 0.5px;
-  background: color-mix(in oklab, var(--ink) 10%, transparent);
+  background: color-mix(in oklab, var(--rose) 22%, transparent);
   transform-origin: bottom;
   animation: cell-in 400ms var(--ease-strong) backwards;
 }
@@ -90,6 +90,7 @@
 }
 
 .lamp {
+  position: relative;
   display: inline-block;
   width: 7px;
   height: 7px;
