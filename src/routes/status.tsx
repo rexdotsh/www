@@ -22,6 +22,9 @@ import statusCss from "../status.css?url";
 
 const DESCRIPTION = "four machines and what they run.";
 
+// The services table is parked until it looks right.
+const SHOW_SERVICES = false;
+
 // A server fn so client-side navigation doesn't pull cloudflare:workers into the browser bundle.
 const getFleet = createServerFn({ method: "GET" }).handler(
   async (): Promise<Fleet> => {
@@ -205,29 +208,32 @@ function StatusPage() {
             ))}
           </div>
 
-          <section className="mt-12">
-            <div className="svc-head rise" style={rise(rows())}>
-              <span />
-              <span />
-              <span className="text-right">memory</span>
-              <span className="text-right">30d</span>
-              <span>last 45 checks</span>
-            </div>
-            {fleet.services.map((service) => (
-              <ServiceRow
-                delay={rows()}
-                key={service.id}
-                measuredAt={fleet.measuredAt}
-                service={service}
-              />
-            ))}
-          </section>
+          {SHOW_SERVICES ? (
+            <section className="mt-12">
+              <div className="svc-head rise" style={rise(rows())}>
+                <span />
+                <span />
+                <span className="text-right">memory</span>
+                <span className="text-right">30d</span>
+                <span>last 45 checks</span>
+              </div>
+              {fleet.services.map((service) => (
+                <ServiceRow
+                  delay={rows()}
+                  key={service.id}
+                  measuredAt={fleet.measuredAt}
+                  service={service}
+                />
+              ))}
+            </section>
+          ) : null}
 
           <footer className="rise mt-10 text-faint" style={rise(rows())}>
             <p>
-              measured <Live>{(now) => ago(fleet.measuredAt, now)}</Live> ago ·{" "}
-              {words(sum.services)} of{" "}
-              {fleet.hosts.reduce((n, h) => n + h.containers, 0)} containers.
+              measured <Live>{(now) => ago(fleet.measuredAt, now)}</Live> ago
+              {SHOW_SERVICES
+                ? ` · ${words(sum.services)} of ${fleet.hosts.reduce((n, h) => n + h.containers, 0)} containers.`
+                : null}
             </p>
           </footer>
         </div>
