@@ -15,6 +15,7 @@ import {
   summarize,
 } from "@/lib/fleet";
 import { preloadFont } from "@/lib/head";
+import { SCALE, sfx } from "@/lib/sfx";
 import newsreaderItalicWoff2 from "../fonts/newsreader-latin-italic.woff2?url";
 import bodyCss from "../fonts-body.css?url";
 import statusCss from "../status.css?url";
@@ -160,11 +161,12 @@ function StatusPage() {
           ) : null}
         </p>
 
-        <div className="panels mt-10 grid gap-x-6 gap-y-7 md:grid-cols-2">
-          {fleet.hosts.map((host) => (
+        <div className="mt-10 grid gap-x-6 gap-y-7 md:grid-cols-2">
+          {fleet.hosts.map((host, i) => (
             <Panel
               host={host}
               key={host.id}
+              note={SCALE[i] ?? SCALE[0]}
               now={now}
               services={fleet.services.filter((s) => s.host === host.id).length}
               style={panels()}
@@ -180,7 +182,12 @@ function StatusPage() {
           <span>last 45 checks</span>
         </div>
         {fleet.services.map((service) => (
-          <ServiceRow key={service.id} service={service} style={rows()} />
+          <ServiceRow
+            key={service.id}
+            measuredAt={fleet.measuredAt}
+            service={service}
+            style={rows()}
+          />
         ))}
 
         <footer className="rise mt-10 text-faint" style={rows()}>
@@ -193,11 +200,13 @@ function StatusPage() {
 
 function Panel({
   host,
+  note,
   now,
   services,
   style,
 }: {
   host: Host;
+  note: number;
   now: number;
   services: number;
   style: CSSProperties;
@@ -205,11 +214,18 @@ function Panel({
   const off = host.health === "off";
   const down = host.health === "down";
   const quiet = off || down;
-  const stale = !quiet && now - host.lastSeen > 90_000;
+  const fresh = !quiet && now - host.lastSeen <= 90_000;
   const delay = Number.parseInt(String(style.animationDelay), 10) || 0;
 
   return (
-    <article className="panel rise" data-health={host.health} style={style}>
+    <article
+      className="panel rise"
+      data-health={host.health}
+      onPointerEnter={(e) => {
+        if (e.pointerType !== "touch") sfx("tick", note);
+      }}
+      style={style}
+    >
       <h2 className="panel-title">
         <Lamp health={host.health} />
         {host.id}
@@ -232,6 +248,11 @@ function Panel({
             data={host.cpuSpark}
             delay={delay + 200}
             max={100}
+            scrub={
+              quiet
+                ? undefined
+                : (v, ago) => `${v}% · ${ago === 0 ? "now" : `${ago}m ago`}`
+            }
           />
         </Vital>
         <Vital
@@ -256,7 +277,11 @@ function Panel({
 
       <p className="panel-beat mt-4">
         <span className="k">heartbeat</span>
-        <Strip cells={host.beats.slice(-30)} delay={delay + 300} />
+        <Strip
+          cells={host.beats.slice(-30)}
+          delay={delay + 300}
+          end={host.lastSeen}
+        />
         <span className="v">
           {off ? "off" : down ? "down" : `up ${fmtUptime(host.upSince, now)}`}
         </span>
@@ -268,7 +293,7 @@ function Panel({
           : `${words(services)} ${services === 1 ? "service" : "services"}`}
         {host.containers > 0 ? ` · ${host.containers} containers` : ""}
         {" · "}
-        <span className={stale ? "text-rose" : undefined}>
+        <span className={fresh ? "text-rose" : undefined}>
           {off ? "last seen" : "seen"} {ago(host.lastSeen, now)} ago
         </span>
       </p>
@@ -291,7 +316,7 @@ function Vital({
   render: (v: number) => [string, string];
   sub: string;
 }) {
-  const v = useTween(num);
+  const { value: v, moving } = useTween(num);
   const [value, unit] = render(v);
   return (
     <div className="vital">
@@ -299,7 +324,7 @@ function Vital({
       {quiet ? (
         <p className="vital-value">—</p>
       ) : (
-        <p className="vital-value">
+        <p className="vital-value" data-moving={moving ? "" : undefined}>
           {value}
           <small>{unit}</small>
         </p>
@@ -311,9 +336,11 @@ function Vital({
 }
 
 function ServiceRow({
+  measuredAt,
   service,
   style,
 }: {
+  measuredAt: number;
   service: Service;
   style: CSSProperties;
 }) {
@@ -331,7 +358,11 @@ function ServiceRow({
       </p>
       <p className="svc-pct">{off ? "—" : `${service.uptime30.toFixed(1)}%`}</p>
       <span className="svc-strip">
-        <Strip cells={service.strip.slice(-45)} delay={delay + 200} />
+        <Strip
+          cells={service.strip.slice(-45)}
+          delay={delay + 200}
+          end={measuredAt}
+        />
       </span>
     </div>
   );

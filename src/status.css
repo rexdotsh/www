@@ -26,20 +26,11 @@
   border-radius: 3px;
   padding: 1.1rem 1.1rem 0.9rem;
   background: color-mix(in oklab, var(--card) 55%, transparent);
-  transition:
-    border-color 220ms var(--ease-strong),
-    opacity 240ms var(--ease-strong),
-    filter 240ms var(--ease-strong);
+  transition: border-color 220ms var(--ease-strong);
 }
 
-/* 1. hovering one panel quiets the others, as the sentence does with words.
-   2. the hovered one warms, and its lamp rings once. */
+/* the hovered panel warms, and its lamp rings once. */
 @media (hover: hover) and (pointer: fine) {
-  .panels:has(.panel:hover) .panel:not(:hover) {
-    opacity: 0.45;
-    filter: blur(1.5px);
-  }
-
   .panel:hover {
     border-color: color-mix(in oklab, var(--rose) 45%, transparent);
   }
@@ -116,6 +107,13 @@
   line-height: 1;
   letter-spacing: -0.01em;
   color: var(--ink);
+  transition: color 500ms var(--ease-strong);
+}
+
+/* a new sample landed: the number warms while it settles */
+.vital-value[data-moving] {
+  color: var(--rose);
+  transition-duration: 120ms;
 }
 
 .panel[data-health="down"] .vital-value,
@@ -140,7 +138,6 @@
   font-size: 11px;
   line-height: 24px;
   white-space: nowrap;
-  overflow: hidden;
 }
 
 .vital-sub {

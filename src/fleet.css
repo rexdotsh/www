@@ -16,11 +16,21 @@
   stroke-width: 1.2;
   stroke-linejoin: round;
   stroke-linecap: round;
+  transition: stroke-width 220ms var(--ease-strong);
 }
 
 .spark .area {
   fill: currentColor;
   opacity: 0.07;
+  transition: opacity 220ms var(--ease-strong);
+}
+
+.panel:hover .spark .line {
+  stroke-width: 1.8;
+}
+
+.panel:hover .spark .area {
+  opacity: 0.14;
 }
 
 .spark .tip {
@@ -44,6 +54,40 @@
   animation: spark-draw 800ms var(--ease-strong) 100ms forwards;
 }
 
+.spark-scrub {
+  position: relative;
+  display: block;
+  cursor: crosshair;
+}
+
+.spark .scrub-line {
+  stroke: color-mix(in oklab, var(--ink) 25%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.spark .scrub-dot {
+  fill: var(--background);
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.spark-label {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  z-index: 1;
+  transform: translateX(-50%);
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--background);
+  font-size: 10px;
+  line-height: 1.5;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: swap-in 160ms var(--ease-strong) backwards;
+}
+
 .gauge {
   white-space: pre;
   letter-spacing: 0;
@@ -55,6 +99,15 @@
 
 .gauge .off {
   color: color-mix(in oklab, var(--ink) 30%, transparent);
+}
+
+.gauge .off > span {
+  transition: color 160ms var(--ease-strong);
+  transition-delay: calc(var(--i) * 28ms);
+}
+
+.panel:hover .gauge .off > span {
+  color: color-mix(in oklab, var(--ink) 55%, transparent);
 }
 
 .strip {
