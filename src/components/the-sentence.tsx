@@ -9,7 +9,7 @@ import {
 } from "react";
 import { Lamp, Sparkline } from "@/components/fleet";
 import { EMAIL, getIdentity, LINKS, PROJECTS } from "@/lib/content";
-import { mockFleet, summarize } from "@/lib/fleet";
+import { type Fleet, mockFleet, summarize } from "@/lib/fleet";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
 import { beacon, compact, useSiteStats } from "@/lib/stats";
@@ -583,13 +583,23 @@ function ProjectsPeek() {
 }
 
 // Seeded, clock-free: the peek shows the same picture on the server and client.
+// Rendered with the mock so SSR and the first paint agree; the live snapshot swaps in after.
 const WORKSHOP = mockFleet(0);
-const WORKSHOP_SUMMARY = summarize(WORKSHOP);
 
 const WorkshopPeek = memo(function WorkshopPeek() {
+  const router = useRouter();
+  const [fleet, setFleet] = useState<Fleet>(WORKSHOP);
+  useEffect(() => {
+    if (import.meta.env.DEV) return;
+    fetch("/api/fleet")
+      .then((r) => (r.ok ? (r.json() as Promise<Fleet>) : null))
+      .then((f) => f && setFleet(f))
+      .catch(() => undefined);
+  }, []);
+  const sum = summarize(fleet);
   return (
     <PeekCard label="the workshop">
-      {WORKSHOP.hosts.map((host, index) => (
+      {fleet.hosts.map((host, index) => (
         <span className="fleet-peek-row" key={host.id}>
           <Lamp health={host.health} />
           <span className="truncate text-ink text-xs">{host.id}</span>
@@ -605,9 +615,16 @@ const WorkshopPeek = memo(function WorkshopPeek() {
           </span>
         </span>
       ))}
-      <span className="mt-3 block border-ink/10 border-t pt-2 text-center text-[9px] text-faint tracking-[0.1em]">
-        {WORKSHOP_SUMMARY.answering} of {WORKSHOP_SUMMARY.services} answering
-      </span>
+      <a
+        className="mt-3 block border-ink/10 border-t pt-2 text-center text-[9px] text-faint tracking-[0.1em] transition-colors duration-150 hover:text-rose"
+        href="/status"
+        onClick={(event) => {
+          event.preventDefault();
+          router.navigate({ href: "/status" });
+        }}
+      >
+        {sum.answering} of {sum.services} answering →
+      </a>
     </PeekCard>
   );
 });

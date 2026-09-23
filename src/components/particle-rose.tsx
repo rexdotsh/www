@@ -7,7 +7,7 @@ export type RoseMode =
   | "cube"
   | "caret"
   | "shiver"
-  | "garden"
+  | "pulse"
   | "art"
   | "hi"
   | "paper";
@@ -20,7 +20,6 @@ interface Particle {
   caretX: number;
   caretY: number;
   ch: string;
-  cluster: number;
   color: string;
   cubeX: number;
   cubeY: number;
@@ -52,13 +51,15 @@ const BLEED = 1.24;
 const BLUSH_RADIUS_RATIO = 0.26;
 const BLUSH_STRENGTH = 0.8;
 
-const GARDEN_CENTERS: [number, number][] = [
-  [0.28, 0.3],
-  [0.73, 0.26],
-  [0.3, 0.74],
-  [0.71, 0.7],
-];
-const GARDEN_SCALE = 0.34;
+// A resting heartbeat: a strong beat, a softer one a third of a second later, ~50 bpm.
+const PULSE_PERIOD = 1.2;
+const PULSE_AMOUNT = 0.09;
+const pulse = (t: number) => {
+  const ph = t % PULSE_PERIOD;
+  return (
+    Math.exp(-((ph / 0.09) ** 2)) + 0.55 * Math.exp(-(((ph - 0.3) / 0.09) ** 2))
+  );
+};
 
 const RAMP_GLYPHS = ["@#S", "%?", "*+", ";:"];
 // Canvas text doesn't trigger @font-face loads; request our glyphs explicitly.
@@ -125,7 +126,6 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
         (Math.random() - 0.5) * 1.7;
       particles.push({
         ch,
-        cluster: particles.length % GARDEN_CENTERS.length,
         color: "",
         ramp: rampFor(ch),
         rgb: [0, 0, 0],
@@ -459,6 +459,7 @@ export default function ParticleRose({
       const cubeScale = (size / BLEED) * 0.26;
       // No album art to dress up in: just breathe slowly instead of pulsing to a beat.
       const artScale = 1 + 0.025 * Math.sin(t * TAU * 0.3);
+      const pulseScale = 1 + PULSE_AMOUNT * pulse(t);
       const blink =
         mode === "caret"
           ? 0.35 + 0.65 * (0.5 + 0.5 * Math.cos((t * TAU) / 1.2))
@@ -540,12 +541,10 @@ export default function ParticleRose({
                 targetY = center + dy * artScale;
               }
               break;
-            case "garden": {
-              const garden = GARDEN_CENTERS[p.cluster];
-              targetX = garden[0] * size + dx * GARDEN_SCALE;
-              targetY = garden[1] * size + dy * GARDEN_SCALE;
+            case "pulse":
+              targetX = center + dx * pulseScale;
+              targetY = center + dy * pulseScale;
               break;
-            }
             case "paper":
               targetX = p.docX;
               targetY = p.docY;
