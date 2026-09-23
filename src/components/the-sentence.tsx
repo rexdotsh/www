@@ -9,7 +9,7 @@ import {
 } from "react";
 import { Lamp, Sparkline } from "@/components/fleet";
 import { EMAIL, getIdentity, LINKS, PROJECTS } from "@/lib/content";
-import { type Fleet, mockFleet, summarize } from "@/lib/fleet";
+import { type Fleet, mockFleet } from "@/lib/fleet";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
 import { beacon, compact, useSiteStats } from "@/lib/stats";
@@ -362,7 +362,7 @@ function PeekCard({
   children: ReactNode;
   compact?: boolean;
   fit?: boolean;
-  label?: string;
+  label?: ReactNode;
 }) {
   const size = compact
     ? "w-fit max-w-64 px-3.5 pt-4 pb-3"
@@ -583,12 +583,11 @@ function ProjectsPeek() {
 }
 
 // Seeded, clock-free: the peek shows the same picture on the server and client.
-// Rendered with the mock so SSR and the first paint agree; the live snapshot swaps in after.
 const WORKSHOP = mockFleet(0);
 
 const WorkshopPeek = memo(function WorkshopPeek() {
   const router = useRouter();
-  const [fleet, setFleet] = useState<Fleet>(WORKSHOP);
+  const [fleet, setFleet] = useState(WORKSHOP);
   useEffect(() => {
     if (import.meta.env.DEV) return;
     fetch("/api/fleet")
@@ -596,9 +595,21 @@ const WorkshopPeek = memo(function WorkshopPeek() {
       .then((f) => f && setFleet(f))
       .catch(() => undefined);
   }, []);
-  const sum = summarize(fleet);
   return (
-    <PeekCard label="the workshop">
+    <PeekCard
+      label={
+        <a
+          className="transition-colors duration-150 hover:text-ink"
+          href="/status"
+          onClick={(event) => {
+            event.preventDefault();
+            router.navigate({ href: "/status" });
+          }}
+        >
+          the workshop →
+        </a>
+      }
+    >
       {fleet.hosts.map((host, index) => (
         <span className="fleet-peek-row" key={host.id}>
           <Lamp health={host.health} />
@@ -615,16 +626,6 @@ const WorkshopPeek = memo(function WorkshopPeek() {
           </span>
         </span>
       ))}
-      <a
-        className="mt-3 block border-ink/10 border-t pt-2 text-center text-[9px] text-faint tracking-[0.1em] transition-colors duration-150 hover:text-rose"
-        href="/status"
-        onClick={(event) => {
-          event.preventDefault();
-          router.navigate({ href: "/status" });
-        }}
-      >
-        {sum.answering} of {sum.services} answering →
-      </a>
     </PeekCard>
   );
 });

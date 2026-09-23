@@ -7,7 +7,7 @@ export type RoseMode =
   | "cube"
   | "caret"
   | "shiver"
-  | "pulse"
+  | "churn"
   | "art"
   | "hi"
   | "paper";
@@ -34,6 +34,7 @@ interface Particle {
   homeY: number;
   ramp: number;
   rgb: Rgb;
+  seed: number;
   vx: number;
   vy: number;
   x: number;
@@ -51,15 +52,7 @@ const BLEED = 1.24;
 const BLUSH_RADIUS_RATIO = 0.26;
 const BLUSH_STRENGTH = 0.8;
 
-// A resting heartbeat: a strong beat, a softer one a third of a second later, ~50 bpm.
-const PULSE_PERIOD = 1.2;
-const PULSE_AMOUNT = 0.09;
-const pulse = (t: number) => {
-  const ph = t % PULSE_PERIOD;
-  return (
-    Math.exp(-((ph / 0.09) ** 2)) + 0.55 * Math.exp(-(((ph - 0.3) / 0.09) ** 2))
-  );
-};
+const CHURN_RATE = 2.2;
 
 const RAMP_GLYPHS = ["@#S", "%?", "*+", ";:"];
 // Canvas text doesn't trigger @font-face loads; request our glyphs explicitly.
@@ -127,6 +120,7 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
       particles.push({
         ch,
         color: "",
+        seed: Math.random(),
         ramp: rampFor(ch),
         rgb: [0, 0, 0],
         homeX,
@@ -459,7 +453,6 @@ export default function ParticleRose({
       const cubeScale = (size / BLEED) * 0.26;
       // No album art to dress up in: just breathe slowly instead of pulsing to a beat.
       const artScale = 1 + 0.025 * Math.sin(t * TAU * 0.3);
-      const pulseScale = 1 + PULSE_AMOUNT * pulse(t);
       const blink =
         mode === "caret"
           ? 0.35 + 0.65 * (0.5 + 0.5 * Math.cos((t * TAU) / 1.2))
@@ -484,6 +477,7 @@ export default function ParticleRose({
         let alpha =
           Math.min(1, (elapsed - p.activateAt) / ACTIVATE_FADE_MS) * blink;
         let blush = 0;
+        let { ch } = p;
 
         if (petal?.p === p) {
           if (petal.phase === "fall") {
@@ -541,10 +535,13 @@ export default function ParticleRose({
                 targetY = center + dy * artScale;
               }
               break;
-            case "pulse":
-              targetX = center + dx * pulseScale;
-              targetY = center + dy * pulseScale;
+            case "churn": {
+              const u = t * CHURN_RATE + p.seed * 9;
+              const band = RAMP_GLYPHS[p.ramp] ?? p.ch;
+              ch = band[Math.floor(u) % band.length];
+              blush = u % 1 < 0.06 ? 0.5 : 0;
               break;
+            }
             case "paper":
               targetX = p.docX;
               targetY = p.docY;
@@ -590,10 +587,10 @@ export default function ParticleRose({
         } else if (blush > 0) {
           const [r, g, b] = p.rgb;
           context.fillStyle = `rgb(${r + (glowR - r) * blush},${g + (glowG - g) * blush},${b + (glowB - b) * blush})`;
-          context.fillText(p.ch, p.x, p.y);
+          context.fillText(ch, p.x, p.y);
         } else {
           context.fillStyle = p.color;
-          context.fillText(p.ch, p.x, p.y);
+          context.fillText(ch, p.x, p.y);
         }
       }
       context.globalAlpha = 1;
