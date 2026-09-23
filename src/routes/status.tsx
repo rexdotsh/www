@@ -74,8 +74,6 @@ const ago = (then: number, now: number) => {
       : `${Math.floor(m / 60)}h ${m % 60}m`;
 };
 
-const utc = (ts: number) => `${new Date(ts).toISOString().slice(11, 19)} utc`;
-
 const wobble = (f: Fleet): Fleet => ({
   ...f,
   measuredAt: Date.now() - 600,
@@ -164,17 +162,12 @@ function StatusPage() {
             home
           </BackLink>
 
-          <header className="mt-8 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-            <h1
-              className="rise font-serif-display text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
-              style={{ ...rise(head()), viewTransitionName: "workshop" }}
-            >
-              the workshop<span className="full-stop text-rose">.</span>
-            </h1>
-            <p className="rise text-faint" style={rise(head())}>
-              <Live>{utc}</Live>
-            </p>
-          </header>
+          <h1
+            className="rise mt-8 font-serif-display text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
+            style={{ ...rise(head()), viewTransitionName: "workshop" }}
+          >
+            the workshop<span className="full-stop text-rose">.</span>
+          </h1>
 
           <p className="lead rise mt-2" style={rise(head())}>
             {words(sum.hosts)} machines, {words(sum.services)} services,{" "}
@@ -231,6 +224,7 @@ function Panel({
 }) {
   const off = host.health === "off";
   const quiet = off || host.health === "down";
+  const [os, ...spec] = host.spec.split(" · ");
 
   return (
     <article
@@ -246,7 +240,16 @@ function Panel({
         {host.id}
       </h2>
       <p className="panel-role">{host.role}</p>
-      <p className="mt-0.5 text-[11px] text-faint">{host.spec}</p>
+      <p className="mt-0.5 text-[11px] text-faint">
+        {spec.length > 0 ? (
+          <>
+            <span className="max-sm:hidden">{os} · </span>
+            {spec.join(" · ")}
+          </>
+        ) : (
+          os
+        )}
+      </p>
 
       <div className="vitals mt-5">
         <Vital
@@ -307,11 +310,13 @@ function Panel({
       </p>
 
       <p className="panel-foot text-[11px]">
-        {services === 0
-          ? "services private"
-          : `${words(services)} ${services === 1 ? "service" : "services"}`}
-        {host.containers > 0 ? ` · ${host.containers} containers` : ""}
-        {" · "}
+        <span className="max-sm:hidden">
+          {services === 0
+            ? "services private"
+            : `${words(services)} ${services === 1 ? "service" : "services"}`}
+          {" · "}
+        </span>
+        {host.containers > 0 ? `${host.containers} containers · ` : ""}
         <Live>
           {(now) => (
             <span
