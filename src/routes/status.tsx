@@ -191,7 +191,10 @@ function StatusPage() {
         ))}
 
         <footer className="rise mt-10 text-faint" style={rows()}>
-          <p>measured {ago(fleet.measuredAt, now)} ago</p>
+          <p>
+            measured {ago(fleet.measuredAt, now)} ago · {words(sum.services)} of{" "}
+            {fleet.hosts.reduce((n, h) => n + h.containers, 0)} containers.
+          </p>
         </footer>
       </div>
     </main>
