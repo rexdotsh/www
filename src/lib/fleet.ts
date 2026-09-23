@@ -9,7 +9,7 @@ export const HOSTS: Record<
   media: { role: "the media server", spec: "singapore" },
   misc: { role: "everything else", spec: "oracle, us east" },
   home: {
-    role: "the box under the desk",
+    role: "the homelab",
     spec: "bengaluru",
     intermittent: true,
   },
