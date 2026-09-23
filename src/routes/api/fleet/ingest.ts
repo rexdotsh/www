@@ -14,12 +14,16 @@ export const Route = createFileRoute("/api/fleet/ingest")({
           return new Response(null, { status: result.status });
         }
         try {
-          await stub.ingest(result.host, result.sample, result.ts);
+          const fresh = await stub.ingest(
+            result.host,
+            result.sample,
+            result.ts
+          );
+          return new Response(null, { status: fresh ? 204 : 409 });
         } catch (error) {
           console.error("fleet ingest", error);
           return new Response(null, { status: 500 });
         }
-        return new Response(null, { status: 204 });
       },
     },
   },

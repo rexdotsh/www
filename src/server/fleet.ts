@@ -16,6 +16,7 @@ const BEATS = 90;
 const DAYS = 30;
 const MINUTE = 60_000;
 const QUIET_AFTER = 3 * MINUTE;
+const CACHE_MS = 30_000;
 
 interface Row {
   beats: number[];
@@ -60,7 +61,7 @@ const cells = (
 
 export class FleetStore extends DurableObject {
   private readonly sql: SqlStorage;
-  private cache: Fleet | null = null;
+  private cache: { at: number; fleet: Fleet } | null = null;
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
@@ -70,8 +71,10 @@ export class FleetStore extends DurableObject {
     );
   }
 
+  // Returns false for a stale or replayed sample.
   ingest(host: string, sample: Sample, ts: number) {
     const prev = this.row(host);
+    if (prev && ts <= prev.seen) return false;
     const day = Math.floor(ts / 86_400_000);
     const svc: Row["svc"] = {};
     for (const s of SERVICES) {
@@ -107,11 +110,12 @@ export class FleetStore extends DurableObject {
       JSON.stringify(row)
     );
     this.cache = null;
+    return true;
   }
 
   snapshot(): Fleet {
-    if (this.cache) return this.cache;
     const now = Date.now();
+    if (this.cache && now - this.cache.at < CACHE_MS) return this.cache.fleet;
     const rows = new Map(
       this.sql
         .exec<{ id: string; blob: string }>("SELECT id, blob FROM hosts")
@@ -131,7 +135,7 @@ export class FleetStore extends DurableObject {
           : "down"
         : "up";
       const missed = row
-        ? Math.min(BEATS, Math.floor((now - row.seen) / MINUTE))
+        ? Math.min(BEATS, Math.max(0, Math.floor((now - row.seen) / MINUTE)))
         : BEATS;
       measuredAt = Math.max(measuredAt, row?.seen ?? 0);
       hosts.push({
@@ -174,8 +178,9 @@ export class FleetStore extends DurableObject {
         });
       }
     }
-    this.cache = { hosts, services, measuredAt };
-    return this.cache;
+    const fleet: Fleet = { hosts, services, measuredAt };
+    this.cache = { at: now, fleet };
+    return fleet;
   }
 
   private row(host: string) {

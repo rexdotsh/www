@@ -40,6 +40,7 @@ type Verified =
   | { ok: false; status: number };
 
 export async function verify(request: Request): Promise<Verified> {
+  if (!env.FLEET_SECRET) return { ok: false, status: 503 };
   const host = request.headers.get("x-fleet-host") ?? "";
   const ts = Number(request.headers.get("x-fleet-ts"));
   const sig = request.headers.get("x-fleet-sig") ?? "";
@@ -47,6 +48,8 @@ export async function verify(request: Request): Promise<Verified> {
     return { ok: false, status: 400 };
   if (Math.abs(Date.now() / 1000 - ts) > SKEW_S)
     return { ok: false, status: 401 };
+  if (Number(request.headers.get("content-length")) > MAX_BODY)
+    return { ok: false, status: 413 };
   const body = await request.text();
   if (body.length > MAX_BODY) return { ok: false, status: 413 };
   const expected = await hmac(
