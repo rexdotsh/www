@@ -15,7 +15,6 @@ export interface TocEntry {
   text: string;
 }
 
-// Flatten headings while retaining each h4's parent h3.
 const flattenToc = (nodes: MdxTocNode[], parent?: string): TocEntry[] =>
   nodes.flatMap((node) => {
     const entry: TocEntry[] =

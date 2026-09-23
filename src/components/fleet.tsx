@@ -10,50 +10,41 @@ import type { Health } from "@/lib/fleet";
 const W = 100;
 const SLIDE_MS = 900;
 
-// Hand-rolled sparkline; `max` fixes the ceiling. The first point sits one
-// step off the left edge so that, when a new sample lands, the whole line can
-// slide left by one step instead of jumping. Strokes stay crisp under the
-// non-uniform viewBox scaling via vector-effect.
+// The first point sits one step off the left edge so that, when a new sample
+// lands, the whole line can slide left by one step instead of jumping.
 export function Sparkline({
-  className = "",
+  className,
   data,
-  delay = 0,
-  height = 24,
+  delay,
+  height: H = 24,
   max,
   scrub,
 }: {
-  className?: string;
+  className: string;
   data: number[];
-  delay?: number;
+  delay: number;
   height?: number;
   max: number;
-  /** label for the hovered point: (value, minutes ago) → text */
   scrub?: (value: number, ago: number) => string;
 }) {
   const [hover, setHover] = useState<number | null>(null);
-  const H = height;
   const n = data.length;
   const step = W / Math.max(1, n - 2);
-  const pt = (v: number, i: number) => {
-    const x = (i - 1) * step;
-    const y = H - 1.5 - (Math.min(v, max) / max) * (H - 3);
-    return [x, y] as const;
-  };
-  const points = data.map(pt);
+  const points = data.map(
+    (v, i) =>
+      [(i - 1) * step, H - 1.5 - (Math.min(v, max) / max) * (H - 3)] as const
+  );
   const line = points
     .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`)
     .join(" ");
   const last = points.at(-1) ?? [W, H];
-  const style = { animationDelay: `${delay}ms` } as CSSProperties;
 
   const group = useRef<SVGGElement>(null);
   const mounted = useRef(false);
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-run on every new sample
   useLayoutEffect(() => {
     const el = group.current;
-    if (!el) {
-      return;
-    }
+    if (!el) return;
     if (!mounted.current) {
       mounted.current = true;
       return;
@@ -65,7 +56,6 @@ export function Sparkline({
     el.style.transform = "translateX(0)";
   }, [data]);
 
-  // Cursor x → nearest visible point (the first point sits off-canvas).
   const onMove = (e: React.PointerEvent<HTMLElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     const i = Math.round(((e.clientX - r.left) / r.width) * (n - 2)) + 1;
@@ -78,7 +68,7 @@ export function Sparkline({
       aria-hidden="true"
       className={`spark ${className}`}
       preserveAspectRatio="none"
-      style={{ height, ...style }}
+      style={{ height: H, animationDelay: `${delay}ms` }}
       viewBox={`0 0 ${W} ${H}`}
     >
       <g ref={group}>
@@ -127,7 +117,7 @@ export function Sparkline({
       {svg}
       {at && hover !== null ? (
         <span className="spark-label" style={{ left: `${(at[0] / W) * 100}%` }}>
-          {scrub(data[hover] ?? 0, n - 1 - hover)}
+          {scrub(data[hover], n - 1 - hover)}
         </span>
       ) : null}
     </span>
@@ -137,17 +127,13 @@ export function Sparkline({
 const TWEEN_MS = 700;
 const ease = (t: number) => 1 - (1 - t) ** 3;
 
-// Eases a number towards its latest value instead of snapping. `moving` is
-// true for the duration of the tween, so the number can show it changed.
 export function useTween(target: number) {
   const [value, setValue] = useState(target);
   const [moving, setMoving] = useState(false);
   const current = useRef(target);
   useEffect(() => {
     const start = current.current;
-    if (start === target) {
-      return;
-    }
+    if (start === target) return;
     const t0 = performance.now();
     let frame = 0;
     setMoving(true);
@@ -187,24 +173,18 @@ export function Gauge({ frac, width = 17 }: { frac: number; width?: number }) {
   );
 }
 
-const WORD: Record<Health, string> = {
-  up: "up",
-  down: "down",
-  off: "off",
-  none: "no data",
-};
+const word = (h: Health) => (h === "none" ? "no data" : h);
 
 const hhmm = (ts: number) => new Date(ts).toISOString().slice(11, 16);
 
-// One cell per check, oldest on the left. `end` (ms) dates the last cell.
 export function Strip({
   cells,
-  delay = 0,
+  delay,
   end,
 }: {
   cells: Health[];
-  delay?: number;
-  end?: number;
+  delay: number;
+  end: number;
 }) {
   const off = cells.filter((c) => c !== "up").length;
   return (
@@ -224,8 +204,8 @@ export function Strip({
           style={{ animationDelay: `${delay + i * 8}ms` }}
           title={
             end
-              ? `${hhmm(end - (cells.length - 1 - i) * 60_000)} utc · ${WORD[h]}`
-              : WORD[h]
+              ? `${hhmm(end - (cells.length - 1 - i) * 60_000)} utc · ${word(h)}`
+              : word(h)
           }
         />
       ))}

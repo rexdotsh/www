@@ -1,5 +1,3 @@
-/* the workshop (/status) */
-
 .tty {
   font-family: var(--font-mono);
   font-size: 12.5px;
@@ -15,11 +13,6 @@
   color: var(--ink);
 }
 
-.lead em {
-  color: var(--rose);
-}
-
-/* Host panels */
 .panel {
   position: relative;
   border: 1px solid color-mix(in oklab, var(--ink) 14%, transparent);
@@ -29,7 +22,6 @@
   transition: border-color 220ms var(--ease-strong);
 }
 
-/* the hovered panel warms, and its lamp rings once. */
 @media (hover: hover) and (pointer: fine) {
   .panel:hover {
     border-color: color-mix(in oklab, var(--rose) 45%, transparent);
@@ -110,7 +102,6 @@
   transition: color 500ms var(--ease-strong);
 }
 
-/* a new sample landed: the number warms while it settles */
 .vital-value[data-moving] {
   color: var(--rose);
   transition-duration: 120ms;
@@ -174,7 +165,6 @@
   border-top: 1px dashed color-mix(in oklab, var(--ink) 12%, transparent);
 }
 
-/* Services */
 .svc-head,
 .svc {
   gap: 0.3rem 1.25rem;
@@ -182,7 +172,6 @@
 
 .svc-head {
   display: none;
-  grid-template-columns: 7.5rem minmax(0, 1fr) 4rem 4rem 19rem;
   color: var(--faint);
   font-size: 11px;
   padding-bottom: 0.35rem;
@@ -200,12 +189,13 @@
 }
 
 @media (min-width: 768px) {
-  .svc-head {
+  .svc-head,
+  .svc {
     display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr) 4rem 4rem 19rem;
   }
 
   .svc {
-    grid-template-columns: 7.5rem minmax(0, 1fr) 4rem 4rem 19rem;
     grid-template-areas: "name blurb lat pct strip";
     align-items: center;
     padding: 0.55rem 0;

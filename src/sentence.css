@@ -381,7 +381,6 @@
 }
 
 @media (max-width: 767px) {
-  /* Keep mobile cards anchored to the bottom edge. */
   .peek {
     position: fixed;
     top: auto;

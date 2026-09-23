@@ -62,7 +62,6 @@ const LIFTS: Record<SentenceWord, string> = {
 };
 const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[73px]";
 
-// Keep previews quieter on touch devices.
 const VOLUME = 0.5;
 const VOLUME_TOUCH = 0.28;
 

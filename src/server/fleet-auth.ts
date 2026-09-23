@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { HOSTS, type Sample } from "@/lib/fleet";
+import { HOSTS, hmac, hostKey, type Sample } from "@/lib/fleet";
 
 const SKEW_S = 300;
 const MAX_BODY = 16 * 1024;
@@ -12,23 +12,8 @@ export const fleet = () =>
 
 const enc = new TextEncoder();
 
-const hmac = async (key: string, message: string) => {
-  const k = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(key),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  const mac = await crypto.subtle.sign("HMAC", k, enc.encode(message));
-  return Array.from(new Uint8Array(mac), (b) =>
-    b.toString(16).padStart(2, "0")
-  ).join("");
-};
-
-// A box's key is derived from the one master secret: `bun run fleet:key <host>`.
-export const hostKey = (secret: string, host: string) =>
-  hmac(secret, `fleet:${host}`);
+// FLEET_SECRET is fixed per deploy, so a box's derived key can live as long as the isolate.
+const keys = new Map<string, Promise<string>>();
 
 // Workers' SubtleCrypto has timingSafeEqual; the DOM lib doesn't know.
 const subtle = crypto.subtle as SubtleCrypto & {
@@ -52,10 +37,9 @@ export async function verify(request: Request): Promise<Verified> {
     return { ok: false, status: 413 };
   const body = await request.text();
   if (body.length > MAX_BODY) return { ok: false, status: 413 };
-  const expected = await hmac(
-    await hostKey(env.FLEET_SECRET, host),
-    `${ts}.${body}`
-  );
+  const key = keys.get(host) ?? hostKey(env.FLEET_SECRET, host);
+  keys.set(host, key);
+  const expected = await hmac(await key, `${ts}.${body}`);
   if (!subtle.timingSafeEqual(enc.encode(expected), enc.encode(sig)))
     return { ok: false, status: 401 };
   const sample = parse(body);

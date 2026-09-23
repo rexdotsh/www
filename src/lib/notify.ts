@@ -1,6 +1,5 @@
 import { env } from "cloudflare:workers";
 
-// Fire-and-forget Telegram DM. Silently no-ops when the bot isn't configured.
 export async function notify(text: string) {
   const token = env.TELEGRAM_BOT_TOKEN;
   const chatId = env.TELEGRAM_CHAT_ID;

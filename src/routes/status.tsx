@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { fleet } from "@/server/fleet-auth";
-import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
+import { createServerFn } from "@tanstack/react-start";
+import { createContext, type ReactNode, use, useEffect, useState } from "react";
 import BackLink from "@/components/back-link";
 import { Gauge, Lamp, Sparkline, Strip, useTween } from "@/components/fleet";
 import {
@@ -22,17 +22,23 @@ import statusCss from "../status.css?url";
 
 const DESCRIPTION = "four machines and what they run.";
 
-export const Route = createFileRoute("/status")({
-  component: StatusPage,
-  loader: async () => {
+// A server fn so client-side navigation doesn't pull cloudflare:workers into the browser bundle.
+const getFleet = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Fleet> => {
+    const { fleet } = await import("@/server/fleet-auth");
     const stub = fleet();
     if (!stub) {
-      return { fleet: mockFleet(Date.now()) };
+      return mockFleet();
     }
     // RPC results carry Symbol.dispose and widen tuples; the DO built a real Fleet.
     const { hosts, services, measuredAt } = await stub.snapshot();
-    return { fleet: { hosts, services, measuredAt } as Fleet };
-  },
+    return { hosts, services, measuredAt } as Fleet;
+  }
+);
+
+export const Route = createFileRoute("/status")({
+  component: StatusPage,
+  loader: async () => ({ fleet: await getFleet() }),
   head: () => ({
     meta: [
       { title: "the workshop" },
@@ -71,7 +77,6 @@ const ago = (then: number, now: number) => {
 
 const utc = (ts: number) => `${new Date(ts).toISOString().slice(11, 19)} utc`;
 
-// Locally the mock just wobbles; deployed, the page polls the snapshot.
 const wobble = (f: Fleet): Fleet => ({
   ...f,
   measuredAt: Date.now() - 600,
@@ -92,9 +97,7 @@ const wobble = (f: Fleet): Fleet => ({
 
 function useLiveFleet(initial: Fleet) {
   const [fleet, setFleet] = useState(initial);
-  const [now, setNow] = useState(initial.measuredAt + 12_000);
   useEffect(() => {
-    const clock = setInterval(() => setNow(Date.now()), 1000);
     const tick = setInterval(() => {
       if (document.visibilityState !== "visible") return;
       if (initial.mock) return setFleet(wobble);
@@ -103,122 +106,147 @@ function useLiveFleet(initial: Fleet) {
         .then((f) => f && setFleet(f))
         .catch(() => undefined);
     }, TICK_MS);
-    return () => {
-      clearInterval(clock);
-      clearInterval(tick);
-    };
+    return () => clearInterval(tick);
   }, [initial.mock]);
-  return { fleet, now };
+  return fleet;
+}
+
+// The clock ticks every second but only a few strings read it: keep it in
+// context so the tick re-renders those, not the page.
+const Now = createContext(0);
+
+function NowProvider({
+  children,
+  initial,
+}: {
+  children: ReactNode;
+  initial: number;
+}) {
+  const [now, setNow] = useState(initial);
+  useEffect(() => {
+    const clock = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(clock);
+  }, []);
+  return <Now value={now}>{children}</Now>;
+}
+
+function Live({ children }: { children: (now: number) => ReactNode }) {
+  return children(use(Now));
 }
 
 const stagger = (start: number, step: number) => {
   let n = 0;
   return () => {
-    const style = { animationDelay: `${start + n * step}ms` } as CSSProperties;
+    const ms = start + n * step;
     n += 1;
-    return style;
+    return ms;
   };
 };
 
+const rise = (ms: number) => ({ animationDelay: `${ms}ms` });
+
 function StatusPage() {
   const { fleet: initial } = Route.useLoaderData();
-  const { fleet, now } = useLiveFleet(initial);
+  const fleet = useLiveFleet(initial);
   const sum = summarize(fleet);
   const head = stagger(0, 70);
   const panels = stagger(320, 100);
   const rows = stagger(780, 30);
 
   return (
-    <main className="min-h-dvh paper px-7 py-14 text-ink selection:bg-rose selection:text-paper md:py-20">
-      <div className="tty mx-auto w-full max-w-4xl">
-        <BackLink className="rise text-muted text-xs" style={head()} to="/">
-          home
-        </BackLink>
-
-        <header className="mt-8 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-          <h1
-            className="rise font-serif-display text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
-            style={{ ...head(), viewTransitionName: "workshop" }}
+    <NowProvider initial={initial.measuredAt + 12_000}>
+      <main className="min-h-dvh paper px-7 py-14 text-ink selection:bg-rose selection:text-paper md:py-20">
+        <div className="tty mx-auto w-full max-w-4xl">
+          <BackLink
+            className="rise text-muted text-xs"
+            style={rise(head())}
+            to="/"
           >
-            the workshop<span className="full-stop text-rose">.</span>
-          </h1>
-          <p className="rise text-faint" style={head()}>
-            {utc(now)}
+            home
+          </BackLink>
+
+          <header className="mt-8 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+            <h1
+              className="rise font-serif-display text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
+              style={{ ...rise(head()), viewTransitionName: "workshop" }}
+            >
+              the workshop<span className="full-stop text-rose">.</span>
+            </h1>
+            <p className="rise text-faint" style={rise(head())}>
+              <Live>{utc}</Live>
+            </p>
+          </header>
+
+          <p className="lead rise mt-2" style={rise(head())}>
+            {words(sum.hosts)} machines, {words(sum.services)} services,{" "}
+            {sum.answering === sum.services
+              ? "all answering."
+              : `${words(sum.answering)} answering.`}
+            {sum.off.length > 0 ? (
+              <span className="text-muted">
+                {" "}
+                {sum.off.map((h) => h.id).join(", ")}{" "}
+                {sum.off.length === 1 ? "is" : "are"} off, as usual.
+              </span>
+            ) : null}
           </p>
-        </header>
 
-        <p className="lead rise mt-2" style={head()}>
-          {words(sum.hosts)} machines, {words(sum.services)} services,{" "}
-          {sum.answering === sum.services
-            ? "all answering."
-            : `${words(sum.answering)} answering.`}
-          {sum.off.length > 0 ? (
-            <span className="text-muted">
-              {" "}
-              {sum.off.map((h) => h.id).join(", ")}{" "}
-              {sum.off.length === 1 ? "is" : "are"} off, as usual.
-            </span>
-          ) : null}
-        </p>
+          <div className="mt-10 grid gap-x-6 gap-y-7 md:grid-cols-2">
+            {fleet.hosts.map((host, i) => (
+              <Panel
+                delay={panels()}
+                host={host}
+                key={host.id}
+                note={SCALE[i]}
+                services={
+                  fleet.services.filter((s) => s.host === host.id).length
+                }
+              />
+            ))}
+          </div>
 
-        <div className="mt-10 grid gap-x-6 gap-y-7 md:grid-cols-2">
-          {fleet.hosts.map((host, i) => (
-            <Panel
-              host={host}
-              key={host.id}
-              note={SCALE[i] ?? SCALE[0]}
-              now={now}
-              services={fleet.services.filter((s) => s.host === host.id).length}
-              style={panels()}
+          <div className="svc-head rise mt-12" style={rise(rows())}>
+            <span />
+            <span />
+            <span className="text-right">memory</span>
+            <span className="text-right">30d</span>
+            <span>last 45 checks</span>
+          </div>
+          {fleet.services.map((service) => (
+            <ServiceRow
+              delay={rows()}
+              key={service.id}
+              measuredAt={fleet.measuredAt}
+              service={service}
             />
           ))}
-        </div>
 
-        <div className="svc-head rise mt-12" style={rows()}>
-          <span />
-          <span />
-          <span className="text-right">memory</span>
-          <span className="text-right">30d</span>
-          <span>last 45 checks</span>
+          <footer className="rise mt-10 text-faint" style={rise(rows())}>
+            <p>
+              measured <Live>{(now) => ago(fleet.measuredAt, now)}</Live> ago ·{" "}
+              {words(sum.services)} of{" "}
+              {fleet.hosts.reduce((n, h) => n + h.containers, 0)} containers.
+            </p>
+          </footer>
         </div>
-        {fleet.services.map((service) => (
-          <ServiceRow
-            key={service.id}
-            measuredAt={fleet.measuredAt}
-            service={service}
-            style={rows()}
-          />
-        ))}
-
-        <footer className="rise mt-10 text-faint" style={rows()}>
-          <p>
-            measured {ago(fleet.measuredAt, now)} ago · {words(sum.services)} of{" "}
-            {fleet.hosts.reduce((n, h) => n + h.containers, 0)} containers.
-          </p>
-        </footer>
-      </div>
-    </main>
+      </main>
+    </NowProvider>
   );
 }
 
 function Panel({
+  delay,
   host,
   note,
-  now,
   services,
-  style,
 }: {
+  delay: number;
   host: Host;
   note: number;
-  now: number;
   services: number;
-  style: CSSProperties;
 }) {
   const off = host.health === "off";
-  const down = host.health === "down";
-  const quiet = off || down;
-  const fresh = !quiet && now - host.lastSeen <= 90_000;
-  const delay = Number.parseInt(String(style.animationDelay), 10) || 0;
+  const quiet = off || host.health === "down";
 
   return (
     <article
@@ -227,7 +255,7 @@ function Panel({
       onPointerEnter={(e) => {
         if (e.pointerType !== "touch") sfx("tick", note);
       }}
-      style={style}
+      style={rise(delay)}
     >
       <h2 className="panel-title">
         <Lamp health={host.health} />
@@ -286,7 +314,11 @@ function Panel({
           end={host.lastSeen}
         />
         <span className="v">
-          {off ? "off" : down ? "down" : `up ${fmtUptime(host.upSince, now)}`}
+          {quiet ? (
+            host.health
+          ) : (
+            <Live>{(now) => `up ${fmtUptime(host.upSince, now)}`}</Live>
+          )}
         </span>
       </p>
 
@@ -296,9 +328,19 @@ function Panel({
           : `${words(services)} ${services === 1 ? "service" : "services"}`}
         {host.containers > 0 ? ` · ${host.containers} containers` : ""}
         {" · "}
-        <span className={fresh ? "text-rose" : undefined}>
-          {off ? "last seen" : "seen"} {ago(host.lastSeen, now)} ago
-        </span>
+        <Live>
+          {(now) => (
+            <span
+              className={
+                !quiet && now - host.lastSeen <= 90_000
+                  ? "text-rose"
+                  : undefined
+              }
+            >
+              {off ? "last seen" : "seen"} {ago(host.lastSeen, now)} ago
+            </span>
+          )}
+        </Live>
       </p>
     </article>
   );
@@ -339,18 +381,17 @@ function Vital({
 }
 
 function ServiceRow({
+  delay,
   measuredAt,
   service,
-  style,
 }: {
+  delay: number;
   measuredAt: number;
   service: Service;
-  style: CSSProperties;
 }) {
   const off = service.health === "off";
-  const delay = Number.parseInt(String(style.animationDelay), 10) || 0;
   return (
-    <div className="svc rise" data-health={service.health} style={style}>
+    <div className="svc rise" data-health={service.health} style={rise(delay)}>
       <p className="svc-name">
         <Lamp health={service.health} />
         {service.id}

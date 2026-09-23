@@ -18,16 +18,9 @@ const MINUTE = 60_000;
 const QUIET_AFTER = 3 * MINUTE;
 const CACHE_MS = 30_000;
 
-interface Row {
+interface Row extends Omit<Sample, "containers"> {
   beats: number[];
-  boot: number;
   containers: number;
-  cpu: number;
-  cpus: number;
-  disk: [number, number];
-  load: [number, number, number];
-  mem: [number, number];
-  os: string;
   seen: number;
   spark: number[];
   svc: Record<
@@ -40,11 +33,7 @@ const push = <T>(ring: T[] | undefined, value: T, size: number) =>
   [...(ring ?? []), value].slice(-size);
 
 const pad = (ring: number[], size: number) =>
-  size > 0
-    ? [...new Array(Math.max(0, size - ring.length)).fill(-1), ...ring].slice(
-        -size
-      )
-    : [];
+  [...new Array(size).fill(-1), ...ring].slice(ring.length);
 
 const cells = (
   ring: number[],

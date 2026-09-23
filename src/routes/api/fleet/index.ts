@@ -13,7 +13,7 @@ export const Route = createFileRoute("/api/fleet/")({
       GET: async () => {
         const stub = fleet();
         if (!stub) {
-          return Response.json(mockFleet(Date.now()), { headers });
+          return Response.json(mockFleet(), { headers });
         }
         try {
           return Response.json(await stub.snapshot(), { headers });

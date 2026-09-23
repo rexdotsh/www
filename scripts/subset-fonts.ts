@@ -1,4 +1,3 @@
-// Regenerates src/fonts from the fontsource packages. Run with `bun run fonts:subset`.
 import { mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 
 const SUBSETS = {

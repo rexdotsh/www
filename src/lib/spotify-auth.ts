@@ -58,7 +58,6 @@ async function tokenRequest(
   return { ok: response.ok, status: response.status, data };
 }
 
-// Caches the access token from either grant; returns it or null if malformed.
 function cacheAccessToken(data: TokenResponse) {
   if (!(data.access_token && typeof data.expires_in === "number")) {
     return null;

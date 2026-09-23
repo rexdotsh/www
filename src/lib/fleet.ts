@@ -1,4 +1,3 @@
-// The workshop (/status): what it shows, and the whitelist of what it may show.
 // `off` is a box that's meant to be off; `down` one that isn't; `none` no data yet.
 export type Health = "up" | "down" | "off" | "none";
 
@@ -202,6 +201,24 @@ export const summarize = (fleet: Fleet) => {
   };
 };
 
+export const hmac = async (key: string, message: string) => {
+  const enc = new TextEncoder();
+  const k = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(key),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const mac = await crypto.subtle.sign("HMAC", k, enc.encode(message));
+  return Array.from(new Uint8Array(mac), (b) =>
+    b.toString(16).padStart(2, "0")
+  ).join("");
+};
+
+export const hostKey = (secret: string, host: string) =>
+  hmac(secret, `fleet:${host}`);
+
 // Seeded so SSR and the client draw the same line.
 const wobble = (seed: number, base: number, spread: number) => {
   let s = seed;
@@ -218,21 +235,16 @@ const wobble = (seed: number, base: number, spread: number) => {
 
 const fill = <T>(n: number, v: T) => new Array(n).fill(v);
 
-const mockHost = (id: string, h: Partial<Host>, now: number): Host => ({
+const mockHost = (
+  id: string,
+  now: number,
+  h: Omit<Host, "id" | "role" | "health" | "lastSeen" | "beats">
+): Host => ({
   id,
   ...HOSTS[id],
   health: "up",
-  cpu: 0,
-  cpuSpark: fill(48, 0),
-  memUsed: 0,
-  memTotal: 0,
-  diskUsed: 0,
-  diskTotal: 0,
-  load: [0, 0, 0],
-  upSince: 0,
   lastSeen: now - 10_000,
   beats: fill(90, "up"),
-  containers: 0,
   ...h,
 });
 
@@ -260,70 +272,54 @@ export const mockFleet = (now = Date.now()): Fleet => ({
   mock: true,
   measuredAt: now - 12_000,
   hosts: [
-    mockHost(
-      "media",
-      {
-        spec: `ubuntu 24.04 · 4 vcpu · 6 gb · ${HOSTS.media.spec}`,
-        cpu: 11,
-        cpuSpark: wobble(11, 11, 10),
-        memUsed: 2425,
-        memTotal: 5925,
-        diskUsed: 78,
-        diskTotal: 99,
-        load: [0.79, 0.93, 1.0],
-        upSince: now - 36 * DAY - 18 * HOUR,
-        containers: 17,
-      },
-      now
-    ),
-    mockHost(
-      "misc",
-      {
-        spec: `ubuntu 22.04 · 2 vcpu · 12 gb · ${HOSTS.misc.spec}`,
-        cpu: 5,
-        cpuSpark: wobble(21, 5, 5),
-        memUsed: 7347,
-        memTotal: 11_932,
-        diskUsed: 42,
-        diskTotal: 192,
-        load: [0.18, 0.17, 0.16],
-        upSince: now - 48 * DAY - 45 * 60_000,
-        containers: 12,
-      },
-      now
-    ),
-    mockHost(
-      "home",
-      {
-        spec: `ubuntu 24.04 · 6 cores · 8 gb · ${HOSTS.home.spec}`,
-        cpu: 38,
-        cpuSpark: wobble(41, 35, 30),
-        memUsed: 2305,
-        memTotal: 7888,
-        diskUsed: 99,
-        diskTotal: 107,
-        load: [3.71, 7.67, 6.02],
-        upSince: now - 10 * DAY - HOUR,
-        containers: 6,
-      },
-      now
-    ),
-    mockHost(
-      "work",
-      {
-        spec: `ubuntu 24.04 · 4 vcpu · 8 gb · ${HOSTS.work.spec}`,
-        cpu: 3,
-        cpuSpark: wobble(31, 3, 4),
-        memUsed: 3470,
-        memTotal: 7751,
-        diskUsed: 28,
-        diskTotal: 150,
-        load: [0.49, 0.47, 0.4],
-        upSince: now - 314 * DAY - 21 * HOUR,
-        containers: 23,
-      },
-      now
-    ),
+    mockHost("media", now, {
+      spec: `ubuntu 24.04 · 4 vcpu · 6 gb · ${HOSTS.media.spec}`,
+      cpu: 11,
+      cpuSpark: wobble(11, 11, 10),
+      memUsed: 2425,
+      memTotal: 5925,
+      diskUsed: 78,
+      diskTotal: 99,
+      load: [0.79, 0.93, 1.0],
+      upSince: now - 36 * DAY - 18 * HOUR,
+      containers: 17,
+    }),
+    mockHost("misc", now, {
+      spec: `ubuntu 22.04 · 2 vcpu · 12 gb · ${HOSTS.misc.spec}`,
+      cpu: 5,
+      cpuSpark: wobble(21, 5, 5),
+      memUsed: 7347,
+      memTotal: 11_932,
+      diskUsed: 42,
+      diskTotal: 192,
+      load: [0.18, 0.17, 0.16],
+      upSince: now - 48 * DAY - 45 * 60_000,
+      containers: 12,
+    }),
+    mockHost("home", now, {
+      spec: `ubuntu 24.04 · 6 cores · 8 gb · ${HOSTS.home.spec}`,
+      cpu: 38,
+      cpuSpark: wobble(41, 35, 30),
+      memUsed: 2305,
+      memTotal: 7888,
+      diskUsed: 99,
+      diskTotal: 107,
+      load: [3.71, 7.67, 6.02],
+      upSince: now - 10 * DAY - HOUR,
+      containers: 6,
+    }),
+    mockHost("work", now, {
+      spec: `ubuntu 24.04 · 4 vcpu · 8 gb · ${HOSTS.work.spec}`,
+      cpu: 3,
+      cpuSpark: wobble(31, 3, 4),
+      memUsed: 3470,
+      memTotal: 7751,
+      diskUsed: 28,
+      diskTotal: 150,
+      load: [0.49, 0.47, 0.4],
+      upSince: now - 314 * DAY - 21 * HOUR,
+      containers: 23,
+    }),
   ],
   services: SERVICES.map((s) => ({
     id: s.id,

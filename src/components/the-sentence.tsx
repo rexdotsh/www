@@ -330,7 +330,6 @@ function Peek({
           {children}
         </a>
       ) : (
-        // Nothing to link to (e.g. spotify unreachable); still colours the word and drives the rose on hover.
         <span className={linkClass}>{children}</span>
       )}
       {peek ? <span className="peek">{peek}</span> : null}
@@ -587,7 +586,7 @@ function ProjectsPeek() {
 const WORKSHOP = mockFleet(0);
 const WORKSHOP_SUMMARY = summarize(WORKSHOP);
 
-function WorkshopPeek() {
+const WorkshopPeek = memo(function WorkshopPeek() {
   return (
     <PeekCard label="the workshop">
       {WORKSHOP.hosts.map((host, index) => (
@@ -611,7 +610,7 @@ function WorkshopPeek() {
       </span>
     </PeekCard>
   );
-}
+});
 
 function PostsPeek() {
   const router = useRouter();
