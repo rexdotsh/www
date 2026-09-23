@@ -362,7 +362,7 @@ function PeekCard({
   children: ReactNode;
   compact?: boolean;
   fit?: boolean;
-  label?: ReactNode;
+  label?: string;
 }) {
   const size = compact
     ? "w-fit max-w-64 px-3.5 pt-4 pb-3"
@@ -596,37 +596,33 @@ const WorkshopPeek = memo(function WorkshopPeek() {
       .catch(() => undefined);
   }, []);
   return (
-    <PeekCard
-      label={
-        <a
-          className="transition-colors duration-150 hover:text-ink"
-          href="/status"
-          onClick={(event) => {
-            event.preventDefault();
-            router.navigate({ href: "/status" });
-          }}
-        >
-          the workshop →
-        </a>
-      }
+    <a
+      className="block"
+      href="/status"
+      onClick={(event) => {
+        event.preventDefault();
+        router.navigate({ href: "/status" });
+      }}
     >
-      {fleet.hosts.map((host, index) => (
-        <span className="fleet-peek-row" key={host.id}>
-          <Lamp health={host.health} />
-          <span className="truncate text-ink text-xs">{host.id}</span>
-          <Sparkline
-            className={host.health === "up" ? "text-rose" : "text-faint"}
-            data={host.cpuSpark.slice(-24)}
-            delay={index * 80}
-            height={14}
-            max={100}
-          />
-          <span className="text-right text-[10px] text-muted tabular-nums">
-            {host.health === "up" ? `${host.cpu}%` : host.health}
+      <PeekCard label="the workshop">
+        {fleet.hosts.map((host, index) => (
+          <span className="fleet-peek-row" key={host.id}>
+            <Lamp health={host.health} />
+            <span className="truncate text-ink text-xs">{host.id}</span>
+            <Sparkline
+              className={host.health === "up" ? "text-rose" : "text-faint"}
+              data={host.cpuSpark.slice(-24)}
+              delay={index * 80}
+              height={14}
+              max={100}
+            />
+            <span className="text-right text-[10px] text-muted tabular-nums">
+              {host.health === "up" ? `${host.cpu}%` : host.health}
+            </span>
           </span>
-        </span>
-      ))}
-    </PeekCard>
+        ))}
+      </PeekCard>
+    </a>
   );
 });
 

@@ -163,8 +163,8 @@ function StatusPage() {
           </BackLink>
 
           <h1
-            className="rise mt-8 font-serif-display text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
-            style={{ ...rise(head()), viewTransitionName: "workshop" }}
+            className="mt-8 font-serif-display text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
+            style={{ viewTransitionName: "workshop" }}
           >
             the workshop<span className="full-stop text-rose">.</span>
           </h1>
