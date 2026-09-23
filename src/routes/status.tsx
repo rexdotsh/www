@@ -11,7 +11,6 @@ import {
   type Host,
   mockFleet,
   pct,
-  type Service,
   summarize,
 } from "@/lib/fleet";
 import { preloadFont } from "@/lib/head";
@@ -21,9 +20,6 @@ import bodyCss from "../fonts-body.css?url";
 import statusCss from "../status.css?url";
 
 const DESCRIPTION = "four machines and what they run.";
-
-// The services table is parked until it looks right; the page sits tighter without it.
-const SHOW_SERVICES = false;
 
 // A server fn so client-side navigation doesn't pull cloudflare:workers into the browser bundle.
 const getFleet = createServerFn({ method: "GET" }).handler(
@@ -158,9 +154,7 @@ function StatusPage() {
 
   return (
     <NowProvider initial={initial.measuredAt + 12_000}>
-      <main
-        className={`min-h-dvh paper px-7 text-ink selection:bg-rose selection:text-paper ${SHOW_SERVICES ? "py-14 md:py-20" : "py-10 md:py-14"}`}
-      >
+      <main className="min-h-dvh paper px-7 py-10 text-ink selection:bg-rose selection:text-paper md:py-14">
         <div className="tty mx-auto w-full max-w-4xl">
           <BackLink
             className="rise text-muted text-xs"
@@ -210,32 +204,12 @@ function StatusPage() {
             ))}
           </div>
 
-          {SHOW_SERVICES ? (
-            <section className="mt-12">
-              <div className="svc-head rise" style={rise(rows())}>
-                <span />
-                <span />
-                <span className="text-right">memory</span>
-                <span className="text-right">30d</span>
-                <span>last 45 checks</span>
-              </div>
-              {fleet.services.map((service) => (
-                <ServiceRow
-                  delay={rows()}
-                  key={service.id}
-                  measuredAt={fleet.measuredAt}
-                  service={service}
-                />
-              ))}
-            </section>
-          ) : null}
+          {/* The per-service table (name · blurb · memory · 30d · strip) was
+              pulled in #56; the data still arrives in `fleet.services`. */}
 
           <footer className="rise mt-10 text-faint" style={rise(rows())}>
             <p>
               measured <Live>{(now) => ago(fleet.measuredAt, now)}</Live> ago
-              {SHOW_SERVICES
-                ? ` · ${words(sum.services)} of ${fleet.hosts.reduce((n, h) => n + h.containers, 0)} containers.`
-                : null}
             </p>
           </footer>
         </div>
@@ -386,38 +360,6 @@ function Vital({
       )}
       <div className="vital-bar">{children}</div>
       <p className="vital-sub">{sub}</p>
-    </div>
-  );
-}
-
-function ServiceRow({
-  delay,
-  measuredAt,
-  service,
-}: {
-  delay: number;
-  measuredAt: number;
-  service: Service;
-}) {
-  const off = service.health === "off";
-  return (
-    <div className="svc rise" data-health={service.health} style={rise(delay)}>
-      <p className="svc-name">
-        <Lamp health={service.health} />
-        {service.id}
-      </p>
-      <p className="svc-blurb">{service.blurb}</p>
-      <p className="svc-lat">
-        {service.health === "up" ? fmtMb(service.mem) : "—"}
-      </p>
-      <p className="svc-pct">{off ? "—" : `${service.uptime30.toFixed(1)}%`}</p>
-      <span className="svc-strip">
-        <Strip
-          cells={service.strip.slice(-45)}
-          delay={delay + 200}
-          end={measuredAt}
-        />
-      </span>
     </div>
   );
 }
