@@ -13,6 +13,7 @@ import serifWoff from "@fontsource/instrument-serif/files/instrument-serif-latin
 import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 import { ASCII_ROSE } from "../src/lib/ascii-rose";
+import { HOSTS } from "../src/lib/fleet";
 import { POSTS_META } from "../src/lib/posts-meta";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -200,6 +201,71 @@ const card = (title: string, metaLine: string): Node =>
     ]
   );
 
+const workshopCard = (): Node =>
+  el(
+    "div",
+    {
+      width: "100%",
+      height: "100%",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+      background: "#faf8f2",
+      padding: "64px 84px",
+    },
+    [
+      mono("status", "#a29a89", 20, {
+        letterSpacing: 7,
+        textTransform: "uppercase",
+      }),
+      el("div", { display: "flex", flexDirection: "column" }, [
+        el(
+          "div",
+          {
+            display: "flex",
+            fontFamily: "Instrument Serif",
+            fontSize: 104,
+            lineHeight: 1,
+            color: "#17140f",
+          },
+          [
+            el("span", {}, "the workshop"),
+            el("span", { color: "#b3123a" }, "."),
+          ]
+        ),
+        mono("four machines and what they run.", "#847c6c", 24, {
+          marginTop: 18,
+        }),
+      ]),
+      el(
+        "div",
+        { display: "flex", flexDirection: "column", gap: 14 },
+        Object.keys(HOSTS).map((host) =>
+          el("div", { display: "flex", alignItems: "center", gap: 18 }, [
+            el("div", {
+              width: 10,
+              height: 10,
+              borderRadius: 5,
+              background: "#b3123a",
+            }),
+            mono(host, "#17140f", 20, { width: 80 }),
+            el(
+              "div",
+              { display: "flex", flexGrow: 1, gap: 3, height: 16 },
+              Array.from({ length: 60 }, () =>
+                el("div", {
+                  flexGrow: 1,
+                  borderRadius: 1,
+                  background: "rgba(179, 18, 58, 0.22)",
+                })
+              )
+            ),
+          ])
+        )
+      ),
+    ]
+  );
+
 const fonts = [
   {
     name: "Instrument Serif",
@@ -239,6 +305,7 @@ await Promise.all([
   ...SITES.map((site) =>
     render(siteCard(site.name, site.domain), path.join(PUBLIC_DIR, site.file))
   ),
+  render(workshopCard(), path.join(OUT_DIR, "workshop.png")),
   ...POSTS_META.filter((entry) => !entry.draft).map((post) =>
     render(
       card(post.title, post.dateLabel),
