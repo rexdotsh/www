@@ -13,7 +13,7 @@ export const HOSTS: Record<
     spec: "bengaluru",
     intermittent: true,
   },
-  work: { role: "not mine to show", spec: "somewhere", private: true },
+  work: { role: "the day job", spec: "somewhere", private: true },
 };
 
 // Exact docker names; several means all must be running.
