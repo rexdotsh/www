@@ -9,7 +9,7 @@ import {
 } from "react";
 import { Lamp, Sparkline } from "@/components/fleet";
 import { EMAIL, getIdentity, LINKS, PROJECTS } from "@/lib/content";
-import { mockFleet, summarize } from "@/lib/fleet";
+import { type Fleet, mockFleet } from "@/lib/fleet";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
 import { beacon, compact, useSiteStats } from "@/lib/stats";
@@ -362,7 +362,7 @@ function PeekCard({
   children: ReactNode;
   compact?: boolean;
   fit?: boolean;
-  label?: string;
+  label?: ReactNode;
 }) {
   const size = compact
     ? "w-fit max-w-64 px-3.5 pt-4 pb-3"
@@ -584,12 +584,33 @@ function ProjectsPeek() {
 
 // Seeded, clock-free: the peek shows the same picture on the server and client.
 const WORKSHOP = mockFleet(0);
-const WORKSHOP_SUMMARY = summarize(WORKSHOP);
 
 const WorkshopPeek = memo(function WorkshopPeek() {
+  const router = useRouter();
+  const [fleet, setFleet] = useState(WORKSHOP);
+  useEffect(() => {
+    if (import.meta.env.DEV) return;
+    fetch("/api/fleet")
+      .then((r) => (r.ok ? (r.json() as Promise<Fleet>) : null))
+      .then((f) => f && setFleet(f))
+      .catch(() => undefined);
+  }, []);
   return (
-    <PeekCard label="the workshop">
-      {WORKSHOP.hosts.map((host, index) => (
+    <PeekCard
+      label={
+        <a
+          className="transition-colors duration-150 hover:text-ink"
+          href="/status"
+          onClick={(event) => {
+            event.preventDefault();
+            router.navigate({ href: "/status" });
+          }}
+        >
+          the workshop →
+        </a>
+      }
+    >
+      {fleet.hosts.map((host, index) => (
         <span className="fleet-peek-row" key={host.id}>
           <Lamp health={host.health} />
           <span className="truncate text-ink text-xs">{host.id}</span>
@@ -605,9 +626,6 @@ const WorkshopPeek = memo(function WorkshopPeek() {
           </span>
         </span>
       ))}
-      <span className="mt-3 block border-ink/10 border-t pt-2 text-center text-[9px] text-faint tracking-[0.1em]">
-        {WORKSHOP_SUMMARY.answering} of {WORKSHOP_SUMMARY.services} answering
-      </span>
     </PeekCard>
   );
 });

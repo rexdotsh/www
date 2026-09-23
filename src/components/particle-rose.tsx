@@ -7,7 +7,7 @@ export type RoseMode =
   | "cube"
   | "caret"
   | "shiver"
-  | "garden"
+  | "churn"
   | "art"
   | "hi"
   | "paper";
@@ -20,7 +20,6 @@ interface Particle {
   caretX: number;
   caretY: number;
   ch: string;
-  cluster: number;
   color: string;
   cubeX: number;
   cubeY: number;
@@ -35,6 +34,7 @@ interface Particle {
   homeY: number;
   ramp: number;
   rgb: Rgb;
+  seed: number;
   vx: number;
   vy: number;
   x: number;
@@ -52,13 +52,7 @@ const BLEED = 1.24;
 const BLUSH_RADIUS_RATIO = 0.26;
 const BLUSH_STRENGTH = 0.8;
 
-const GARDEN_CENTERS: [number, number][] = [
-  [0.28, 0.3],
-  [0.73, 0.26],
-  [0.3, 0.74],
-  [0.71, 0.7],
-];
-const GARDEN_SCALE = 0.34;
+const CHURN_RATE = 2.2;
 
 const RAMP_GLYPHS = ["@#S", "%?", "*+", ";:"];
 // Canvas text doesn't trigger @font-face loads; request our glyphs explicitly.
@@ -125,8 +119,8 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
         (Math.random() - 0.5) * 1.7;
       particles.push({
         ch,
-        cluster: particles.length % GARDEN_CENTERS.length,
         color: "",
+        seed: Math.random(),
         ramp: rampFor(ch),
         rgb: [0, 0, 0],
         homeX,
@@ -483,6 +477,7 @@ export default function ParticleRose({
         let alpha =
           Math.min(1, (elapsed - p.activateAt) / ACTIVATE_FADE_MS) * blink;
         let blush = 0;
+        let { ch } = p;
 
         if (petal?.p === p) {
           if (petal.phase === "fall") {
@@ -540,10 +535,11 @@ export default function ParticleRose({
                 targetY = center + dy * artScale;
               }
               break;
-            case "garden": {
-              const garden = GARDEN_CENTERS[p.cluster];
-              targetX = garden[0] * size + dx * GARDEN_SCALE;
-              targetY = garden[1] * size + dy * GARDEN_SCALE;
+            case "churn": {
+              const u = t * CHURN_RATE + p.seed * 9;
+              const band = RAMP_GLYPHS[p.ramp] ?? p.ch;
+              ch = band[Math.floor(u) % band.length];
+              blush = u % 1 < 0.06 ? 0.5 : 0;
               break;
             }
             case "paper":
@@ -591,10 +587,10 @@ export default function ParticleRose({
         } else if (blush > 0) {
           const [r, g, b] = p.rgb;
           context.fillStyle = `rgb(${r + (glowR - r) * blush},${g + (glowG - g) * blush},${b + (glowB - b) * blush})`;
-          context.fillText(p.ch, p.x, p.y);
+          context.fillText(ch, p.x, p.y);
         } else {
           context.fillStyle = p.color;
-          context.fillText(p.ch, p.x, p.y);
+          context.fillText(ch, p.x, p.y);
         }
       }
       context.globalAlpha = 1;
