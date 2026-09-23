@@ -22,7 +22,7 @@ import statusCss from "../status.css?url";
 
 const DESCRIPTION = "four machines and what they run.";
 
-// The services table is parked until it looks right.
+// The services table is parked until it looks right; the page sits tighter without it.
 const SHOW_SERVICES = false;
 
 // A server fn so client-side navigation doesn't pull cloudflare:workers into the browser bundle.
@@ -158,7 +158,9 @@ function StatusPage() {
 
   return (
     <NowProvider initial={initial.measuredAt + 12_000}>
-      <main className="min-h-dvh paper px-7 py-14 text-ink selection:bg-rose selection:text-paper md:py-20">
+      <main
+        className={`min-h-dvh paper px-7 text-ink selection:bg-rose selection:text-paper ${SHOW_SERVICES ? "py-14 md:py-20" : "py-10 md:py-14"}`}
+      >
         <div className="tty mx-auto w-full max-w-4xl">
           <BackLink
             className="rise text-muted text-xs"
