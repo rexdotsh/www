@@ -85,6 +85,16 @@
   gap: 1rem;
 }
 
+@media (max-width: 639px) {
+  .vitals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vital:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
 .vital-label {
   font-size: 9px;
   letter-spacing: 0.18em;
