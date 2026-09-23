@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as StatusRouteImport } from './routes/status'
 import { Route as ApiBeaconRouteImport } from './routes/api/beacon'
 import { Route as ApiEmbedDotjsonRouteImport } from './routes/api/embed[.]json'
 import { Route as ApiGuestbookRouteImport } from './routes/api/guestbook'
@@ -19,6 +20,8 @@ import { Route as ApiStatsRouteImport } from './routes/api/stats'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as BlogRssDotxmlRouteImport } from './routes/blog/rss[.]xml'
+import { Route as ApiFleetIndexRouteImport } from './routes/api/fleet/index'
+import { Route as ApiFleetIngestRouteImport } from './routes/api/fleet/ingest'
 import { Route as ApiGithubContributionsRouteImport } from './routes/api/github/contributions'
 import { Route as ApiSpotifyCallbackRouteImport } from './routes/api/spotify/callback'
 import { Route as ApiSpotifyConnectRouteImport } from './routes/api/spotify/connect'
@@ -38,6 +41,11 @@ const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiBeaconRoute = ApiBeaconRouteImport.update({
@@ -75,6 +83,16 @@ const BlogRssDotxmlRoute = BlogRssDotxmlRouteImport.update({
   path: '/blog/rss.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiFleetIndexRoute = ApiFleetIndexRouteImport.update({
+  id: '/api/fleet/',
+  path: '/api/fleet/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFleetIngestRoute = ApiFleetIngestRouteImport.update({
+  id: '/api/fleet/ingest',
+  path: '/api/fleet/ingest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGithubContributionsRoute = ApiGithubContributionsRouteImport.update({
   id: '/api/github/contributions',
   path: '/api/github/contributions',
@@ -105,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/status': typeof StatusRoute
   '/api/beacon': typeof ApiBeaconRoute
   '/api/embed.json': typeof ApiEmbedDotjsonRoute
   '/api/guestbook': typeof ApiGuestbookRoute
@@ -112,16 +131,19 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog/': typeof BlogIndexRoute
+  '/api/fleet/ingest': typeof ApiFleetIngestRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
   '/api/spotify/callback': typeof ApiSpotifyCallbackRoute
   '/api/spotify/connect': typeof ApiSpotifyConnectRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
+  '/api/fleet/': typeof ApiFleetIndexRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/status': typeof StatusRoute
   '/api/beacon': typeof ApiBeaconRoute
   '/api/embed.json': typeof ApiEmbedDotjsonRoute
   '/api/guestbook': typeof ApiGuestbookRoute
@@ -129,10 +151,12 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog': typeof BlogIndexRoute
+  '/api/fleet/ingest': typeof ApiFleetIngestRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
   '/api/spotify/callback': typeof ApiSpotifyCallbackRoute
   '/api/spotify/connect': typeof ApiSpotifyConnectRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
+  '/api/fleet': typeof ApiFleetIndexRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
 export interface FileRoutesById {
@@ -140,6 +164,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/status': typeof StatusRoute
   '/api/beacon': typeof ApiBeaconRoute
   '/api/embed.json': typeof ApiEmbedDotjsonRoute
   '/api/guestbook': typeof ApiGuestbookRoute
@@ -147,10 +172,12 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/rss.xml': typeof BlogRssDotxmlRoute
   '/blog/': typeof BlogIndexRoute
+  '/api/fleet/ingest': typeof ApiFleetIngestRoute
   '/api/github/contributions': typeof ApiGithubContributionsRoute
   '/api/spotify/callback': typeof ApiSpotifyCallbackRoute
   '/api/spotify/connect': typeof ApiSpotifyConnectRoute
   '/api/spotify/playing': typeof ApiSpotifyPlayingRoute
+  '/api/fleet/': typeof ApiFleetIndexRoute
   '/api/spotify/preview/$id': typeof ApiSpotifyPreviewIdRoute
 }
 export interface FileRouteTypes {
@@ -159,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/status'
     | '/api/beacon'
     | '/api/embed.json'
     | '/api/guestbook'
@@ -166,16 +194,19 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/blog/rss.xml'
     | '/blog/'
+    | '/api/fleet/ingest'
     | '/api/github/contributions'
     | '/api/spotify/callback'
     | '/api/spotify/connect'
     | '/api/spotify/playing'
+    | '/api/fleet/'
     | '/api/spotify/preview/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/status'
     | '/api/beacon'
     | '/api/embed.json'
     | '/api/guestbook'
@@ -183,16 +214,19 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/blog/rss.xml'
     | '/blog'
+    | '/api/fleet/ingest'
     | '/api/github/contributions'
     | '/api/spotify/callback'
     | '/api/spotify/connect'
     | '/api/spotify/playing'
+    | '/api/fleet'
     | '/api/spotify/preview/$id'
   id:
     | '__root__'
     | '/'
     | '/robots.txt'
     | '/sitemap.xml'
+    | '/status'
     | '/api/beacon'
     | '/api/embed.json'
     | '/api/guestbook'
@@ -200,10 +234,12 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/blog/rss.xml'
     | '/blog/'
+    | '/api/fleet/ingest'
     | '/api/github/contributions'
     | '/api/spotify/callback'
     | '/api/spotify/connect'
     | '/api/spotify/playing'
+    | '/api/fleet/'
     | '/api/spotify/preview/$id'
   fileRoutesById: FileRoutesById
 }
@@ -211,6 +247,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  StatusRoute: typeof StatusRoute
   ApiBeaconRoute: typeof ApiBeaconRoute
   ApiEmbedDotjsonRoute: typeof ApiEmbedDotjsonRoute
   ApiGuestbookRoute: typeof ApiGuestbookRoute
@@ -218,10 +255,12 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   BlogRssDotxmlRoute: typeof BlogRssDotxmlRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  ApiFleetIngestRoute: typeof ApiFleetIngestRoute
   ApiGithubContributionsRoute: typeof ApiGithubContributionsRoute
   ApiSpotifyCallbackRoute: typeof ApiSpotifyCallbackRoute
   ApiSpotifyConnectRoute: typeof ApiSpotifyConnectRoute
   ApiSpotifyPlayingRoute: typeof ApiSpotifyPlayingRoute
+  ApiFleetIndexRoute: typeof ApiFleetIndexRoute
   ApiSpotifyPreviewIdRoute: typeof ApiSpotifyPreviewIdRoute
 }
 
@@ -246,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/beacon': {
@@ -297,6 +343,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogRssDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/fleet/': {
+      id: '/api/fleet/'
+      path: '/api/fleet'
+      fullPath: '/api/fleet/'
+      preLoaderRoute: typeof ApiFleetIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/fleet/ingest': {
+      id: '/api/fleet/ingest'
+      path: '/api/fleet/ingest'
+      fullPath: '/api/fleet/ingest'
+      preLoaderRoute: typeof ApiFleetIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/github/contributions': {
       id: '/api/github/contributions'
       path: '/api/github/contributions'
@@ -339,6 +399,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  StatusRoute: StatusRoute,
   ApiBeaconRoute: ApiBeaconRoute,
   ApiEmbedDotjsonRoute: ApiEmbedDotjsonRoute,
   ApiGuestbookRoute: ApiGuestbookRoute,
@@ -346,10 +407,12 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   BlogRssDotxmlRoute: BlogRssDotxmlRoute,
   BlogIndexRoute: BlogIndexRoute,
+  ApiFleetIngestRoute: ApiFleetIngestRoute,
   ApiGithubContributionsRoute: ApiGithubContributionsRoute,
   ApiSpotifyCallbackRoute: ApiSpotifyCallbackRoute,
   ApiSpotifyConnectRoute: ApiSpotifyConnectRoute,
   ApiSpotifyPlayingRoute: ApiSpotifyPlayingRoute,
+  ApiFleetIndexRoute: ApiFleetIndexRoute,
   ApiSpotifyPreviewIdRoute: ApiSpotifyPreviewIdRoute,
 }
 export const routeTree = rootRouteImport

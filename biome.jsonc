@@ -6,7 +6,8 @@
       "!bun.lock",
       "!src/routeTree.gen.ts",
       "!worker-configuration.d.ts",
-      "!.output"
+      "!.output",
+      "!agent"
     ]
   },
   "javascript": {

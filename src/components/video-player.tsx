@@ -125,7 +125,6 @@ export default function VideoPlayer({
     } else if (frame?.requestFullscreen) {
       frame.requestFullscreen();
     } else {
-      // iOS uses the native fullscreen player.
       video?.webkitEnterFullscreen?.();
     }
   };
@@ -150,7 +149,6 @@ export default function VideoPlayer({
     return () => cancelAnimationFrame(raf);
   }, [state]);
 
-  // Keyboard shortcuts apply while the player is focused.
   const onKeyDown = (event: React.KeyboardEvent) => {
     const video = videoRef.current;
     switch (event.key) {

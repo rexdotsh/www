@@ -7,7 +7,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { Lamp, Sparkline } from "@/components/fleet";
 import { EMAIL, getIdentity, LINKS, PROJECTS } from "@/lib/content";
+import { mockFleet, summarize } from "@/lib/fleet";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
 import { beacon, compact, useSiteStats } from "@/lib/stats";
@@ -17,7 +19,7 @@ export type SentenceWord =
   | "name"
   | "builds"
   | "writes"
-  | "garden"
+  | "workshop"
   | "music"
   | "hi"
   | "resume";
@@ -28,7 +30,7 @@ const NOTES: Record<SentenceWord, number> = {
   name: SCALE[0],
   builds: SCALE[1],
   writes: SCALE[2],
-  garden: SCALE[3],
+  workshop: SCALE[3],
   music: SCALE[4],
   hi: SCALE[5],
   resume: SCALE[5],
@@ -130,22 +132,14 @@ export const TheSentence = memo(function TheSentence({
     },
     ", i ",
     { key: "writes", href: LINKS.blog, text: "write", peek: <PostsPeek /> },
-    " about some of them, share a ",
+    " about some of them, keep a ",
     {
-      key: "garden",
-      href: LINKS.flora,
-      text: "workshop",
-      peek: (
-        <TextPeek
-          center
-          href={LINKS.flora}
-          label="the workshop"
-          line="flora"
-          sub="random things for the web"
-        />
-      ),
+      key: "workshop",
+      href: "/status",
+      text: <span style={{ viewTransitionName: "workshop" }}>workshop</span>,
+      peek: <WorkshopPeek />,
     },
-    " with friends, and usually have ",
+    " mostly running, and usually have ",
     {
       key: "music",
       href: track?.url,
@@ -336,7 +330,6 @@ function Peek({
           {children}
         </a>
       ) : (
-        // Nothing to link to (e.g. spotify unreachable); still colours the word and drives the rose on hover.
         <span className={linkClass}>{children}</span>
       )}
       {peek ? <span className="peek">{peek}</span> : null}
@@ -588,6 +581,36 @@ function ProjectsPeek() {
     </PeekCard>
   );
 }
+
+// Seeded, clock-free: the peek shows the same picture on the server and client.
+const WORKSHOP = mockFleet(0);
+const WORKSHOP_SUMMARY = summarize(WORKSHOP);
+
+const WorkshopPeek = memo(function WorkshopPeek() {
+  return (
+    <PeekCard label="the workshop">
+      {WORKSHOP.hosts.map((host, index) => (
+        <span className="fleet-peek-row" key={host.id}>
+          <Lamp health={host.health} />
+          <span className="truncate text-ink text-xs">{host.id}</span>
+          <Sparkline
+            className={host.health === "up" ? "text-rose" : "text-faint"}
+            data={host.cpuSpark.slice(-24)}
+            delay={index * 80}
+            height={14}
+            max={100}
+          />
+          <span className="text-right text-[10px] text-muted tabular-nums">
+            {host.health === "up" ? `${host.cpu}%` : host.health}
+          </span>
+        </span>
+      ))}
+      <span className="mt-3 block border-ink/10 border-t pt-2 text-center text-[9px] text-faint tracking-[0.1em]">
+        {WORKSHOP_SUMMARY.answering} of {WORKSHOP_SUMMARY.services} answering
+      </span>
+    </PeekCard>
+  );
+});
 
 function PostsPeek() {
   const router = useRouter();

@@ -10,6 +10,7 @@
     "deploy": "bun run build && wrangler deploy",
     "deploy:room": "wrangler deploy -c workers/room/wrangler.jsonc",
     "dev": "vite dev",
+    "fleet:key": "bun --env-file=.dev.vars scripts/fleet-key.ts",
     "fonts:subset": "bun scripts/subset-fonts.ts",
     "format": "biome format --write .",
     "lint": "biome lint .",

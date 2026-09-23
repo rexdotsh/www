@@ -1,5 +1,3 @@
-// Generates OG cards; run `bun run og:gen` when posts change.
-
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

@@ -121,7 +121,6 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
 });
 
-// Apply the saved theme before first paint.
 const THEME_SCRIPT = `try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
 
 function Beacon() {

@@ -1,4 +1,3 @@
-// Regenerates src/fonts from the fontsource packages. Run with `bun run fonts:subset`.
 import { mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 
 const SUBSETS = {
@@ -7,8 +6,9 @@ const SUBSETS = {
   "latin-ext":
     "U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF",
 };
-// └ ├ ─ █ ░ for the ascii art and code blocks.
-const BOX = "U+2500,U+2514,U+251C,U+2588,U+2591";
+// ┌ ┐ └ ┘ ├ │ ─ ▁-█ ▌ ░ for the ascii art, code blocks and the workshop gauges.
+const BOX =
+  "U+2500,U+2502,U+250C,U+2510,U+2514,U+2518,U+251C,U+2581-2588,U+258C,U+2591";
 
 interface Family {
   axis?: string;

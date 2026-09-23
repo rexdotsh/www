@@ -73,7 +73,6 @@ export function useNowPlaying() {
       schedule(POLL_INTERVAL);
     };
 
-    // Pause while hidden, and resume on the remaining interval rather than at once.
     const onVisibility = () => {
       clearTimeout(timeout);
       if (!document.hidden) {
