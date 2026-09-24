@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { createContext, type ReactNode, use, useEffect, useState } from "react";
+import {
+  type CSSProperties,
+  createContext,
+  type ReactNode,
+  use,
+  useEffect,
+  useState,
+} from "react";
 import BackLink from "@/components/back-link";
 import { Gauge, Lamp, Sparkline, Strip, useTween } from "@/components/fleet";
 import {
@@ -72,7 +79,7 @@ const ago = (then: number, now: number) => {
     ? `${Math.max(0, Math.round((now - then) / 1000))}s`
     : m < 60
       ? `${m}m`
-      : `${Math.floor(m / 60)}h ${m % 60}m`;
+      : `${Math.floor(m / 60)}h${m % 60 ? ` ${m % 60}m` : ""}`;
 };
 
 const wobble = (f: Fleet): Fleet => ({
@@ -238,7 +245,7 @@ function Panel({
       onPointerEnter={(e) => {
         if (e.pointerType !== "touch") sfx("tick", note);
       }}
-      style={rise(delay)}
+      style={{ ...rise(delay), "--label": host.id.length } as CSSProperties}
     >
       <h2 className="panel-title">
         <Lamp health={host.health} />
@@ -326,7 +333,7 @@ function Panel({
           {(now) => (
             <span
               className={
-                !quiet && now - host.lastSeen <= 90_000
+                !quiet && now - host.lastSeen <= 150_000
                   ? "text-rose"
                   : undefined
               }

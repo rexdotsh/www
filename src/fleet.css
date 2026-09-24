@@ -120,7 +120,10 @@
   flex: 1;
   min-width: 0;
   border-radius: 0.5px;
-  background: color-mix(in oklab, var(--rose) 22%, transparent);
+  background: light-dark(
+    color-mix(in oklab, var(--rose) 42%, transparent),
+    color-mix(in oklab, var(--rose) 70%, transparent)
+  );
   transform-origin: bottom;
   animation: cell-in 400ms var(--ease-strong) backwards;
 }
