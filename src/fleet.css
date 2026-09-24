@@ -121,7 +121,7 @@
   min-width: 0;
   border-radius: 0.5px;
   background: light-dark(
-    color-mix(in oklab, var(--rose) 22%, transparent),
+    color-mix(in oklab, var(--rose) 42%, transparent),
     color-mix(in oklab, var(--rose) 70%, transparent)
   );
   transform-origin: bottom;

@@ -54,7 +54,11 @@
   left: 0.8rem;
   transform: translateY(-50%);
   padding: 0 0.6ch;
-  background: var(--background);
+  /* The page's grain too, or the label reads as a flat patch on the border. */
+  background-color: var(--background);
+  background-image: var(--paper-grain);
+  background-size: 160px 160px;
+  background-blend-mode: overlay;
   color: var(--ink);
   font-weight: 500;
   display: inline-flex;
