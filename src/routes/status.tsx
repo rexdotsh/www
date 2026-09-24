@@ -13,7 +13,7 @@ import {
   pct,
   summarize,
 } from "@/lib/fleet";
-import { preloadFont } from "@/lib/head";
+import { pageMeta, preloadFont } from "@/lib/head";
 import { SCALE, sfx } from "@/lib/sfx";
 import newsreaderItalicWoff2 from "../fonts/newsreader-latin-italic.woff2?url";
 import bodyCss from "../fonts-body.css?url";
@@ -38,13 +38,14 @@ const getFleet = createServerFn({ method: "GET" }).handler(
 export const Route = createFileRoute("/status")({
   component: StatusPage,
   loader: async () => ({ fleet: await getFleet() }),
-  head: () => ({
-    meta: [
-      { title: "the workshop" },
-      { name: "description", content: DESCRIPTION },
-      { property: "og:title", content: "the workshop" },
-      { property: "og:description", content: DESCRIPTION },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta({
+      description: DESCRIPTION,
+      image: "/og/workshop.png",
+      matches,
+      path: "/status",
+      title: "the workshop",
+    }),
     links: [
       { rel: "stylesheet", href: bodyCss },
       { rel: "stylesheet", href: statusCss },
