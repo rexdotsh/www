@@ -163,11 +163,15 @@ function StatusPage() {
             home
           </BackLink>
 
-          <h1
-            className="mt-8 font-serif-display text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
-            style={{ viewTransitionName: "workshop" }}
-          >
-            the workshop<span className="full-stop text-rose">.</span>
+          <h1 className="mt-8 font-serif-display text-[clamp(2.4rem,7vw,3.2rem)] leading-none">
+            the{" "}
+            <span
+              className="inline-block"
+              style={{ viewTransitionName: "workshop" }}
+            >
+              workshop
+            </span>
+            <span className="full-stop text-rose">.</span>
           </h1>
 
           <p className="lead rise mt-2" style={rise(head())}>
