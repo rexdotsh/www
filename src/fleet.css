@@ -1,28 +1,5 @@
 /* shared between /status and the homepage peek */
 
-:root {
-  --fleet-gauge: light-dark(
-    var(--ink),
-    color-mix(in oklab, var(--ink) 58%, transparent)
-  );
-  --fleet-gauge-empty: light-dark(
-    color-mix(in oklab, var(--ink) 30%, transparent),
-    color-mix(in oklab, var(--ink) 14%, transparent)
-  );
-  --fleet-gauge-lit: light-dark(
-    color-mix(in oklab, var(--ink) 55%, transparent),
-    color-mix(in oklab, var(--ink) 32%, transparent)
-  );
-  --fleet-up: light-dark(
-    color-mix(in oklab, var(--rose) 22%, transparent),
-    color-mix(in oklab, var(--rose-3) 34%, transparent)
-  );
-  --fleet-idle: light-dark(
-    color-mix(in oklab, var(--ink) 5%, transparent),
-    color-mix(in oklab, var(--ink) 8%, transparent)
-  );
-}
-
 /* Draws in left to right (a clip, not a dash: dashes and non-scaling
    strokes disagree under the stretched viewBox). */
 .spark {
@@ -116,11 +93,11 @@
 }
 
 .gauge .on {
-  color: var(--fleet-gauge);
+  color: var(--ink);
 }
 
 .gauge .off {
-  color: var(--fleet-gauge-empty);
+  color: color-mix(in oklab, var(--ink) 30%, transparent);
 }
 
 .gauge .off > span {
@@ -129,7 +106,7 @@
 }
 
 .panel:hover .gauge .off > span {
-  color: var(--fleet-gauge-lit);
+  color: color-mix(in oklab, var(--ink) 55%, transparent);
 }
 
 .strip {
@@ -143,7 +120,10 @@
   flex: 1;
   min-width: 0;
   border-radius: 0.5px;
-  background: var(--fleet-up);
+  background: light-dark(
+    color-mix(in oklab, var(--rose) 22%, transparent),
+    color-mix(in oklab, var(--rose-3) 60%, transparent)
+  );
   transform-origin: bottom;
   animation: cell-in 400ms var(--ease-strong) backwards;
 }
@@ -154,7 +134,7 @@
 
 .strip > i[data-h="off"],
 .strip > i[data-h="none"] {
-  background: var(--fleet-idle);
+  background: color-mix(in oklab, var(--ink) 5%, transparent);
 }
 
 @keyframes cell-in {

@@ -326,7 +326,7 @@ function Panel({
           {(now) => (
             <span
               className={
-                !quiet && now - host.lastSeen <= 90_000
+                !quiet && now - host.lastSeen <= 150_000
                   ? "text-rose"
                   : undefined
               }
