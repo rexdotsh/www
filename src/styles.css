@@ -336,6 +336,16 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation: none;
 }
 
+::view-transition-group(workshop) {
+  animation-duration: 480ms;
+  animation-timing-function: var(--ease-strong);
+}
+
+::view-transition-old(workshop),
+::view-transition-new(workshop) {
+  animation-duration: 480ms;
+}
+
 @media (max-width: 767px) {
   .corner-notes {
     position: absolute;
