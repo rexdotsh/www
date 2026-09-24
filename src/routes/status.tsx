@@ -79,7 +79,7 @@ const ago = (then: number, now: number) => {
     ? `${Math.max(0, Math.round((now - then) / 1000))}s`
     : m < 60
       ? `${m}m`
-      : `${Math.floor(m / 60)}h ${m % 60}m`;
+      : `${Math.floor(m / 60)}h${m % 60 ? ` ${m % 60}m` : ""}`;
 };
 
 const wobble = (f: Fleet): Fleet => ({
