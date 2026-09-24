@@ -51,11 +51,14 @@ const CAPTIONS: Record<SentenceWord, string> = {
   resume: "( pretending to be a document )",
 };
 
+// On phones these also decide whether the rose's caption shows: for builds,
+// writes, workshop and hi the card sits over it. That started by accident and
+// reads better, so workshop is set to do the same.
 const LIFTS: Record<SentenceWord, string> = {
   name: "max-md:-translate-y-[50px]",
   builds: "max-md:-translate-y-[218px]",
   writes: "max-md:-translate-y-[66px]",
-  workshop: "max-md:-translate-y-[124px]",
+  workshop: "max-md:-translate-y-[98px]",
   music: "max-md:-translate-y-[85px]",
   hi: "max-md:-translate-y-[66px]",
   resume: "max-md:-translate-y-[50px]",
@@ -165,8 +168,14 @@ function useRoseNote(idle: boolean, stats: SiteStats | null) {
   return note;
 }
 
+let introPlayed = false;
+
 function Home() {
   const { hostname } = rootRoute.useLoaderData();
+  const [intro] = useState(() => !introPlayed);
+  useEffect(() => {
+    introPlayed = true;
+  }, []);
   const live = useNowPlaying();
   const [word, setWord] = useState<SentenceWord | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -271,12 +280,12 @@ function Home() {
             onWordHover={setWord}
             previewPlaying={preview !== null}
             track={track}
-            wordStagger
+            wordStagger={intro}
           />
         </div>
 
         <div
-          className="rise relative z-20 flex shrink-0 flex-col items-center md:z-auto"
+          className={`${intro ? "rise " : ""}relative z-20 flex shrink-0 flex-col items-center md:z-auto`}
           style={{ animationDelay: "200ms" }}
         >
           <div
@@ -286,6 +295,7 @@ function Home() {
               artFadeRef={artFadeRef}
               artUrl={albumArt}
               className="w-[min(64vw,300px)] md:w-[min(34vw,440px)]"
+              intro={intro}
               mode={mode}
             />
             <p

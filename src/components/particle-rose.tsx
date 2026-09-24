@@ -300,11 +300,13 @@ export default function ParticleRose({
   artFadeRef,
   artUrl = null,
   className = "",
+  intro = true,
   mode = "rest",
 }: {
   artFadeRef: RefObject<number>;
   artUrl?: string | null;
   className?: string;
+  intro?: boolean;
   mode?: RoseMode;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -719,7 +721,7 @@ export default function ParticleRose({
       document.fonts.ready,
     ]).then(() => {
       if (!cancelled) {
-        restart(true);
+        restart(intro);
       }
     });
     wakeRef.current = start;
