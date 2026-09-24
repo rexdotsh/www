@@ -122,7 +122,7 @@
   border-radius: 0.5px;
   background: light-dark(
     color-mix(in oklab, var(--rose) 22%, transparent),
-    color-mix(in oklab, var(--rose-3) 60%, transparent)
+    color-mix(in oklab, var(--rose) 70%, transparent)
   );
   transform-origin: bottom;
   animation: cell-in 400ms var(--ease-strong) backwards;
