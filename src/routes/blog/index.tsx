@@ -28,8 +28,7 @@ export const Route = createFileRoute("/blog/")({
   }),
   headers: () => ({
     "Cache-Control": "public, max-age=0",
-    "Cloudflare-CDN-Cache-Control":
-      "public, max-age=3600, stale-while-revalidate=86400",
+    "Cloudflare-CDN-Cache-Control": "public, max-age=3600",
   }),
 });
 
