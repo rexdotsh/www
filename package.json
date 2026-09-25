@@ -17,6 +17,7 @@
     "lint:fix": "biome lint --write --unsafe .",
     "og:gen": "bun scripts/generate-og.ts",
     "preview": "vite preview",
+    "purge": "bun scripts/purge-cache.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

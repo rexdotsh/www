@@ -25,8 +25,7 @@ export const Route = createRootRoute({
     // The document is static per hostname; keep browser validation cheap while
     // allowing Cloudflare to serve repeat navigations from the edge.
     "Cache-Control": "public, max-age=0, must-revalidate",
-    "Cloudflare-CDN-Cache-Control":
-      "public, max-age=3600, stale-while-revalidate=86400",
+    "Cloudflare-CDN-Cache-Control": "public, max-age=3600",
   }),
   loader: () => getSiteInfo(),
   staleTime: Number.POSITIVE_INFINITY,
