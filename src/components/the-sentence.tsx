@@ -143,7 +143,12 @@ export const TheSentence = memo(function TheSentence({
     {
       key: "music",
       href: track?.url,
-      text: "something",
+      text: (
+        <>
+          something
+          {track?.isPlaying || previewPlaying ? <RisingNotes /> : null}
+        </>
+      ),
       peek: track ? (
         <MusicPeek
           onToggle={onPreviewToggle}
@@ -699,6 +704,37 @@ function WaveEq() {
           </span>
         </span>
       ))}
+    </span>
+  );
+}
+
+const noteHead = (cx: number, cy: number) => (
+  <ellipse
+    cx={cx}
+    cy={cy}
+    rx="3.4"
+    ry="2.5"
+    transform={`rotate(-22 ${cx} ${cy})`}
+  />
+);
+
+function RisingNotes() {
+  return (
+    <span className="notes">
+      <svg aria-hidden="true" viewBox="0 0 12 18">
+        {noteHead(4, 14.5)}
+        <path d="M7 14V1.5c.6 2.6 4.6 3.4 4 7.4" />
+      </svg>
+      <svg aria-hidden="true" viewBox="0 0 20 18">
+        {noteHead(4, 14.5)}
+        {noteHead(15.5, 12.5)}
+        <path d="M7 14V3.5l11.5-2.2V12" />
+        <path d="M7 3.5l11.5-2.2" strokeWidth="2.6" />
+      </svg>
+      <svg aria-hidden="true" viewBox="0 0 12 18">
+        {noteHead(4, 14.5)}
+        <path d="M7 14V1.5" />
+      </svg>
     </span>
   );
 }

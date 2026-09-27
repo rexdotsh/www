@@ -687,6 +687,21 @@
   color: var(--rose);
 }
 
+.swash {
+  position: absolute;
+  left: -0.04em;
+  top: 100%;
+  width: 104%;
+  overflow: visible;
+  fill: none;
+  stroke: var(--rose);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ink-draw 900ms var(--ease-strong) 450ms forwards;
+}
+
 .post-list > li + li {
   border-top: 1px solid color-mix(in oklab, var(--ink) 8%, transparent);
 }
@@ -694,43 +709,74 @@
 .petal-stage {
   position: relative;
   display: block;
-  height: 3.2rem;
+  width: 3rem;
+  margin: 0 auto 0.9rem;
 }
 
-.petal {
+.ink-rose {
+  display: block;
+  width: 100%;
+  overflow: visible;
+  fill: none;
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ink-rose path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.ink-rose .stem {
+  stroke: color-mix(in oklab, var(--ink) 50%, transparent);
+}
+
+.ink-rose .bloom {
+  stroke: var(--rose);
+}
+
+.petal-stage[data-drawn] .ink-rose path {
+  animation: ink-draw 700ms var(--ease-strong) forwards;
+}
+
+@keyframes ink-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.petal-fall {
   position: absolute;
-  left: 50%;
-  top: 0;
-  color: var(--heat-3);
-  font-family: var(--font-mono);
-  font-size: 15px;
-  animation: petal-fall 3s linear both;
+  left: 64%;
+  top: 22%;
+  animation: petal-fall 3s linear var(--drop) both;
 }
 
-.petal-glyph {
-  display: inline-block;
-  animation: petal-sway 1.5s ease-in-out 2 alternate both;
+.petal-fall .petal {
+  width: 8px;
+  animation: petal-sway 1.5s ease-in-out var(--drop) 2 alternate both;
 }
 
 @keyframes petal-fall {
   0% {
-    transform: translateY(-0.4rem);
+    transform: translateY(0);
     opacity: 0;
   }
-  14% {
-    opacity: 0.9;
+  10% {
+    opacity: 1;
   }
   100% {
-    transform: translateY(2.1rem);
-    opacity: 0.9;
+    transform: translateY(2.9rem);
+    opacity: 1;
   }
 }
 
 @keyframes petal-sway {
   from {
-    transform: translateX(-0.55rem) rotate(-24deg);
+    transform: translateX(-0.5rem) rotate(-30deg);
   }
   to {
-    transform: translateX(0.55rem) rotate(18deg);
+    transform: translateX(0.45rem) rotate(24deg);
   }
 }

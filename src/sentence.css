@@ -44,6 +44,67 @@
   animation-delay: inherit;
 }
 
+/* Behind the text, so crossing the line above reads as depth. */
+.notes {
+  position: absolute;
+  z-index: -1;
+  right: 0.3em;
+  bottom: 0.8em;
+  width: 0.9em;
+  height: 1.4em;
+  pointer-events: none;
+}
+
+.notes > svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 0.34em;
+  overflow: visible;
+  fill: var(--rose);
+  stroke: var(--rose);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  animation: note-rise 5.4s linear infinite;
+}
+
+.notes > svg:nth-child(2) {
+  left: 0.3em;
+  animation-delay: 1.8s;
+}
+
+.notes > svg:nth-child(3) {
+  left: 0.1em;
+  animation-delay: 3.6s;
+}
+
+.notes path {
+  fill: none;
+}
+
+.notes ellipse {
+  stroke: none;
+}
+
+@keyframes note-rise {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0.25em) rotate(-14deg) scale(0.6);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(0.4em, -0.55em) rotate(10deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0.1em, -1.15em) rotate(-8deg) scale(0.85);
+  }
+}
+
 /* Prevent Safari from clipping italic link tails during transitions. */
 .peek-trigger {
   padding-inline: 0.15em;

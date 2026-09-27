@@ -1,4 +1,5 @@
 import { type RefObject, useEffect, useRef } from "react";
+import { shed } from "@/components/garden";
 import { ASCII_ROSE } from "@/lib/ascii-rose";
 import { sfx } from "@/lib/sfx";
 
@@ -704,8 +705,25 @@ export default function ParticleRose({
           p.vy += (dy / dist) * force;
         }
       }
+      shed(event.clientX, event.clientY, 9, 340);
       sfx("bloom");
     };
+
+    const shedding = setInterval(() => {
+      if (
+        modeRef.current === "rest" &&
+        !pointer.active &&
+        inViewport &&
+        !document.hidden &&
+        Math.random() < 0.6
+      ) {
+        const box = container.getBoundingClientRect();
+        shed(
+          box.left + box.width * (0.25 + Math.random() * 0.5),
+          box.top + box.height * (0.15 + Math.random() * 0.4)
+        );
+      }
+    }, 5000);
 
     let cancelled = false;
     const onVisibilityChange = () => {
@@ -770,6 +788,7 @@ export default function ParticleRose({
     return () => {
       cancelled = true;
       stop();
+      clearInterval(shedding);
       clearTimeout(idleWakeTimer);
       idleWakeTimer = undefined;
       wakeRef.current = () => undefined;

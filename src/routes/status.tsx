@@ -6,6 +6,7 @@ import {
   type ReactNode,
   use,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import BackLink from "@/components/back-link";
@@ -251,6 +252,7 @@ function Panel({
         <Lamp health={host.health} />
         {host.id}
       </h2>
+      <Gears cpu={host.cpu} still={host.health !== "up"} />
       <p className="panel-role">{host.role}</p>
       <p className="mt-0.5 text-[11px] text-faint">
         {spec.length > 0 ? (
@@ -344,6 +346,72 @@ function Panel({
         </Live>
       </p>
     </article>
+  );
+}
+
+const gear = (teeth: number, r: number) => {
+  const step = (Math.PI * 2) / teeth;
+  const at = (radius: number, a: number) =>
+    `${(radius * Math.cos(a)).toFixed(2)} ${(radius * Math.sin(a)).toFixed(2)}`;
+  const rim = Array.from({ length: teeth }, (_, i) => {
+    const a = i * step;
+    return `${at(r - 1.7, a - step * 0.32)}L${at(r + 1.3, a - step * 0.13)}L${at(r + 1.3, a + step * 0.13)}L${at(r - 1.7, a + step * 0.32)}`;
+  }).join("L");
+  const hole = r * 0.34;
+  return `M${rim}ZM${hole} 0a${hole} ${hole} 0 1 0 ${-2 * hole} 0a${hole} ${hole} 0 1 0 ${2 * hole} 0Z`;
+};
+
+// Pitch radii follow the tooth counts (10:7), so the pair meshes at any speed.
+// Each gear is its own <svg> so the spin stays on the compositor.
+const BIG = gear(10, 8);
+const SMALL = gear(7, 5.6);
+const MESH = (Math.atan2(-5.75, 12.33) * 180) / Math.PI;
+
+// One turn of the big gear takes 10s at 10% cpu, and it speeds up with load.
+function Gears({ cpu, still }: { cpu: number; still: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const spins = useRef<Animation[]>([]);
+
+  useEffect(() => {
+    const [big, small] = ref.current?.children ?? [];
+    if (
+      !(big && small) ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+    spins.current = [
+      big.animate(
+        { transform: ["rotate(0deg)", "rotate(360deg)"] },
+        { duration: 10_000, iterations: Number.POSITIVE_INFINITY }
+      ),
+      small.animate(
+        { transform: ["rotate(0deg)", "rotate(-360deg)"] },
+        { duration: 7000, iterations: Number.POSITIVE_INFINITY }
+      ),
+    ];
+    return () => {
+      for (const spin of spins.current) {
+        spin.cancel();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    for (const spin of spins.current) {
+      spin.updatePlaybackRate(still ? 0 : (cpu + 2) / 12);
+    }
+  }, [cpu, still]);
+
+  return (
+    <span className="gears" ref={ref}>
+      <svg aria-hidden="true" viewBox="-10 -10 20 20">
+        <path d={BIG} transform={`rotate(${MESH})`} />
+      </svg>
+      <svg aria-hidden="true" viewBox="-7.5 -7.5 15 15">
+        <path d={SMALL} transform={`rotate(${MESH + 180 - 180 / 7})`} />
+      </svg>
+    </span>
   );
 }
 

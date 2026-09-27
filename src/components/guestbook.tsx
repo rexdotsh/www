@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { shed } from "@/components/garden";
 import { sfx } from "@/lib/sfx";
 import {
   GUESTBOOK_LIMITS,
@@ -290,6 +291,7 @@ function SignForm({
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -322,6 +324,10 @@ function SignForm({
         | null;
       if (result?.ok) {
         sfx("pop");
+        const box = formRef.current?.getBoundingClientRect();
+        if (box) {
+          shed(box.left + box.width / 2, box.top + box.height / 2, 12, 380);
+        }
         patchStats((stats) => ({
           ...stats,
           signed: stats.signed + 1,
@@ -352,6 +358,7 @@ function SignForm({
       data-ready={ready ? "" : undefined}
       data-state={state}
       onSubmit={submit}
+      ref={formRef}
     >
       <span className="sign-text">
         “
