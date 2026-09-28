@@ -27,6 +27,7 @@ export const LINKS = {
   blog: "/blog",
   flora: "https://floraorg.github.io",
   github: "https://github.com/rexdotsh",
+  resume: "https://mridul.sh/resume",
   twitter: "https://x.com/rexmkv",
 };
 

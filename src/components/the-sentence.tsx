@@ -213,11 +213,11 @@ export const TheSentence = memo(function TheSentence({
             ( i also keep a{" "}
             <Peek
               hoverKey="resume"
-              href="/resume"
+              href={LINKS.resume}
               onHover={onWordHover}
               peek={
                 <TextPeek
-                  href="/resume"
+                  href={LINKS.resume}
                   label="on paper"
                   line="open the pdf →"
                 />
