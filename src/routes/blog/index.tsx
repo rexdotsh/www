@@ -44,7 +44,16 @@ function BlogIndex() {
           className="rise mt-10 text-[clamp(2.4rem,7vw,3.2rem)] leading-none"
           style={{ animationDelay: "80ms" }}
         >
-          writing<span className="full-stop text-rose">.</span>
+          <span className="relative inline-block">
+            writing
+            <svg aria-hidden="true" className="swash" viewBox="0 0 120 12">
+              <path
+                d="M3 8.5C28 5 64 3.2 96 4.6c9 .4 16 1.6 19.5 3.4"
+                pathLength={1}
+              />
+            </svg>
+          </span>
+          <span className="full-stop text-rose">.</span>
         </h1>
         <p
           className="rise mt-3 font-mono text-faint text-[11px] italic"

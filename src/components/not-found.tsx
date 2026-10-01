@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import BackLink from "@/components/back-link";
 import TintStrips from "@/components/tint-strips";
+import { seededRandom } from "@/lib/utils";
 
 const GRID = [
   [1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1],
@@ -14,14 +15,6 @@ const ROWS = GRID.length;
 const COLS = GRID[0].length;
 const REPEL_RADIUS = 120;
 const REPEL_STRENGTH = 4000;
-
-function seededRandom(seed: number) {
-  let s = seed;
-  return () => {
-    s = (s * 16_807) % 2_147_483_647;
-    return (s - 1) / 2_147_483_646;
-  };
-}
 
 const SCATTER_OFFSETS = (() => {
   const rand = seededRandom(404);

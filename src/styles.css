@@ -3,6 +3,7 @@
 @import "./sentence.css";
 @import "./guestbook.css";
 @import "./fleet.css";
+@import "./garden.css";
 
 @theme inline {
   --font-mono:
@@ -191,12 +192,52 @@ body {
   transition: transform 260ms var(--ease-strong);
 }
 
-.corner-notes:hover .paren:first-child {
+.corner-notes:hover .paren:first-of-type {
   transform: translateX(-3px);
 }
 
-.corner-notes:hover .paren:last-child {
+.corner-notes:hover .paren:last-of-type {
   transform: translateX(3px);
+}
+
+.cord {
+  position: absolute;
+  top: calc(-1 * max(1.1rem, env(safe-area-inset-top)));
+  left: calc(-0.8rem - 30px);
+  width: 60px;
+  height: 80px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.cord-chain {
+  stroke: color-mix(in oklab, var(--ink) 38%, transparent);
+  stroke-width: 1.6;
+  stroke-dasharray: 0 3.2;
+  stroke-linecap: round;
+}
+
+.cord-knob {
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.cord-knob:active {
+  cursor: grabbing;
+}
+
+.cord-knob path {
+  fill: var(--rose);
+  transition: filter 400ms var(--ease-strong);
+}
+
+.cord-grip {
+  fill: transparent;
+}
+
+:root[data-theme="dark"] .cord-knob path {
+  filter: drop-shadow(0 0 3px var(--rose)) drop-shadow(0 0 7px var(--rose));
 }
 
 .sound-ripple {

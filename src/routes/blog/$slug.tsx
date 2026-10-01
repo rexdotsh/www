@@ -320,31 +320,72 @@ function Toc({
   );
 }
 
-function FallingPetal() {
+// Drawn in order: the stem grows, then the bloom opens.
+const INK_ROSE: [part: "stem" | "bloom", d: string][] = [
+  ["stem", "M23.7 63C25.2 50 22.8 40 24 28.4"],
+  ["stem", "M24.3 36.5l-2.5-1.3 2.3 2.9"],
+  ["stem", "M24.1 45.5c2.5-4.3 7.5-6.1 11.9-5.1-1.4 4.7-6.6 7.4-11.9 5.1Z"],
+  ["stem", "M23.9 53.5c-2.2-3.4-6-4.7-9.4-3.5 1.4 3.7 5.4 5.6 9.4 3.5Z"],
+  ["stem", "M23.4 28.2c-.8 2-2.6 3.3-4.9 3.6M24.6 28.2c.8 2 2.6 3.3 4.9 3.6"],
+  ["bloom", "M24 28c-6.4-.2-10.8-5.6-10.6-12.3 3.1 1 5.6 3.2 7 6.2"],
+  ["bloom", "M24 28c6.4-.2 10.8-5.6 10.6-12.3-3.1 1-5.6 3.2-7 6.2"],
+  ["bloom", "M13.4 15.7c-.3-4.4 2.4-8 6.1-8.6 1.4 1.9 1.8 4.1 1.2 6.4"],
+  ["bloom", "M34.6 15.7c.3-4.4-2.4-8-6.1-8.6-1.4 1.9-1.8 4.1-1.2 6.4"],
+  [
+    "bloom",
+    "M24.3 15a1 1 0 0 1 2 0 2 2 0 0 1-4 0 3 3 0 0 1 6 0 3.6 3.6 0 0 1-7 .8",
+  ],
+  ["bloom", "M19.1 7.1c1.6-2 3.4-2.9 4.9-2.9s3.3.9 4.9 2.9"],
+];
+const INK_STEP_MS = 170;
+const INK_DRAWN_MS = INK_ROSE.length * INK_STEP_MS + 500;
+
+function InkRose() {
   const stageRef = useRef<HTMLSpanElement>(null);
-  const [drop, setDrop] = useState(false);
+  const [drawn, setDrawn] = useState(false);
 
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) {
       return;
     }
+    let chime: ReturnType<typeof setTimeout>;
     const observer = new IntersectionObserver((entries) => {
       if (entries.some((entry) => entry.isIntersecting)) {
-        setDrop(true);
-        sfx("chime");
+        setDrawn(true);
+        chime = setTimeout(() => sfx("chime"), INK_DRAWN_MS);
         observer.disconnect();
       }
     });
     observer.observe(stage);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      clearTimeout(chime);
+    };
   }, []);
 
   return (
-    <span aria-hidden="true" className="petal-stage" ref={stageRef}>
-      {drop ? (
-        <span className="petal">
-          <span className="petal-glyph">*</span>
+    <span
+      aria-hidden="true"
+      className="petal-stage"
+      data-drawn={drawn ? "" : undefined}
+      ref={stageRef}
+      style={{ "--drop": `${INK_DRAWN_MS}ms` } as React.CSSProperties}
+    >
+      <svg aria-hidden="true" className="ink-rose" viewBox="0 0 48 72">
+        {INK_ROSE.map(([part, d], index) => (
+          <path
+            className={part}
+            d={d}
+            key={d}
+            pathLength={1}
+            style={{ animationDelay: `${index * INK_STEP_MS}ms` }}
+          />
+        ))}
+      </svg>
+      {drawn ? (
+        <span className="petal-fall">
+          <span className="petal" />
         </span>
       ) : null}
     </span>
@@ -399,7 +440,7 @@ function PostPage() {
         </div>
 
         <footer className="rise mt-16 text-center">
-          <FallingPetal />
+          <InkRose />
           <p
             aria-hidden="true"
             className="font-mono text-faint text-[11px] italic"

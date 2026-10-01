@@ -1,5 +1,6 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Garden from "@/components/garden";
 import Guestbook from "@/components/guestbook";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
@@ -270,6 +271,7 @@ function Home() {
 
   return (
     <main className="fixed inset-0 overflow-y-auto paper paper-lit font-serif-display text-ink selection:bg-rose selection:text-paper">
+      <Garden />
       <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-14 pb-[max(2rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:px-12 md:py-16">
         <div className="sentence-root relative max-w-2xl md:flex-1">
           <TheSentence

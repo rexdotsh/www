@@ -63,6 +63,50 @@
   }
 }
 
+/* A 30×23 drawing: the big gear sits at (10, 13), the small one at
+   (22.3, 7.3), 13.6 apart, which is the sum of their pitch radii. */
+.gears {
+  position: absolute;
+  top: 0.9rem;
+  right: 1rem;
+  width: 40px;
+  aspect-ratio: 30 / 23;
+  color: var(--faint);
+  fill: color-mix(in oklab, currentColor 12%, transparent);
+  fill-rule: evenodd;
+  stroke: currentColor;
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  transition: color 220ms var(--ease-strong);
+}
+
+.gears > svg {
+  position: absolute;
+  overflow: visible;
+}
+
+.gears > :first-child {
+  left: 0;
+  top: 13%;
+  width: 66.7%;
+}
+
+.gears > :last-child {
+  left: 49.4%;
+  top: -1.1%;
+  width: 50%;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .panel:hover .gears {
+    color: var(--rose);
+  }
+}
+
+.panel[data-health="off"] .gears {
+  opacity: 0.55;
+}
+
 .panel-title {
   position: absolute;
   top: 0;

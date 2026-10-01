@@ -1,0 +1,134 @@
+.petal {
+  display: block;
+  aspect-ratio: 20 / 24;
+  background: radial-gradient(
+    120% 95% at 32% 18%,
+    var(--rose-4),
+    var(--rose-2) 52%,
+    var(--rose-1)
+  );
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 24'%3E%3Cpath d='M10 23.5C5.5 21 1.2 16.5 1 10.5.8 5 4 1.2 8 1c1 0 1.7.6 2.2 1.4C11 1.4 12 .9 13.2 1.1 17 1.8 19.5 5.8 19 11c-.5 5.8-4.5 10.3-9 12.5Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.petal[data-tone="1"] {
+  background: radial-gradient(
+    120% 95% at 32% 18%,
+    var(--rose-3),
+    var(--rose-1) 55%,
+    var(--rose-0)
+  );
+}
+
+.petal[data-tone="2"] {
+  background: radial-gradient(
+    120% 95% at 32% 18%,
+    var(--rose-glow),
+    var(--rose-3) 50%,
+    var(--rose-2)
+  );
+}
+
+.garden-petals {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.garden-petals > .petal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  translate: -50% -50%;
+  opacity: 0;
+}
+
+.fireflies {
+  display: none;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+:root[data-theme="dark"] .fireflies {
+  display: block;
+}
+
+.firefly {
+  position: absolute;
+  animation: firefly-x var(--fx) ease-in-out var(--fd) infinite alternate;
+}
+
+.firefly > i {
+  display: block;
+  animation: firefly-y var(--fy) ease-in-out var(--fd) infinite alternate;
+}
+
+.firefly > i > i {
+  display: block;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  background: radial-gradient(
+    circle,
+    var(--rose-glow) 1.6px,
+    color-mix(in oklab, var(--rose-glow) 55%, transparent) 2.6px,
+    color-mix(in oklab, var(--rose) 26%, transparent) 5.5px,
+    transparent 13px
+  );
+  animation: firefly-glow var(--fb) ease-in-out var(--fd) infinite;
+}
+
+@keyframes firefly-x {
+  from {
+    translate: calc(var(--rx) * -1) 0;
+  }
+  to {
+    translate: var(--rx) 0;
+  }
+}
+
+@keyframes firefly-y {
+  from {
+    translate: 0 calc(var(--ry) * -1);
+  }
+  to {
+    translate: 0 var(--ry);
+  }
+}
+
+@keyframes firefly-glow {
+  0%,
+  100% {
+    opacity: 0.2;
+    scale: 0.8;
+  }
+  40% {
+    opacity: 0.3;
+    scale: 0.85;
+  }
+  56% {
+    opacity: 1;
+    scale: 1.15;
+  }
+  74% {
+    opacity: 0.35;
+    scale: 0.9;
+  }
+}
+
+@media (max-width: 767px) {
+  .firefly:nth-child(n + 9) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fireflies {
+    display: none !important;
+  }
+}
