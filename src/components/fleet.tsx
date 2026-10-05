@@ -1,5 +1,6 @@
 import {
   type CSSProperties,
+  type PointerEvent,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -56,7 +57,7 @@ export function Sparkline({
     el.style.transform = "translateX(0)";
   }, [data]);
 
-  const onMove = (e: React.PointerEvent<HTMLElement>) => {
+  const onMove = (e: PointerEvent<HTMLElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     const i = Math.round(((e.clientX - r.left) / r.width) * (n - 2)) + 1;
     setHover(Math.max(1, Math.min(n - 1, i)));
@@ -153,8 +154,10 @@ export function useTween(target: number) {
   return { value, moving };
 }
 
-export function Gauge({ frac, width = 17 }: { frac: number; width?: number }) {
-  const on = Math.round(Math.max(0, Math.min(1, frac)) * width);
+const GAUGE_CELLS = 17;
+
+export function Gauge({ frac }: { frac: number }) {
+  const on = Math.round(Math.max(0, Math.min(1, frac)) * GAUGE_CELLS);
   return (
     <span
       aria-label={`${Math.round(frac * 100)} percent`}
@@ -163,7 +166,7 @@ export function Gauge({ frac, width = 17 }: { frac: number; width?: number }) {
     >
       <span className="on">{"█".repeat(on)}</span>
       <span className="off">
-        {Array.from({ length: width - on }, (_, i) => (
+        {Array.from({ length: GAUGE_CELLS - on }, (_, i) => (
           <span key={i} style={{ "--i": i } as CSSProperties}>
             ░
           </span>

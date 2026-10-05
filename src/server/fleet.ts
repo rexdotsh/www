@@ -65,6 +65,14 @@ export class FleetStore extends DurableObject {
     const prev = this.row(host);
     if (prev && ts <= prev.seen) return false;
     const day = Math.floor(ts / 86_400_000);
+    // One cell per minute, not per sample: minutes nobody reported in are down.
+    const gap = prev
+      ? Math.min(BEATS, Math.max(0, Math.round((ts - prev.seen) / MINUTE) - 1))
+      : 0;
+    const gapped = (ring: number[] | undefined) => [
+      ...(ring ?? []),
+      ...new Array<number>(gap).fill(0),
+    ];
     const svc: Row["svc"] = {};
     for (const s of SERVICES) {
       if (s.host !== host) continue;
@@ -81,7 +89,7 @@ export class FleetStore extends DurableObject {
         last?.[0] === day ? [day, last[1] + up, last[2] + 1] : [day, up, 1];
       svc[s.id] = {
         mem: found.reduce((sum, c) => sum + (c.m ?? 0), 0),
-        strip: push(old?.strip, up, BEATS),
+        strip: push(gapped(old?.strip), up, BEATS),
         days: push(last?.[0] === day ? days.slice(0, -1) : days, today, DAYS),
       };
     }
@@ -90,7 +98,7 @@ export class FleetStore extends DurableObject {
       containers: sample.containers.length,
       seen: ts,
       spark: push(prev?.spark, sample.cpu, SPARK),
-      beats: push(prev?.beats, 1, BEATS),
+      beats: push(gapped(prev?.beats), 1, BEATS),
       svc,
     };
     this.sql.exec(
@@ -143,7 +151,13 @@ export class FleetStore extends DurableObject {
         diskTotal: (row?.disk[1] ?? 0) / 1024,
         upSince: silent ? 0 : (row?.boot ?? 0) * 1000,
         lastSeen: row?.seen ?? 0,
-        beats: cells(row?.beats ?? [], BEATS, health, health, missed),
+        beats: cells(
+          row?.beats ?? [],
+          BEATS,
+          meta.intermittent ? "off" : "down",
+          health,
+          missed
+        ),
         containers: row?.containers ?? 0,
       });
       if (meta.private) continue;
