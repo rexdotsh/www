@@ -178,12 +178,14 @@ function Toc({
     };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
     // Opening a code block moves the headings without a scroll.
     const resizeObserver = new ResizeObserver(onScroll);
     resizeObserver.observe(document.body);
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       resizeObserver.disconnect();
     };
   }, [entries]);
@@ -307,10 +309,26 @@ function PostPage() {
   const post = getPost(slug);
   const headerBackRef = useRef<HTMLAnchorElement>(null);
 
+  // Only while an in-page link scrolls, so loads and history restores jump.
   useEffect(() => {
-    document.documentElement.dataset.smooth = "";
+    const root = document.documentElement;
+    const settle = () => {
+      delete root.dataset.smooth;
+    };
+    const onClick = (event: MouseEvent) => {
+      if (
+        event.target instanceof Element &&
+        event.target.closest('a[href^="#"]')
+      ) {
+        root.dataset.smooth = "";
+        addEventListener("scrollend", settle, { once: true });
+      }
+    };
+    addEventListener("click", onClick);
     return () => {
-      delete document.documentElement.dataset.smooth;
+      removeEventListener("click", onClick);
+      removeEventListener("scrollend", settle);
+      settle();
     };
   }, []);
 

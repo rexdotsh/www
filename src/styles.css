@@ -425,8 +425,8 @@ html[data-vt="theme"]::view-transition-new(root) {
   }
 }
 
-/* Set by the post once it's on screen: deep links and restores still jump,
-   in-page links glide. */
+/* Set by the post while an in-page link scrolls: loads, history restores and
+   find-in-page still jump. */
 @media (prefers-reduced-motion: no-preference) {
   html[data-smooth] {
     scroll-behavior: smooth;
