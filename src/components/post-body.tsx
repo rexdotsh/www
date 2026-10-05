@@ -7,35 +7,20 @@ import {
   useState,
 } from "react";
 import VideoPlayer from "@/components/video-player";
-import { sfx } from "@/lib/sfx";
-
-const COPIED_MS = 1600;
+import { useCopied } from "@/lib/use-copied";
 
 const QUIET_LANGS = new Set(["text", "txt", "plaintext", "plain", ""]);
 
-function Pre({ children, ...props }: ComponentProps<"pre">) {
+function Pre({ children, tabIndex, ...props }: ComponentProps<"pre">) {
   const data = props as { "data-code"?: string; "data-lang"?: string };
   const code = data["data-code"] ?? "";
   const lang = data["data-lang"] ?? "";
-  const [copied, setCopied] = useState(false);
+  const [copied, copy] = useCopied();
   return (
     <div className="code-shell">
       <span className="code-tools">
-        <button
-          className="code-copy"
-          onClick={() => {
-            navigator.clipboard
-              .writeText(code)
-              .then(() => {
-                setCopied(true);
-                sfx("pop");
-                setTimeout(() => setCopied(false), COPIED_MS);
-              })
-              .catch(() => undefined);
-          }}
-          type="button"
-        >
-          <span className="swap-in" key={String(copied)}>
+        <button className="code-copy" onClick={() => copy(code)} type="button">
+          <span aria-live="polite" className="swap-in" key={String(copied)}>
             {copied ? "( copied )" : "copy"}
           </span>
         </button>
@@ -45,7 +30,9 @@ function Pre({ children, ...props }: ComponentProps<"pre">) {
           </span>
         )}
       </span>
-      <pre className="code-card">{children}</pre>
+      <pre className="code-card" tabIndex={tabIndex}>
+        {children}
+      </pre>
     </div>
   );
 }
@@ -86,12 +73,12 @@ function CodeFile({
 }
 
 function Figure({
-  alt = "",
+  alt,
   height,
   src,
   width,
 }: {
-  alt?: string;
+  alt: string;
   height: number;
   src: string;
   width: number;
@@ -114,6 +101,7 @@ function Figure({
       decoding="async"
       height={height}
       loading="lazy"
+      onError={() => setPending(false)}
       onLoad={() => setPending(false)}
       ref={imageRef}
       src={src}
@@ -123,11 +111,14 @@ function Figure({
 }
 
 const COMPONENTS: MDXComponents = {
-  a: ({ href, children }) => (
-    <a href={href} rel="noopener noreferrer" target="_blank">
-      {children}
-    </a>
-  ),
+  a: ({ href, children }) =>
+    href?.startsWith("http") ? (
+      <a href={href} rel="noopener noreferrer" target="_blank">
+        {children}
+      </a>
+    ) : (
+      <a href={href}>{children}</a>
+    ),
   CodeFile,
   Figure,
   h2: heading("h2"),

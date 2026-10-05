@@ -219,6 +219,7 @@ As you can see, the gold blocks are in the correct positions, but the player can
 A few hours later of trying to wrap our heads around the Ghidra decompiled code, using [GhidraBoy](https://github.com/Gekkio/GhidraBoy) and the output from the BGB Debugger, my teammate discovered this.
 
 <Figure
+  alt="A Discord thread: the level's win conditions annotated byte by byte, a hex dump of a third map that is nothing but walls, and the emulator showing that map in Missing."
   height={881}
   src="https://r2.rex.wf/blog/parabox/ghidra-third-map.png"
   width={487}
@@ -285,7 +286,7 @@ The fifth, and last level, was another one that we **thought** we solved without
 
 Simply inputting `DOWN` twice allowed you to win the level (shown in the previous recording), and submitting these moves to the remote, got you the flag. Below is a simple solve script to get the flag.
 
-```py
+```python
 # solve.py
 from pwn import *
 

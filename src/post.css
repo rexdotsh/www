@@ -84,7 +84,7 @@
 }
 
 .heading-anchor::after {
-  content: "#";
+  content: "#" / "";
   margin-left: 0.5ch;
   font-size: 0.7em;
   vertical-align: 0.12em;
@@ -111,6 +111,8 @@
 }
 
 .prose-post :not(pre) > code {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
   font-family: var(--font-mono);
   font-size: 0.8em;
   background: color-mix(in oklab, var(--ink) 6%, transparent);
@@ -157,6 +159,8 @@
 
 .prose-post hr {
   border: none;
+  height: auto;
+  overflow: visible;
   margin: 1.8em 0;
 }
 
@@ -332,6 +336,12 @@
     scale 800ms var(--ease-strong);
 }
 
+img.post-media {
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
+}
+
 .post-media[data-pending] {
   opacity: 0;
   scale: 0.985;
@@ -378,7 +388,8 @@
     background-color 150ms;
 }
 
-.player-cue[data-visible] {
+.player-cue[data-visible],
+.player-cue:focus-visible {
   opacity: 1;
   pointer-events: auto;
 }
@@ -669,7 +680,8 @@
   transition: grid-template-rows 320ms var(--ease-strong);
 }
 
-.toc-children[data-open] {
+.toc-children[data-open],
+.toc-children:focus-within {
   grid-template-rows: 1fr;
 }
 

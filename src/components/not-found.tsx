@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import BackLink from "@/components/back-link";
 import TintStrips from "@/components/tint-strips";
+import { reducedMotion } from "@/lib/utils";
 
 const GRID = [
   [1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1],
@@ -47,12 +48,14 @@ function forEachCell(
 const GLYPHS =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
 
-function ScrambleLink({ text, to }: { text: string; to: "/" }) {
+function ScrambleLink({ text, to }: { text: string; to: "/" | "/blog" }) {
   const [display, setDisplay] = useState(text);
-  const ref = useRef<ReturnType<typeof setInterval>>(null);
+  const ref = useRef<ReturnType<typeof setInterval>>(undefined);
+
+  useEffect(() => () => clearInterval(ref.current), []);
 
   const stop = () => {
-    if (ref.current) clearInterval(ref.current);
+    clearInterval(ref.current);
     setDisplay(text);
   };
 
@@ -85,11 +88,11 @@ function ScrambleLink({ text, to }: { text: string; to: "/" }) {
   );
 }
 
-export default function NotFoundPage() {
+export default function NotFoundPage({ to = "/" }: { to?: "/" | "/blog" }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cellRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const mousePos = useRef<{ x: number; y: number } | null>(null);
-  const rafId = useRef(0);
+  const frame = useRef(0);
   const assembled = useRef(false);
 
   useEffect(() => {
@@ -98,7 +101,7 @@ export default function NotFoundPage() {
     const assembleTimeout = setTimeout(() => {
       forEachCell((el) => {
         el.style.transition =
-          "transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.6s ease-out";
+          "transform 0.8s var(--ease-spring), opacity 0.6s ease-out";
         el.style.transform = "translate(0px, 0px)";
         el.style.opacity = "1";
       }, cells);
@@ -114,78 +117,62 @@ export default function NotFoundPage() {
     return () => {
       clearTimeout(assembleTimeout);
       clearTimeout(interactiveTimeout);
+      cancelAnimationFrame(frame.current);
     };
   }, []);
 
-  useEffect(() => {
-    const animate = () => {
-      if (!assembled.current) {
-        rafId.current = requestAnimationFrame(animate);
-        return;
+  const repel = () => {
+    frame.current = 0;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const cellW = rect.width / COLS;
+    const cellH = rect.height / ROWS;
+    const mp = mousePos.current;
+
+    forEachCell((el, r, c) => {
+      const dx = rect.left + c * cellW + cellW / 2 - (mp?.x ?? 0);
+      const dy = rect.top + r * cellH + cellH / 2 - (mp?.y ?? 0);
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (mp && dist < REPEL_RADIUS) {
+        const force = REPEL_STRENGTH / (dist * dist + 1);
+        const angle = Math.atan2(dy, dx);
+        el.style.transform = `translate(${Math.cos(angle) * force}px, ${Math.sin(angle) * force}px)`;
+        el.style.opacity = `${Math.max(0.2, dist / REPEL_RADIUS)}`;
+      } else {
+        el.style.transform = "translate(0px, 0px)";
+        el.style.opacity = "1";
       }
-
-      const container = containerRef.current;
-      if (!container) return;
-
-      const rect = container.getBoundingClientRect();
-      const cellW = rect.width / COLS;
-      const cellH = rect.height / ROWS;
-      const mp = mousePos.current;
-
-      forEachCell((el, r, c) => {
-        if (!mp) {
-          el.style.transform = "translate(0px, 0px)";
-          el.style.opacity = "1";
-          return;
-        }
-
-        const dx = rect.left + c * cellW + cellW / 2 - mp.x;
-        const dy = rect.top + r * cellH + cellH / 2 - mp.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < REPEL_RADIUS) {
-          const force = REPEL_STRENGTH / (dist * dist + 1);
-          const angle = Math.atan2(dy, dx);
-          el.style.transform = `translate(${Math.cos(angle) * force}px, ${Math.sin(angle) * force}px)`;
-          el.style.opacity = `${Math.max(0.2, dist / REPEL_RADIUS)}`;
-        } else {
-          el.style.transform = "translate(0px, 0px)";
-          el.style.opacity = "1";
-        }
-      }, cellRefs.current);
-
-      rafId.current = requestAnimationFrame(animate);
-    };
-
-    rafId.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafId.current);
-  }, []);
-
-  const setPointer = (x: number, y: number) => {
-    mousePos.current = { x, y };
+    }, cellRefs.current);
   };
-  const clearPointer = () => {
-    mousePos.current = null;
+
+  const setPointer = (pos: { x: number; y: number } | null) => {
+    mousePos.current = pos;
+    if (assembled.current && !frame.current && !reducedMotion()) {
+      frame.current = requestAnimationFrame(repel);
+    }
   };
 
   return (
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: visual effect
     <main
-      className="fixed inset-0 overflow-hidden paper text-ink selection:bg-rose selection:text-paper"
-      onMouseMove={(e) => setPointer(e.clientX, e.clientY)}
-      onMouseLeave={clearPointer}
+      className="fixed inset-0 overflow-hidden paper text-ink"
+      onMouseLeave={() => setPointer(null)}
+      onMouseMove={(e) => setPointer({ x: e.clientX, y: e.clientY })}
+      onTouchEnd={() => setPointer(null)}
       onTouchMove={(e) =>
-        setPointer(e.touches[0].clientX, e.touches[0].clientY)
+        setPointer({ x: e.touches[0].clientX, y: e.touches[0].clientY })
       }
-      onTouchEnd={clearPointer}
     >
       <div className="flex h-full flex-col items-center justify-center">
         <div
-          ref={containerRef}
-          className="relative w-[min(448px,85vw)]"
-          style={{ aspectRatio: `${COLS} / ${ROWS}` }}
-          role="img"
           aria-label="404"
+          className="relative w-[min(448px,85vw)]"
+          ref={containerRef}
+          role="img"
+          style={{ aspectRatio: `${COLS} / ${ROWS}` }}
         >
           {GRID.flatMap((row, r) =>
             row.map((cell, c) => {
@@ -194,25 +181,21 @@ export default function NotFoundPage() {
               const { x, y } = SCATTER_OFFSETS[idx];
               return (
                 <span
+                  className="absolute bg-rose bg-clip-content p-px"
                   key={idx}
                   ref={(el) => {
                     cellRefs.current[idx] = el;
                   }}
-                  className="absolute text-rose"
                   style={{
                     left: `${(c / COLS) * 100}%`,
                     top: `${(r / ROWS) * 100}%`,
                     width: `${(1 / COLS) * 100}%`,
                     height: `${(1 / ROWS) * 100}%`,
-                    fontSize: "min(28px, calc(85vw / 16))",
-                    lineHeight: "min(28px, calc(85vw / 16))",
                     transform: `translate(${x}px, ${y}px)`,
                     opacity: 0,
                     willChange: "transform, opacity",
                   }}
-                >
-                  █
-                </span>
+                />
               );
             })
           )}
@@ -223,7 +206,7 @@ export default function NotFoundPage() {
         >
           ( no such page. the rose checked. )
         </p>
-        <ScrambleLink text="home" to="/" />
+        <ScrambleLink text={to === "/" ? "home" : "writing"} to={to} />
       </div>
       <TintStrips />
     </main>
