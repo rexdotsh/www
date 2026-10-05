@@ -37,7 +37,8 @@ export function usePreview(url: string | null, onEnd: () => void) {
     }
     const audio = new Audio();
     audio.crossOrigin = "anonymous";
-    audio.preload = "auto";
+    // Most visitors never press play; `warm` starts buffering on intent.
+    audio.preload = "none";
     audio.volume = 0;
     audio.src = url;
     const onPlay = () => setPlaying(true);
@@ -160,5 +161,20 @@ export function usePreview(url: string | null, onEnd: () => void) {
 
   const getPosition = useCallback(() => audioRef.current?.currentTime ?? 0, []);
 
-  return { duration, fade, getPosition, isPlaying, pause, play, setVolume };
+  const warm = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.preload = "auto";
+    }
+  }, []);
+
+  return {
+    duration,
+    fade,
+    getPosition,
+    isPlaying,
+    pause,
+    play,
+    setVolume,
+    warm,
+  };
 }

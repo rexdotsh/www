@@ -1,19 +1,9 @@
-export interface SiteIdentity {
-  domain: string;
-  handle: string;
-  isMridul: boolean;
-  name: string;
-  otherDomain: string;
-  otherName: string;
-}
-
-export function getIdentity(hostname: string): SiteIdentity {
+export function getIdentity(hostname: string) {
   const isMridul = hostname === "mridul.sh";
   return {
     name: isMridul ? "mridul" : "rex",
     otherName: isMridul ? "rex" : "mridul",
-    domain: isMridul ? "mridul.sh" : "rex.wf",
-    otherDomain: isMridul ? "https://rex.wf" : "https://mridul.sh",
+    otherDomain: isMridul ? "rex.wf" : "mridul.sh",
     handle: "rexmkv",
     isMridul,
   };

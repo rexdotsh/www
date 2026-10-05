@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { env, waitUntil } from "cloudflare:workers";
 import { notify } from "@/lib/notify";
+import { DEFAULT_ORIGIN } from "@/lib/site";
 
 const AUTHORIZE_URL = "https://accounts.spotify.com/authorize";
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
@@ -75,11 +76,7 @@ function cacheAccessToken(data: TokenResponse) {
   return token.access_token;
 }
 
-async function alertOnce(
-  kind: "expired" | "expiring",
-  origin: string,
-  expiresAt = 0
-) {
+async function alertOnce(kind: "expired" | "expiring", expiresAt = 0) {
   if (
     (await kv()
       .get(KV_ALERT)
@@ -87,15 +84,18 @@ async function alertOnce(
   ) {
     return;
   }
-  await kv().put(KV_ALERT, kind, { expirationTtl: ALERT_TTL });
+  // The production origin, not the request's: a preview URL isn't a registered redirect URI.
   const link = env.SPOTIFY_CONNECT_SECRET
-    ? `${origin}/api/spotify/connect?key=${encodeURIComponent(env.SPOTIFY_CONNECT_SECRET)}`
+    ? `${DEFAULT_ORIGIN}/api/spotify/connect?key=${encodeURIComponent(env.SPOTIFY_CONNECT_SECRET)}`
     : "(set SPOTIFY_CONNECT_SECRET first)";
-  await notify(
+  const sent = await notify(
     kind === "expired"
       ? `spotify refresh token is dead, the music widget is off.\n\nreconnect: ${link}`
       : `spotify refresh token expires around ${new Date(expiresAt).toDateString()}.\n\nreconnect early: ${link}`
   );
+  if (sent) {
+    await kv().put(KV_ALERT, kind, { expirationTtl: ALERT_TTL });
+  }
 }
 
 function safeEqual(a: string, b: string) {
@@ -126,7 +126,7 @@ function isValidState(state: string) {
   );
 }
 
-export async function getAccessToken(origin: string, signal: AbortSignal) {
+export async function getAccessToken(signal: AbortSignal) {
   const cached = await kv()
     .get<AccessToken>(KV_ACCESS, "json")
     .catch(() => null);
@@ -151,7 +151,7 @@ export async function getAccessToken(origin: string, signal: AbortSignal) {
   );
   if (!ok) {
     if (data.error === "invalid_grant") {
-      waitUntil(alertOnce("expired", origin));
+      waitUntil(alertOnce("expired"));
     }
     throw new Error(`Failed to refresh access token (${status})`);
   }
@@ -163,7 +163,7 @@ export async function getAccessToken(origin: string, signal: AbortSignal) {
   if (record.authorized_at) {
     const expiresAt = record.authorized_at + REFRESH_LIFETIME_MS;
     if (Date.now() > expiresAt - WARN_BEFORE_MS) {
-      waitUntil(alertOnce("expiring", origin, expiresAt));
+      waitUntil(alertOnce("expiring", expiresAt));
     }
   }
   return token;

@@ -12,11 +12,14 @@ export default function BackLink({
   onMouseLeave?: () => void;
   ref?: Ref<HTMLAnchorElement>;
   style?: CSSProperties;
-  tabIndex?: number;
   to: "/" | "/blog";
 }) {
   return (
-    <Link className={`back-link ${className}`} {...rest}>
+    <Link
+      activeOptions={{ exact: true }}
+      className={`back-link ${className}`}
+      {...rest}
+    >
       <span aria-hidden="true" className="back-arrow">
         ←
       </span>

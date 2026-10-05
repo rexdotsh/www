@@ -46,14 +46,18 @@ const CONTENT: Record<string, PostContent> = {
   },
 };
 
-const POSTS: (PostMeta & PostContent)[] = POSTS_META.map((meta) => ({
-  ...meta,
-  ...(CONTENT[meta.slug] ?? {
-    Content: (() => null) as MDXContent,
-    readingMinutes: 1,
-    toc: [],
-  }),
-}));
+const POSTS: (PostMeta & PostContent)[] = POSTS_META.map((meta) => {
+  const content = CONTENT[meta.slug];
+  if (!content) {
+    throw new Error(`${meta.slug} is in POSTS_META but has no content`);
+  }
+  return { ...meta, ...content };
+});
+
+export type Post = (typeof POSTS)[number];
 
 export const getPost = (slug: string) =>
   POSTS.find((post) => post.slug === slug);
+
+export const metaLine = (post: Post) =>
+  [post.dateLabel, ...post.meta, `${post.readingMinutes} min read`].join(" · ");

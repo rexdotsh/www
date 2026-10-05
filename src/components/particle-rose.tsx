@@ -1,6 +1,7 @@
 import { type RefObject, useEffect, useRef } from "react";
 import { ASCII_ROSE } from "@/lib/ascii-rose";
 import { sfx } from "@/lib/sfx";
+import { reducedMotion } from "@/lib/utils";
 
 export type RoseMode =
   | "rest"
@@ -77,8 +78,10 @@ const toCss = ([r, g, b]: Rgb) => `rgb(${r},${g},${b})`;
 
 function readPalette(host: HTMLElement): Rgb[] {
   const probe = document.createElement("span");
+  // The reduced-motion reset would turn each colour change into a transition
+  // and getComputedStyle would keep returning the first colour.
   probe.style.cssText =
-    "position:absolute;width:0;height:0;overflow:hidden;visibility:hidden";
+    "position:absolute;width:0;height:0;overflow:hidden;visibility:hidden;transition:none!important";
   host.appendChild(probe);
   const palette = PALETTE_VARS.map(([variable, fallback]): Rgb => {
     probe.style.color = `var(${variable})`;
@@ -298,16 +301,16 @@ function buildParticles(size: number, scattered: boolean): Particle[] {
 
 export default function ParticleRose({
   artFadeRef,
-  artUrl = null,
-  className = "",
-  intro = true,
-  mode = "rest",
+  artUrl,
+  className,
+  intro,
+  mode,
 }: {
   artFadeRef: RefObject<number>;
-  artUrl?: string | null;
-  className?: string;
-  intro?: boolean;
-  mode?: RoseMode;
+  artUrl: string | null;
+  className: string;
+  intro: boolean;
+  mode: RoseMode;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -325,9 +328,7 @@ export default function ParticleRose({
       return;
     }
 
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    const reduceMotion = reducedMotion();
 
     let particles: Particle[] = [];
     let size = 0;
@@ -596,19 +597,28 @@ export default function ParticleRose({
         }
       }
       context.globalAlpha = 1;
-      const settled =
+      const still =
         resting &&
-        !pointer.active &&
         !petal &&
         elapsed >= activationEnd + ACTIVATE_FADE_MS &&
         particles.every(
           (particle) =>
-            Math.abs(particle.vx) < 0.015 &&
-            Math.abs(particle.vy) < 0.015 &&
+            Math.abs(particle.vx) < 0.015 && Math.abs(particle.vy) < 0.015
+        );
+      // A resting pointer holds particles off their homes; this frame is final
+      // until it moves or leaves.
+      if (still && pointer.active) {
+        raf = 0;
+        return;
+      }
+      if (
+        still &&
+        particles.every(
+          (particle) =>
             Math.abs(particle.x - particle.homeX) < 0.5 &&
             Math.abs(particle.y - particle.homeY) < 0.5
-        );
-      if (settled) {
+        )
+      ) {
         drawStatic();
         raf = 0;
         scheduleIdleWake();
@@ -679,6 +689,7 @@ export default function ParticleRose({
       pointer.active = false;
       pointer.x = -9999;
       pointer.y = -9999;
+      start();
     };
 
     const onPointerLift = (event: PointerEvent) => {
@@ -803,7 +814,7 @@ export default function ParticleRose({
     >
       <canvas
         aria-label="An interactive rose made of ascii characters, move your cursor through it"
-        className="absolute block touch-none"
+        className="absolute block touch-pan-y"
         ref={canvasRef}
         role="img"
         style={{

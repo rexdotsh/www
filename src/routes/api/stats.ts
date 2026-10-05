@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PUBLISHED_META } from "@/lib/posts-meta";
 import type { SiteStats } from "@/lib/stats";
-import { room } from "@/server/api";
+import { notAllowed, room } from "@/server/api";
 
 const headers = {
   "Cache-Control": "public, max-age=15",
@@ -8,17 +9,16 @@ const headers = {
 };
 
 const FALLBACK: SiteStats = {
-  mock: true,
   online: 3,
   today: 41,
   week: 1204,
   total: 48_213,
   recent: [
-    { place: "tokyo", ago: "just now", path: "/" },
-    { place: "berlin", ago: "4m", path: "/blog/parabox" },
-    { place: "austin", ago: "11m", path: "/" },
-    { place: "bengaluru", ago: "26m", path: "/" },
-    { place: "somewhere", ago: "1h", path: "/blog" },
+    { place: "tokyo", ago: "just now", path: "/", tag: "a" },
+    { place: "berlin", ago: "4m", path: "/blog/parabox", tag: "b" },
+    { place: "austin", ago: "11m", path: "/", tag: "c" },
+    { place: "bengaluru", ago: "26m", path: "/", tag: "d" },
+    { place: "somewhere", ago: "1h", path: "/blog", tag: "e" },
   ],
   paths: { "/": 5802, "/blog/parabox": 2214, "/blog": 1037 },
   hi: 12,
@@ -57,12 +57,21 @@ export const Route = createFileRoute("/api/stats")({
           return Response.json(FALLBACK, { headers });
         }
         try {
-          return Response.json(await stub.stats(), { headers });
+          const stats = await stub.stats();
+          // The page only shows post reads; the table also holds old junk paths.
+          const paths = Object.fromEntries(
+            PUBLISHED_META.map((post) => {
+              const path = `/blog/${post.slug}`;
+              return [path, stats.paths[path] ?? 0];
+            })
+          );
+          return Response.json({ ...stats, paths }, { headers });
         } catch (error) {
           console.error("stats", error);
           return new Response(null, { status: 503 });
         }
       },
+      ANY: notAllowed("GET"),
     },
   },
 });

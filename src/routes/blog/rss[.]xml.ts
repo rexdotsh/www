@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getIdentity } from "@/lib/content";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { resolveSiteInfo } from "@/lib/site";
+import { notAllowed } from "@/server/api";
 
 const escapeXml = (value: string) =>
   value
@@ -21,7 +23,7 @@ export const Route = createFileRoute("/blog/rss.xml")({
           });
         }
 
-        const name = hostname === "mridul.sh" ? "mridul" : "rex";
+        const { name } = getIdentity(hostname);
         const items = PUBLISHED_META.map((post) => {
           const url = `${baseUrl}/blog/${post.slug}`;
           return `    <item>
@@ -55,6 +57,7 @@ ${items}
           },
         });
       },
+      ANY: notAllowed("GET"),
     },
   },
 });

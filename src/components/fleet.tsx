@@ -1,5 +1,6 @@
 import {
   type CSSProperties,
+  type PointerEvent,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -56,7 +57,7 @@ export function Sparkline({
     el.style.transform = "translateX(0)";
   }, [data]);
 
-  const onMove = (e: React.PointerEvent<HTMLElement>) => {
+  const onMove = (e: PointerEvent<HTMLElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     const i = Math.round(((e.clientX - r.left) / r.width) * (n - 2)) + 1;
     setHover(Math.max(1, Math.min(n - 1, i)));
@@ -153,8 +154,10 @@ export function useTween(target: number) {
   return { value, moving };
 }
 
-export function Gauge({ frac, width = 17 }: { frac: number; width?: number }) {
-  const on = Math.round(Math.max(0, Math.min(1, frac)) * width);
+const GAUGE_CELLS = 17;
+
+export function Gauge({ frac }: { frac: number }) {
+  const on = Math.round(Math.max(0, Math.min(1, frac)) * GAUGE_CELLS);
   return (
     <span
       aria-label={`${Math.round(frac * 100)} percent`}
@@ -163,7 +166,7 @@ export function Gauge({ frac, width = 17 }: { frac: number; width?: number }) {
     >
       <span className="on">{"█".repeat(on)}</span>
       <span className="off">
-        {Array.from({ length: width - on }, (_, i) => (
+        {Array.from({ length: GAUGE_CELLS - on }, (_, i) => (
           <span key={i} style={{ "--i": i } as CSSProperties}>
             ░
           </span>
@@ -175,17 +178,10 @@ export function Gauge({ frac, width = 17 }: { frac: number; width?: number }) {
 
 const word = (h: Health) => (h === "none" ? "no data" : h);
 
-const hhmm = (ts: number) => new Date(ts).toISOString().slice(11, 16);
+export const minutesAgo = (n: number) => (n ? `${n}m ago` : "now");
 
-export function Strip({
-  cells,
-  delay,
-  end,
-}: {
-  cells: Health[];
-  delay: number;
-  end: number;
-}) {
+// The last cell is now: any after the last sample are the silence since.
+export function Strip({ cells, delay }: { cells: Health[]; delay: number }) {
   const off = cells.filter((c) => c !== "up").length;
   return (
     <span
@@ -202,11 +198,7 @@ export function Strip({
           data-h={h === "up" ? undefined : h}
           key={`${i}-${h}`}
           style={{ animationDelay: `${delay + i * 8}ms` }}
-          title={
-            end
-              ? `${hhmm(end - (cells.length - 1 - i) * 60_000)} utc · ${word(h)}`
-              : word(h)
-          }
+          title={`${minutesAgo(cells.length - 1 - i)} · ${word(h)}`}
         />
       ))}
     </span>

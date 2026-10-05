@@ -9,7 +9,7 @@ export type Sound =
   | "chime";
 
 const MASTER_GAIN = 0.8;
-const STORAGE_KEY = "sound";
+export const SOUND_KEY = "sound";
 const NOISE_SECONDS = 0.4;
 const UNLOCK_EVENTS = [
   "pointerdown",
@@ -34,7 +34,10 @@ interface AudioState {
 
 let audio: AudioState | null = null;
 let muted = false;
-let pending: { pitch: number; sound: Sound } | null = null;
+let pending: { at: number; pitch: number; sound: Sound } | null = null;
+// A sound queued while audio is locked plays on the unlocking gesture only if
+// that gesture is what asked for it, not a click seconds later.
+const PENDING_MS = 500;
 const listeners = new Set<(muted: boolean) => void>();
 
 const syncMuted = () => {
@@ -42,12 +45,9 @@ const syncMuted = () => {
     return muted;
   }
   try {
-    const stored = localStorage.getItem(STORAGE_KEY) === "off";
-    if (stored !== muted) {
-      muted = stored;
-    }
+    muted = localStorage.getItem(SOUND_KEY) === "off";
   } catch {
-    // Ignore storage errors.
+    // storage blocked (private mode); keep the in-memory value
   }
   return muted;
 };
@@ -205,7 +205,12 @@ function stopUnlock() {
 function flush(state: AudioState) {
   const request = pending;
   pending = null;
-  if (request && !syncMuted() && state.context.state === "running") {
+  if (
+    request &&
+    performance.now() - request.at < PENDING_MS &&
+    !syncMuted() &&
+    state.context.state === "running"
+  ) {
     playSound[request.sound](state, request.pitch);
   }
 }
@@ -240,7 +245,7 @@ export const sfx = (sound: Sound, pitch = 720) => {
   }
   const state = audio;
   if (!state) {
-    pending = { pitch, sound };
+    pending = { at: performance.now(), pitch, sound };
     return;
   }
   if (state.context.state === "running") {
@@ -249,7 +254,7 @@ export const sfx = (sound: Sound, pitch = 720) => {
     return;
   }
 
-  pending = { pitch, sound };
+  pending = { at: performance.now(), pitch, sound };
   state.context
     .resume()
     .then(() => {
@@ -268,12 +273,12 @@ export const setMuted = (next: boolean) => {
   muted = next;
   try {
     if (next) {
-      localStorage.setItem(STORAGE_KEY, "off");
+      localStorage.setItem(SOUND_KEY, "off");
     } else {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SOUND_KEY);
     }
   } catch {
-    // Ignore storage errors.
+    // storage blocked (private mode); the choice lasts for this load
   }
   if (next) {
     pending = null;
@@ -293,11 +298,6 @@ export const onMuteChange = (listener: (muted: boolean) => void) => {
 };
 
 if (typeof window !== "undefined") {
-  try {
-    muted = localStorage.getItem(STORAGE_KEY) === "off";
-  } catch {
-    // Ignore storage errors.
-  }
   for (const event of UNLOCK_EVENTS) {
     window.addEventListener(event, unlock, UNLOCK_OPTIONS);
   }

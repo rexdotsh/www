@@ -1,9 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { waitUntil } from "cloudflare:workers";
+import { PUBLISHED_META } from "@/lib/posts-meta";
 import { type Beacon, VISITOR_RE } from "@/lib/stats";
-import { isBot, isPreview, limited, placeOf, room } from "@/server/api";
+import {
+  isBot,
+  isCrossSite,
+  isPreview,
+  limited,
+  notAllowed,
+  placeOf,
+  room,
+  tooLarge,
+} from "@/server/api";
 
 const MAX_BODY = 512;
-const PATH_RE = /^\/(?:[\w-]+(?:\.[\w-]+)*\/?)*$/;
+const PATHS = new Set([
+  "/",
+  "/blog",
+  "/status",
+  ...PUBLISHED_META.map((post) => `/blog/${post.slug}`),
+]);
 
 const parse = (raw: unknown): Beacon | null => {
   if (!raw || typeof raw !== "object") {
@@ -19,7 +35,7 @@ const parse = (raw: unknown): Beacon | null => {
   if (type === "hi") {
     return { type, visitor };
   }
-  if (typeof path !== "string" || !PATH_RE.test(path)) {
+  if (typeof path !== "string" || !PATHS.has(path)) {
     return null;
   }
   if (type === "view") {
@@ -40,8 +56,16 @@ export const Route = createFileRoute("/api/beacon")({
     handlers: {
       POST: async ({ request }) => {
         const stub = room();
-        if (!stub || isBot(request) || isPreview(request)) {
+        if (
+          !stub ||
+          isBot(request) ||
+          isPreview(request) ||
+          isCrossSite(request)
+        ) {
           return new Response(null, { status: 204 });
+        }
+        if (tooLarge(request, MAX_BODY)) {
+          return new Response(null, { status: 413 });
         }
         if (await limited(request, "beacon")) {
           return new Response(null, { status: 429 });
@@ -59,13 +83,15 @@ export const Route = createFileRoute("/api/beacon")({
         if (!beacon) {
           return new Response(null, { status: 400 });
         }
-        try {
-          await stub.record(beacon, placeOf(request));
-        } catch (error) {
-          console.error("beacon", error);
-        }
+        // Beacons fire as the page goes away; don't let the visitor leaving cancel the write.
+        waitUntil(
+          stub
+            .record(beacon, placeOf(request))
+            .catch((error) => console.error("beacon", error))
+        );
         return new Response(null, { status: 204 });
       },
+      ANY: notAllowed("POST"),
     },
   },
 });

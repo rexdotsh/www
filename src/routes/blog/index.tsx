@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import BackLink from "@/components/back-link";
 import { LINKS } from "@/lib/content";
-import { pageMeta, preloadFont, RSS_LINK } from "@/lib/head";
+import { pageMeta, preloadFont } from "@/lib/head";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import newsreaderItalicWoff2 from "../../fonts/newsreader-latin-italic.woff2?url";
 import bodyCss from "../../fonts-body.css?url";
@@ -16,25 +16,19 @@ export const Route = createFileRoute("/blog/")({
       description: DESCRIPTION,
       image: "/og/blog.png",
       matches,
-      path: "/blog",
       title: "writing",
     }),
     links: [
-      RSS_LINK,
       { rel: "stylesheet", href: bodyCss },
       { rel: "stylesheet", href: postCss },
       preloadFont(newsreaderItalicWoff2),
     ],
   }),
-  headers: () => ({
-    "Cache-Control": "public, max-age=0",
-    "Cloudflare-CDN-Cache-Control": "public, max-age=3600",
-  }),
 });
 
 function BlogIndex() {
   return (
-    <main className="min-h-dvh paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
+    <main className="min-h-dvh paper px-7 py-14 font-serif-display text-ink md:py-24">
       <div className="mx-auto w-full max-w-xl">
         <BackLink className="rise font-mono text-muted text-xs" to="/">
           home
@@ -69,7 +63,7 @@ function BlogIndex() {
                   {post.dateLabel}
                 </span>
                 <span
-                  className="mt-1 block text-[clamp(1.4rem,4.5vw,1.8rem)] leading-tight transition-colors duration-200 group-hover:text-rose"
+                  className="mt-1 block w-fit text-[clamp(1.4rem,4.5vw,1.8rem)] leading-tight transition-colors duration-200 group-hover:text-rose"
                   style={{ viewTransitionName: `post-${post.slug}` }}
                 >
                   {post.title}

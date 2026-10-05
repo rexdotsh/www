@@ -1,19 +1,26 @@
-import { useRouter } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import {
   Fragment,
   memo,
+  type MouseEvent,
+  type PointerEvent,
   type ReactNode,
+  useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
 import { Lamp, Sparkline } from "@/components/fleet";
+import Icon from "@/components/icon";
 import { EMAIL, getIdentity, LINKS, PROJECTS } from "@/lib/content";
 import { type Fleet, mockFleet } from "@/lib/fleet";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
-import { beacon, compact, useSiteStats } from "@/lib/stats";
-import type { SpotifyTrack } from "@/lib/use-now-playing";
+import type { NowPlaying } from "@/lib/spotify";
+import { compact } from "@/lib/stats";
+import { useCopied } from "@/lib/use-copied";
+import { beacon, useSiteStats } from "@/lib/use-stats";
+import { getJson, isTouch, whenIdle } from "@/lib/utils";
 
 export type SentenceWord =
   | "name"
@@ -36,24 +43,59 @@ const NOTES: Record<SentenceWord, number> = {
   resume: SCALE[5],
 };
 
+// Without hover, or as bottom sheets below md, cards open on the first tap or click.
+const SHEETS = "(hover: none), (max-width: 767px)";
+const OPEN = ":hover, :focus-within, [data-peek-open]";
+const PEEK_EDGE = 12;
+
 export const TheSentence = memo(function TheSentence({
-  className = "",
+  className,
   hostname,
   onPreviewToggle,
   onWordHover,
-  previewPlaying = false,
+  previewPlaying,
   track,
-  wordStagger = false,
+  wordStagger,
 }: {
-  className?: string;
+  className: string;
   hostname: string;
   onPreviewToggle?: () => void;
-  onWordHover?: (word: SentenceWord | null) => void;
-  previewPlaying?: boolean;
-  track: SpotifyTrack | null;
-  wordStagger?: boolean;
+  onWordHover: (word: SentenceWord | null) => void;
+  previewPlaying: boolean;
+  track: NowPlaying | null;
+  wordStagger: boolean;
 }) {
   const identity = getIdentity(hostname);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+      const open = document.querySelectorAll(
+        ".peek-trigger:hover, .peek-trigger:focus-within"
+      );
+      for (const trigger of open) {
+        trigger.setAttribute("data-peek-closed", "");
+      }
+      if (open.length > 0) {
+        onWordHover(null);
+      }
+    };
+    const onResize = () => {
+      for (const trigger of document.querySelectorAll<HTMLElement>(
+        `.peek-trigger:is(${OPEN})`
+      )) {
+        place(trigger);
+      }
+    };
+    addEventListener("keydown", onKey);
+    addEventListener("resize", onResize);
+    return () => {
+      removeEventListener("keydown", onKey);
+      removeEventListener("resize", onResize);
+    };
+  }, [onWordHover]);
 
   let wordCount = 0;
   const nextDelay = () => {
@@ -61,38 +103,26 @@ export const TheSentence = memo(function TheSentence({
     return 150 + (wordCount - 1) * 38;
   };
 
-  const w = (text: string): ReactNode => {
-    if (!wordStagger) {
-      return text;
-    }
-    return text.split(/(\s+)/).map((token, index) =>
-      /^\s*$/.test(token) ? (
-        token
-      ) : (
-        <span
-          className="word-in inline-block"
-          key={`${token}-${index}`}
-          style={{ animationDelay: `${nextDelay()}ms` }}
-        >
-          <span className="word-body inline-block">{token}</span>
-        </span>
-      )
-    );
-  };
+  const word = (node: ReactNode, key?: string) => (
+    <span
+      className={`word inline-block${wordStagger ? " word-in" : ""}`}
+      key={key}
+      style={wordStagger ? { animationDelay: `${nextDelay()}ms` } : undefined}
+    >
+      <span className="word-body inline-block">{node}</span>
+    </span>
+  );
+
+  const w = (text: string): ReactNode =>
+    text
+      .split(/(\s+)/)
+      .map((token, index) =>
+        /^\s*$/.test(token) ? token : word(token, `${token}-${index}`)
+      );
 
   // Punctuation after a linked word stays in its inline-block so it can't wrap alone.
-  const wrap = (node: ReactNode, tail?: string): ReactNode =>
-    wordStagger ? (
-      <span
-        className="word-in inline-block"
-        style={{ animationDelay: `${nextDelay()}ms` }}
-      >
-        <span className="word-body inline-block">
-          {node}
-          {tail}
-        </span>
-      </span>
-    ) : (
+  const wrap = (node: ReactNode, tail?: string) =>
+    word(
       <>
         {node}
         {tail}
@@ -106,20 +136,21 @@ export const TheSentence = memo(function TheSentence({
         key: SentenceWord;
         peek: ReactNode;
         text: ReactNode;
+        to?: "/blog" | "/status";
         tone?: "name";
       }
   )[] = [
     "hi, i'm ",
     {
       key: "name",
-      href: identity.otherDomain,
+      href: `https://${identity.otherDomain}`,
       text: identity.name,
       tone: "name",
       peek: (
         <TextPeek
-          href={identity.otherDomain}
+          href={`https://${identity.otherDomain}`}
           label={identity.isMridul ? "aka" : "also known as"}
-          line={`${identity.otherName} → ${identity.otherDomain.replace("https://", "")}`}
+          line={`${identity.otherName} → ${identity.otherDomain}`}
         />
       ),
     },
@@ -131,11 +162,11 @@ export const TheSentence = memo(function TheSentence({
       peek: <ProjectsPeek />,
     },
     ", i ",
-    { key: "writes", href: LINKS.blog, text: "write", peek: <PostsPeek /> },
+    { key: "writes", to: "/blog", text: "write", peek: <PostsPeek /> },
     " about some of them, keep a ",
     {
       key: "workshop",
-      href: "/status",
+      to: "/status",
       text: <span style={{ viewTransitionName: "workshop" }}>workshop</span>,
       peek: <WorkshopPeek />,
     },
@@ -176,6 +207,7 @@ export const TheSentence = memo(function TheSentence({
                   href={part.href}
                   onHover={onWordHover}
                   peek={part.peek}
+                  to={part.to}
                   tone={part.tone}
                 >
                   {part.text}
@@ -196,13 +228,15 @@ export const TheSentence = memo(function TheSentence({
             >
               hi back
             </Peek>
-            <span className="full-stop text-rose">.</span>
+            <span className={wordStagger ? "full-stop text-rose" : "text-rose"}>
+              .
+            </span>
           </>
         )}
       </h1>
       {identity.isMridul ? (
         <p
-          className={`mt-6 text-muted text-[clamp(1rem,1.7vw,1.3rem)] italic leading-snug ${wordStagger ? "word-in" : ""}`}
+          className={`word mt-6 text-muted text-[clamp(1rem,1.7vw,1.3rem)] italic leading-snug${wordStagger ? " word-in" : ""}`}
           style={
             wordStagger
               ? { animationDelay: `${nextDelay() + 120}ms` }
@@ -225,7 +259,7 @@ export const TheSentence = memo(function TheSentence({
             >
               resume
             </Peek>{" "}
-            — for the professionally curious. )
+            — for the professionally curious.{"\u00a0"})
           </span>
         </p>
       ) : null}
@@ -233,26 +267,66 @@ export const TheSentence = memo(function TheSentence({
   );
 });
 
+// Cards open centred above the word; shift or flip them to stay on screen.
+function place(trigger: HTMLElement) {
+  const peek = trigger.querySelector<HTMLElement>(".peek");
+  if (!peek) {
+    return;
+  }
+  const word = trigger.getBoundingClientRect();
+  const center = word.left + word.width / 2;
+  const half = peek.offsetWidth / 2;
+  // The label tab sits half out of the card's top edge.
+  const tab =
+    (peek.querySelector<HTMLElement>(".peek-tab")?.offsetHeight ?? 0) / 2;
+  const x =
+    Math.min(
+      Math.max(center, half + PEEK_EDGE),
+      innerWidth - half - PEEK_EDGE
+    ) - center;
+  trigger.style.setProperty("--peek-x", `${x}px`);
+  trigger.toggleAttribute(
+    "data-peek-below",
+    word.top - peek.offsetHeight - tab < PEEK_EDGE &&
+      innerHeight - word.bottom > word.top
+  );
+}
+
+// Arming during the intro would pin the sheet to a word that's still
+// transformed; skip to the end first. (Not the caret or equaliser: they loop.)
+function finishIntro() {
+  for (const animation of document.getAnimations()) {
+    if (
+      animation instanceof CSSAnimation &&
+      (animation.animationName === "word-in" ||
+        animation.animationName === "full-stop")
+    ) {
+      animation.finish();
+    }
+  }
+}
+
 function Peek({
   children,
   hoverKey,
   href,
   onHover,
   peek,
+  to,
   tone = "link",
 }: {
   children: ReactNode;
   hoverKey: SentenceWord;
   href?: string;
-  onHover?: (word: SentenceWord | null) => void;
+  onHover: (word: SentenceWord | null) => void;
   peek: ReactNode;
+  to?: "/blog" | "/status";
   tone?: "link" | "name";
 }) {
   const [armed, setArmed] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
-  const router = useRouter();
-  const external = href?.startsWith("http");
-  const internal = href !== undefined && !external;
+  // Per gesture, not per device: a finger on a touch laptop arms too.
+  const touchRef = useRef(false);
   const linkClass = `sentence-link ${
     tone === "name"
       ? "text-ink decoration-dotted decoration-ink/30 hover:decoration-ink/70"
@@ -260,13 +334,54 @@ function Peek({
   }`;
 
   const report = (word: SentenceWord | null) => {
-    onHover?.(word);
+    const trigger = wrapperRef.current;
+    if (word && trigger) {
+      trigger.removeAttribute("data-peek-closed");
+      place(trigger);
+    }
+    onHover(word);
   };
 
-  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (window.matchMedia("(hover: none)").matches) {
+  useEffect(() => {
+    if (!armed) {
+      return;
+    }
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setArmed(false);
+        onHover(null);
+      }
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [armed, onHover]);
+
+  // A card can grow while it's open (the heatmap arriving): keep it on screen.
+  const watchPeek = useCallback((peekEl: HTMLSpanElement | null) => {
+    const trigger = peekEl?.parentElement;
+    if (!(peekEl && trigger)) {
+      return;
+    }
+    const observer = new ResizeObserver(() =>
+      requestAnimationFrame(() => {
+        if (trigger.matches(OPEN)) {
+          place(trigger);
+        }
+      })
+    );
+    observer.observe(peekEl);
+    return () => observer.disconnect();
+  }, []);
+
+  const onClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    const touch = touchRef.current;
+    touchRef.current = false;
+    const modified =
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+    if (!modified && (touch || matchMedia(SHEETS).matches)) {
       if (!armed) {
         event.preventDefault();
+        finishIntro();
         setArmed(true);
         report(hoverKey);
         if (peek) {
@@ -275,11 +390,24 @@ function Peek({
         return;
       }
       setArmed(false);
+      // Safari doesn't focus a tapped link, so no blur would clear this.
+      onHover(null);
     }
-    if (internal) {
-      event.preventDefault();
-      router.navigate({ href });
+    // Chromium makes a clicked link :focus-visible on the next key press,
+    // which would pop its card open again.
+    if (event.detail) {
+      event.currentTarget.blur();
     }
+  };
+
+  const onLinkEnter = (event: PointerEvent) => {
+    if (event.pointerType !== "touch") {
+      sfx("pop");
+    }
+  };
+
+  const onLinkDown = (event: PointerEvent) => {
+    touchRef.current = event.pointerType === "touch";
   };
 
   return (
@@ -289,50 +417,73 @@ function Peek({
       className="peek-trigger relative inline-block"
       data-peek-open={armed ? "" : undefined}
       onBlur={(event) => {
-        if (wrapperRef.current?.contains(event.relatedTarget)) {
+        const trigger = wrapperRef.current;
+        if (!trigger || trigger.contains(event.relatedTarget)) {
           return;
         }
+        trigger.removeAttribute("data-peek-closed");
         setArmed(false);
-        report(null);
-      }}
-      onFocus={() => report(hoverKey)}
-      onPointerEnter={(event) => {
-        if (event.pointerType === "touch") {
-          return;
+        if (matchMedia(SHEETS).matches || !trigger.matches(":hover")) {
+          onHover(null);
         }
-        report(hoverKey);
-        if (internal) {
-          router
-            .preloadRoute({ href } as Parameters<typeof router.preloadRoute>[0])
-            .catch(() => undefined);
+      }}
+      onFocus={() => {
+        if (!matchMedia(SHEETS).matches) {
+          report(hoverKey);
+        }
+      }}
+      onPointerEnter={(event) => {
+        if (event.pointerType !== "touch" && !matchMedia(SHEETS).matches) {
+          report(hoverKey);
         }
       }}
       onPointerLeave={(event) => {
-        if (event.pointerType !== "touch" && !armed) {
-          report(null);
+        const trigger = wrapperRef.current;
+        // Keyboard focus keeps the card, or an Escape that closed it, until
+        // focus moves on.
+        if (
+          event.pointerType === "touch" ||
+          armed ||
+          !trigger ||
+          trigger.matches(":has(:focus-visible)")
+        ) {
+          return;
         }
+        trigger.removeAttribute("data-peek-closed");
+        onHover(null);
       }}
       ref={wrapperRef}
     >
-      {href ? (
+      {to ? (
+        <Link
+          className={linkClass}
+          onClick={onClick}
+          onPointerDown={onLinkDown}
+          onPointerEnter={onLinkEnter}
+          to={to}
+        >
+          {children}
+        </Link>
+      ) : href ? (
         <a
           className={linkClass}
           href={href}
-          onClick={handleClick}
-          onPointerEnter={(event) => {
-            if (event.pointerType !== "touch") {
-              sfx("pop");
-            }
-          }}
-          rel={external ? "noopener noreferrer" : undefined}
-          target={external ? "_blank" : undefined}
+          onClick={onClick}
+          onPointerDown={onLinkDown}
+          onPointerEnter={onLinkEnter}
+          rel="noopener noreferrer"
+          target="_blank"
         >
           {children}
         </a>
       ) : (
         <span className={linkClass}>{children}</span>
       )}
-      {peek ? <span className="peek">{peek}</span> : null}
+      {peek ? (
+        <span className="peek" ref={watchPeek}>
+          {peek}
+        </span>
+      ) : null}
       {armed ? (
         // biome-ignore lint/a11y/noStaticElementInteractions: tap-catcher; dismissal also works via focus loss
         // biome-ignore lint/a11y/useKeyWithClickEvents: touch-only affordance
@@ -343,7 +494,7 @@ function Peek({
             event.preventDefault();
             event.stopPropagation();
             setArmed(false);
-            onHover?.(null);
+            onHover(null);
           }}
         />
       ) : null}
@@ -352,17 +503,15 @@ function Peek({
 }
 
 function PeekCard({
-  center = false,
   children,
   compact = false,
   fit = false,
   label,
 }: {
-  center?: boolean;
   children: ReactNode;
   compact?: boolean;
   fit?: boolean;
-  label?: string;
+  label: string;
 }) {
   const size = compact
     ? "w-fit max-w-64 px-3.5 pt-4 pb-3"
@@ -373,86 +522,60 @@ function PeekCard({
     <span
       className={`peek-card block rounded-xl border border-ink/10 bg-card text-left font-mono not-italic ${size}`}
     >
-      {label ? (
-        <span className={`peek-tab${center ? " peek-tab-center" : ""}`}>
-          {label}
-        </span>
-      ) : null}
+      <span className="peek-tab">{label}</span>
       {children}
     </span>
   );
 }
 
 function TextPeek({
-  center = false,
   href,
   label,
   line,
-  sub,
 }: {
-  center?: boolean;
   href: string;
-  label?: string;
+  label: string;
   line: string;
-  sub?: ReactNode;
 }) {
-  const align = center ? " text-center" : "";
   return (
-    <PeekCard center={center} compact label={label}>
+    <PeekCard compact label={label}>
       <a
-        className={`block whitespace-nowrap text-ink text-xs transition-colors duration-150 hover:text-rose${align}`}
+        className="block whitespace-nowrap text-ink text-xs transition-colors duration-150 hover:text-rose"
         href={href}
         rel="noopener noreferrer"
         target="_blank"
       >
         {line}
       </a>
-      {sub ? (
-        <span
-          className={`mt-1 block whitespace-nowrap text-muted text-[10px]${align}`}
-        >
-          {sub}
-        </span>
-      ) : null}
     </PeekCard>
   );
 }
 
-const COPIED_MS = 1600;
-
 function HiPeek({ handle }: { handle: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, copy] = useCopied();
   const [touch, setTouch] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const hi = useSiteStats()?.hi ?? 0;
 
   useEffect(() => {
-    setTouch(window.matchMedia("(hover: none)").matches);
-    return () => clearTimeout(timer.current);
+    setTouch(isTouch());
   }, []);
 
-  const copy = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const onEmail = (event: MouseEvent<HTMLAnchorElement>) => {
     beacon({ type: "hi" });
     if (touch) {
       return;
     }
     event.preventDefault();
-    navigator.clipboard
-      .writeText(EMAIL)
-      .then(() => {
-        setCopied(true);
-        sfx("pop");
-        clearTimeout(timer.current);
-        timer.current = setTimeout(() => setCopied(false), COPIED_MS);
-      })
-      .catch(() => undefined);
+    copy(EMAIL).then((ok) => {
+      if (!ok) {
+        location.href = LINKS.email;
+      }
+    });
   };
-
-  const emailSub = touch ? "opens your mail app" : "click to copy";
 
   return (
     <PeekCard fit label="say hi">
-      <a className="group block" href={LINKS.email} onClick={copy}>
+      <a className="group block" href={LINKS.email} onClick={onEmail}>
         <span className="block whitespace-nowrap text-ink text-xs group-hover:text-rose">
           <span className="hi-email" data-done={copied ? "" : undefined}>
             {EMAIL}
@@ -464,8 +587,12 @@ function HiPeek({ handle }: { handle: string }) {
           />
         </span>
         <span className="block whitespace-nowrap text-[10px] text-muted">
-          <span className="swap-in" key={String(copied)}>
-            {copied ? "( copied )" : `${emailSub}`}
+          <span aria-live="polite" className="swap-in" key={String(copied)}>
+            {copied
+              ? "( copied )"
+              : touch
+                ? "opens your mail app"
+                : "click to copy"}
           </span>
         </span>
       </a>
@@ -496,40 +623,22 @@ interface Contributions {
   weeks: number[][];
 }
 
-const HEAT_COLORS = [
-  "var(--heat-0)",
-  "var(--heat-1)",
-  "var(--heat-2)",
-  "var(--heat-3)",
-  "var(--heat-4)",
-];
-
 function useContributions() {
   const [data, setData] = useState<Contributions | null>(null);
-  useEffect(() => {
-    const load = () =>
-      fetch("/api/github/contributions")
-        .then((response) =>
-          response.ok
-            ? (response.json() as Promise<Contributions | null>)
-            : null
-        )
-        .then(setData)
-        .catch(() => setData(null));
-    if ("requestIdleCallback" in window) {
-      const idle = requestIdleCallback(() => load());
-      return () => cancelIdleCallback(idle);
-    }
-    const timeout = setTimeout(load, 1500);
-    return () => clearTimeout(timeout);
-  }, []);
+  useEffect(
+    () =>
+      whenIdle(() => {
+        getJson<Contributions>("/api/github/contributions").then(setData);
+      }),
+    []
+  );
   return data;
 }
 
 function Heatmap({ total, weeks }: Contributions) {
   return (
     <a
-      className="group mt-3 block border-ink/10 border-t pt-3"
+      className="group mt-3 block border-ink/10 border-t pt-3 [@media(max-height:500px)]:hidden"
       href={LINKS.github}
       rel="noopener noreferrer"
       target="_blank"
@@ -543,7 +652,7 @@ function Heatmap({ total, weeks }: Contributions) {
                 key={`d${dayIndex}`}
                 style={{
                   backgroundColor:
-                    level < 0 ? "transparent" : HEAT_COLORS[level],
+                    level < 0 ? "transparent" : `var(--heat-${level})`,
                 }}
               />
             ))}
@@ -572,7 +681,7 @@ function ProjectsPeek() {
           <span className="block font-medium text-ink text-xs group-hover:text-rose">
             {project.name}
           </span>
-          <span className="block truncate text-muted text-[11px]">
+          <span className="block text-muted text-[11px]">
             {project.description}
           </span>
         </a>
@@ -586,24 +695,17 @@ function ProjectsPeek() {
 const WORKSHOP = mockFleet(0);
 
 const WorkshopPeek = memo(function WorkshopPeek() {
-  const router = useRouter();
   const [fleet, setFleet] = useState(WORKSHOP);
   useEffect(() => {
-    if (import.meta.env.DEV) return;
-    fetch("/api/fleet")
-      .then((r) => (r.ok ? (r.json() as Promise<Fleet>) : null))
-      .then((f) => f && setFleet(f))
-      .catch(() => undefined);
+    if (import.meta.env.DEV) {
+      return;
+    }
+    return whenIdle(() => {
+      getJson<Fleet>("/api/fleet").then((live) => live && setFleet(live));
+    });
   }, []);
   return (
-    <a
-      className="block"
-      href="/status"
-      onClick={(event) => {
-        event.preventDefault();
-        router.navigate({ href: "/status" });
-      }}
-    >
+    <Link className="block" to="/status">
       <PeekCard label="the workshop">
         {fleet.hosts.map((host, index) => (
           <span className="fleet-peek-row" key={host.id}>
@@ -622,27 +724,22 @@ const WorkshopPeek = memo(function WorkshopPeek() {
           </span>
         ))}
       </PeekCard>
-    </a>
+    </Link>
   );
 });
 
 function PostsPeek() {
-  const router = useRouter();
   const paths = useSiteStats()?.paths;
   return (
-    <PeekCard fit label="recent writing">
+    <PeekCard label="recent writing">
       {PUBLISHED_META.map((post, index) => {
-        const href = `/blog/${post.slug}`;
-        const reads = paths?.[href] ?? 0;
+        const reads = paths?.[`/blog/${post.slug}`] ?? 0;
         return (
-          <a
+          <Link
             className={`group block ${index > 0 ? "mt-2.5" : ""}`}
-            href={href}
             key={post.slug}
-            onClick={(event) => {
-              event.preventDefault();
-              router.navigate({ href });
-            }}
+            params={{ slug: post.slug }}
+            to="/blog/$slug"
           >
             <span className="block truncate text-ink text-xs group-hover:text-rose">
               {post.title}
@@ -656,7 +753,7 @@ function PostsPeek() {
                 </span>
               ) : null}
             </span>
-          </a>
+          </Link>
         );
       })}
       <span className="mt-2.5 block">
@@ -703,32 +800,14 @@ function WaveEq() {
   );
 }
 
-function PlayGlyph({ playing }: { playing: boolean }) {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      viewBox="0 0 12 12"
-    >
-      {playing ? (
-        <path d="M3.4 2v8M8.6 2v8" strokeWidth="2.2" />
-      ) : (
-        <path d="M3 1.8v8.4L10 6z" fill="currentColor" stroke="none" />
-      )}
-    </svg>
-  );
-}
-
 function MusicPeek({
   onToggle,
-  playing = false,
+  playing,
   track,
 }: {
   onToggle?: () => void;
-  playing?: boolean;
-  track: SpotifyTrack;
+  playing: boolean;
+  track: NowPlaying;
 }) {
   const { isPlaying } = track;
   const albumArt =
@@ -762,7 +841,7 @@ function MusicPeek({
                 type="button"
               >
                 <span>
-                  <PlayGlyph playing={playing} />
+                  <Icon name={playing ? "pause" : "play"} />
                 </span>
               </button>
             ) : null}

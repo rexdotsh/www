@@ -15,6 +15,7 @@ import remarkReadingTimeExport from "remark-reading-time/mdx.js";
 import { createHighlighterCore, type ShikiTransformer } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 import { defineConfig } from "vite";
+import { LINKS } from "./src/lib/content.ts";
 import { SITE_HEADERS } from "./src/lib/headers.ts";
 import { PAPER, PAPER_DARK } from "./src/lib/shiki-themes.ts";
 
@@ -113,18 +114,12 @@ export default defineConfig({
         "/social-card-rex.png": STATIC_ASSET_HEADERS,
         "/social-card-mridul.png": STATIC_ASSET_HEADERS,
         "/og/**": STATIC_ASSET_HEADERS,
-        "/twitter": {
-          redirect: { to: "https://x.com/rexmkv", status: 308 },
-        },
-        "/x": {
-          redirect: { to: "https://x.com/rexmkv", status: 308 },
-        },
-        "/github": {
-          redirect: { to: "https://github.com/rexdotsh", status: 308 },
-        },
-        "/flora": {
-          redirect: { to: "https://floraorg.github.io", status: 308 },
-        },
+        // Server functions carry live data; without this the Worker cache keeps them for hours.
+        "/_serverFn/**": { headers: { "cache-control": "no-store" } },
+        "/twitter": { redirect: { to: LINKS.twitter, status: 308 } },
+        "/x": { redirect: { to: LINKS.twitter, status: 308 } },
+        "/github": { redirect: { to: LINKS.github, status: 308 } },
+        "/flora": { redirect: { to: LINKS.flora, status: 308 } },
       },
     }),
   ],

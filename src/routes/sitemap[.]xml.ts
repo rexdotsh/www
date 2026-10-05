@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { resolveSiteInfo } from "@/lib/site";
+import { notAllowed } from "@/server/api";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         const paths = [
           "/",
           "/blog",
+          "/status",
           ...PUBLISHED_META.map((post) => `/blog/${post.slug}`),
         ];
         const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -36,6 +38,7 @@ ${paths
           },
         });
       },
+      ANY: notAllowed("GET"),
     },
   },
 });

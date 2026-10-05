@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { beginConnect, isConnectKey } from "@/lib/spotify-auth";
+import { notAllowed } from "@/server/api";
 
 export const Route = createFileRoute("/api/spotify/connect")({
   server: {
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/api/spotify/connect")({
         }
         return Response.redirect(beginConnect(url.origin), 302);
       },
+      ANY: notAllowed("GET"),
     },
   },
 });

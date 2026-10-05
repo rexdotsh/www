@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { fleet, verify } from "@/server/fleet-auth";
+import { notAllowed } from "@/server/api";
 
 export const Route = createFileRoute("/api/fleet/ingest")({
   server: {
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/api/fleet/ingest")({
           return new Response(null, { status: 500 });
         }
       },
+      ANY: notAllowed("POST"),
     },
   },
 });

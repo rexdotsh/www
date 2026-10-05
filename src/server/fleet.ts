@@ -33,7 +33,7 @@ const push = <T>(ring: T[] | undefined, value: T, size: number) =>
   [...(ring ?? []), value].slice(-size);
 
 const pad = (ring: number[], size: number) =>
-  [...new Array(size).fill(-1), ...ring].slice(ring.length);
+  [...new Array<number>(size).fill(-1), ...ring].slice(ring.length);
 
 const cells = (
   ring: number[],
@@ -45,7 +45,7 @@ const cells = (
   ...pad(ring, size - missed).map(
     (b): Health => (b === 1 ? "up" : b === 0 ? bad : "none")
   ),
-  ...new Array(missed).fill(tail),
+  ...new Array<Health>(missed).fill(tail),
 ];
 
 export class FleetStore extends DurableObject {
@@ -65,6 +65,16 @@ export class FleetStore extends DurableObject {
     const prev = this.row(host);
     if (prev && ts <= prev.seen) return false;
     const day = Math.floor(ts / 86_400_000);
+    // A cell per sample, plus a down cell per sample that never came. Not
+    // wall-clock minutes: the agent's timer drifts a second or two a minute,
+    // which a minute grid would draw as outages.
+    const gap = prev
+      ? Math.min(BEATS, Math.max(0, Math.round((ts - prev.seen) / MINUTE) - 1))
+      : 0;
+    const gapped = (ring: number[] | undefined) => [
+      ...(ring ?? []),
+      ...new Array<number>(gap).fill(0),
+    ];
     const svc: Row["svc"] = {};
     for (const s of SERVICES) {
       if (s.host !== host) continue;
@@ -81,7 +91,7 @@ export class FleetStore extends DurableObject {
         last?.[0] === day ? [day, last[1] + up, last[2] + 1] : [day, up, 1];
       svc[s.id] = {
         mem: found.reduce((sum, c) => sum + (c.m ?? 0), 0),
-        strip: push(old?.strip, up, BEATS),
+        strip: push(gapped(old?.strip), up, BEATS),
         days: push(last?.[0] === day ? days.slice(0, -1) : days, today, DAYS),
       };
     }
@@ -90,7 +100,7 @@ export class FleetStore extends DurableObject {
       containers: sample.containers.length,
       seen: ts,
       spark: push(prev?.spark, sample.cpu, SPARK),
-      beats: push(prev?.beats, 1, BEATS),
+      beats: push(gapped(prev?.beats), 1, BEATS),
       svc,
     };
     this.sql.exec(
@@ -143,7 +153,13 @@ export class FleetStore extends DurableObject {
         diskTotal: (row?.disk[1] ?? 0) / 1024,
         upSince: silent ? 0 : (row?.boot ?? 0) * 1000,
         lastSeen: row?.seen ?? 0,
-        beats: cells(row?.beats ?? [], BEATS, health, health, missed),
+        beats: cells(
+          row?.beats ?? [],
+          BEATS,
+          meta.intermittent ? "off" : "down",
+          health,
+          missed
+        ),
         containers: row?.containers ?? 0,
       });
       if (meta.private) continue;

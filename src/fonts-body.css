@@ -76,3 +76,23 @@
   line-gap-override: 0%;
   size-adjust: 105.4769%;
 }
+
+@font-face {
+  font-family: "Newsreader Fallback Noto";
+  font-style: normal;
+  src: local("Noto Serif"), local("NotoSerif-Regular");
+  ascent-override: 83.37%;
+  descent-override: 30.42%;
+  line-gap-override: 0%;
+  size-adjust: 88.76%;
+}
+
+@font-face {
+  font-family: "Newsreader Fallback Noto";
+  font-style: italic;
+  src: local("Noto Serif Italic"), local("NotoSerif-Italic");
+  ascent-override: 85.77%;
+  descent-override: 31.29%;
+  line-gap-override: 0%;
+  size-adjust: 86.28%;
+}

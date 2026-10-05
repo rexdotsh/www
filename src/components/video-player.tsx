@@ -1,5 +1,13 @@
-import { type PointerEvent, useEffect, useRef, useState } from "react";
+import {
+  type KeyboardEvent,
+  type PointerEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import Icon from "@/components/icon";
 import { sfx } from "@/lib/sfx";
+import { isTouch } from "@/lib/utils";
 
 type State = "idle" | "playing" | "paused" | "ended";
 
@@ -11,32 +19,6 @@ const clock = (seconds: number) => {
   const whole = Math.floor(seconds);
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
 };
-
-function Icon({ name }: { name: "play" | "pause" | "expand" }) {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      height="12"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.6"
-      viewBox="0 0 12 12"
-      width="12"
-    >
-      {name === "play" ? (
-        <path d="M3 1.8v8.4L10 6z" fill="currentColor" stroke="none" />
-      ) : null}
-      {name === "pause" ? (
-        <path d="M3.4 2v8M8.6 2v8" strokeWidth="2.2" />
-      ) : null}
-      {name === "expand" ? (
-        <path d="M1.5 4.5v-3h3M10.5 4.5v-3h-3M1.5 7.5v3h3M10.5 7.5v3h-3" />
-      ) : null}
-    </svg>
-  );
-}
 
 export default function VideoPlayer({
   duration: knownDuration = 0,
@@ -57,6 +39,7 @@ export default function VideoPlayer({
   const [flash, setFlash] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(knownDuration);
+  const [near, setNear] = useState(false);
 
   useEffect(
     () => () => {
@@ -66,6 +49,25 @@ export default function VideoPlayer({
     []
   );
 
+  // A poster can't be lazy-loaded, so only set it once the player is close.
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setNear(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "100% 0px" }
+    );
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, []);
+
   const toggle = () => {
     const video = videoRef.current;
     if (!video) {
@@ -74,7 +76,7 @@ export default function VideoPlayer({
     if (video.paused || video.ended) {
       video.play().catch(() => undefined);
       sfx("play");
-      if (window.matchMedia("(hover: none)").matches) {
+      if (isTouch()) {
         setFlash(true);
         clearTimeout(flashTimer.current);
         flashTimer.current = window.setTimeout(() => setFlash(false), FLASH_MS);
@@ -149,7 +151,10 @@ export default function VideoPlayer({
     return () => cancelAnimationFrame(raf);
   }, [state]);
 
-  const onKeyDown = (event: React.KeyboardEvent) => {
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+      return;
+    }
     const video = videoRef.current;
     switch (event.key) {
       case "k":
@@ -200,7 +205,7 @@ export default function VideoPlayer({
           onTimeUpdate={(event) => setCurrent(event.currentTarget.currentTime)}
           onWaiting={() => setBuffering(true)}
           playsInline
-          poster={poster}
+          poster={near ? poster : undefined}
           preload="none"
           ref={videoRef}
           src={src}
@@ -210,7 +215,6 @@ export default function VideoPlayer({
           className="player-cue"
           data-visible={cueVisible ? "" : undefined}
           onClick={toggle}
-          tabIndex={cueVisible ? undefined : -1}
           type="button"
         >
           {state === "ended" ? (
@@ -253,6 +257,7 @@ export default function VideoPlayer({
           aria-valuemax={duration}
           aria-valuemin={0}
           aria-valuenow={current}
+          aria-valuetext={`${clock(current)} of ${clock(duration)}`}
           className="player-rail"
           onPointerDown={(event) => {
             scrub(event);
@@ -263,8 +268,27 @@ export default function VideoPlayer({
               scrub(event);
             }
           }}
+          onKeyDown={(event) => {
+            const video = videoRef.current;
+            if (event.ctrlKey || event.metaKey || event.altKey) {
+              return;
+            }
+            if (event.key === "Home") {
+              seekTo(0);
+            } else if (event.key === "End") {
+              seekTo(video?.duration ?? 0);
+            } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+              seekTo(
+                (video?.currentTime ?? 0) +
+                  (event.key === "ArrowUp" ? SEEK_STEP_S : -SEEK_STEP_S)
+              );
+            } else {
+              return;
+            }
+            event.preventDefault();
+          }}
           role="slider"
-          tabIndex={-1}
+          tabIndex={0}
         >
           <span className="player-fill" />
         </div>

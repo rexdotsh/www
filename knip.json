@@ -1,3 +1,4 @@
 {
-  "ignoreDependencies": ["cloudflare"]
+  "entry": ["workers/room/index.ts"],
+  "ignoreDependencies": ["cloudflare", "@fontsource-variable/.+"]
 }

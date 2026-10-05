@@ -1,10 +1,11 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import BackLink from "@/components/back-link";
+import NotFoundPage from "@/components/not-found";
 import { PostBody } from "@/components/post-body";
-import { EMBED_REL, postEmbed } from "@/lib/discord-embed";
-import { preloadFont, RSS_LINK } from "@/lib/head";
-import { getPost, type TocEntry } from "@/lib/posts";
+import { getIdentity } from "@/lib/content";
+import { baseUrlOf, embedLink, pageMeta, preloadFont } from "@/lib/head";
+import { getPost, metaLine, type TocEntry } from "@/lib/posts";
 import { getPostMeta } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
 import { ogImageUrl } from "@/lib/utils";
@@ -13,11 +14,9 @@ import newsreaderWoff2 from "../../fonts/newsreader-latin.woff2?url";
 import bodyCss from "../../fonts-body.css?url";
 import postCss from "../../post.css?url";
 
-const DEFAULT_BASE_URL = "https://rex.wf";
-
 export const Route = createFileRoute("/blog/$slug")({
   component: PostPage,
-  notFoundComponent: BlogNotFound,
+  notFoundComponent: () => <NotFoundPage to="/blog" />,
   loader: ({ params }) => {
     const post = getPostMeta(params.slug);
     if (!post) {
@@ -28,37 +27,28 @@ export const Route = createFileRoute("/blog/$slug")({
   },
   head: ({ loaderData, matches }) => {
     if (!loaderData) {
-      return { meta: [{ title: "writing" }] };
+      return { meta: [{ title: "not found" }] };
     }
-    const baseUrl =
-      (matches[0]?.loaderData as { baseUrl?: string } | undefined)?.baseUrl ??
-      DEFAULT_BASE_URL;
+    const baseUrl = baseUrlOf(matches);
     const url = `${baseUrl}/blog/${loaderData.slug}`;
-    const imageUrl = ogImageUrl(`/og/${loaderData.slug}.png`, baseUrl);
-    const post = getPost(loaderData.slug);
+    const image = `/og/${loaderData.slug}.png`;
     return {
       meta: [
-        { title: loaderData.title },
-        { name: "description", content: loaderData.description },
-        { property: "og:title", content: loaderData.title },
-        { property: "og:description", content: loaderData.description },
+        ...pageMeta({
+          description: loaderData.description,
+          image,
+          matches,
+          title: loaderData.title,
+        }),
         { property: "og:type", content: "article" },
-        { property: "og:url", content: url },
-        { property: "og:image", content: imageUrl },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { property: "og:image:alt", content: loaderData.title },
         { property: "article:published_time", content: loaderData.date },
-        { name: "twitter:title", content: loaderData.title },
-        { name: "twitter:description", content: loaderData.description },
-        { name: "twitter:image", content: imageUrl },
       ],
       links: [
-        RSS_LINK,
         { rel: "stylesheet", href: bodyCss },
         { rel: "stylesheet", href: postCss },
         preloadFont(newsreaderWoff2),
         preloadFont(newsreaderItalicWoff2),
+        embedLink(`${baseUrl}/api/embed.json?post=${loaderData.slug}`),
       ],
       scripts: [
         {
@@ -66,48 +56,23 @@ export const Route = createFileRoute("/blog/$slug")({
           children: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BlogPosting",
+            author: {
+              "@type": "Person",
+              name: getIdentity(new URL(baseUrl).hostname).name,
+              url: baseUrl,
+            },
             datePublished: loaderData.date,
             description: loaderData.description,
             headline: loaderData.title,
-            image: imageUrl,
+            image: ogImageUrl(image, baseUrl),
             mainEntityOfPage: url,
             url,
           }),
         },
-        ...(post
-          ? [
-              {
-                id: EMBED_REL,
-                type: "application/json",
-                children: JSON.stringify(postEmbed(baseUrl, imageUrl, post)),
-              },
-            ]
-          : []),
       ],
     };
   },
-  headers: () => ({
-    "Cache-Control": "public, max-age=0",
-    "Cloudflare-CDN-Cache-Control": "public, max-age=3600",
-  }),
 });
-
-function BlogNotFound() {
-  return (
-    <main className="flex min-h-dvh flex-col items-center justify-center paper px-7 text-center font-serif-display text-ink selection:bg-rose selection:text-paper">
-      <p className="rise font-mono text-faint text-xs italic">
-        ( no such page. the rose checked. )
-      </p>
-      <BackLink
-        className="rise mt-8 font-mono text-muted text-xs"
-        style={{ animationDelay: "120ms" }}
-        to="/blog"
-      >
-        writing
-      </BackLink>
-    </main>
-  );
-}
 
 function ReadingProgress() {
   const barRef = useRef<HTMLDivElement>(null);
@@ -117,7 +82,7 @@ function ReadingProgress() {
     let max = 0;
     const update = () => {
       const progress = max > 0 ? Math.min(1, window.scrollY / max) : 0;
-      barRef.current?.style.setProperty("transform", `scaleX(${progress})`);
+      barRef.current?.style.setProperty("scale", `${progress} 1`);
     };
     const measure = () => {
       max = document.documentElement.scrollHeight - window.innerHeight;
@@ -170,7 +135,7 @@ function Toc({
   backRef,
   entries,
 }: {
-  backRef: React.RefObject<HTMLAnchorElement | null>;
+  backRef: RefObject<HTMLAnchorElement | null>;
   entries: TocEntry[];
 }) {
   const navRef = useRef<HTMLDivElement>(null);
@@ -195,44 +160,32 @@ function Toc({
     const headings = entries
       .map((entry) => document.getElementById(entry.id))
       .filter((heading): heading is HTMLElement => heading !== null);
-    let positions: { id: string; top: number }[] = [];
     let frame = 0;
     const update = () => {
-      const line = window.scrollY + window.innerHeight * 0.24;
+      const line = window.innerHeight * 0.24;
       let current: string | null = null;
-      for (const heading of positions) {
-        if (heading.top > line) {
+      for (const heading of headings) {
+        if (heading.getBoundingClientRect().top > line) {
           break;
         }
         current = heading.id;
       }
       setActive((previous) => (previous === current ? previous : current));
     };
-    const measure = () => {
-      const scrollTop = window.scrollY;
-      positions = headings.map((heading) => ({
-        id: heading.id,
-        top: heading.getBoundingClientRect().top + scrollTop,
-      }));
-      update();
-    };
     const onScroll = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(update);
     };
-    const onResize = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(measure);
-    };
-    measure();
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onResize, { passive: true });
-    const resizeObserver = new ResizeObserver(onResize);
+    window.addEventListener("resize", onScroll, { passive: true });
+    // Opening a code block moves the headings without a scroll.
+    const resizeObserver = new ResizeObserver(onScroll);
     resizeObserver.observe(document.body);
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onResize);
+      window.removeEventListener("resize", onScroll);
       resizeObserver.disconnect();
     };
   }, [entries]);
@@ -282,13 +235,13 @@ function Toc({
   return (
     <aside className="toc-column">
       <div className="toc rise" ref={navRef}>
-        <span className="toc-back-slot" data-show={showBack ? "" : undefined}>
+        <span
+          className="toc-back-slot"
+          data-show={showBack ? "" : undefined}
+          inert={!showBack}
+        >
           <span className="toc-back-inner">
-            <BackLink
-              className="toc-back"
-              tabIndex={showBack ? undefined : -1}
-              to="/blog"
-            >
+            <BackLink className="toc-back" to="/blog">
               writing
             </BackLink>
           </span>
@@ -356,12 +309,35 @@ function PostPage() {
   const post = getPost(slug);
   const headerBackRef = useRef<HTMLAnchorElement>(null);
 
+  // Only while an in-page link scrolls, so loads and history restores jump.
+  useEffect(() => {
+    const root = document.documentElement;
+    const settle = () => {
+      delete root.dataset.smooth;
+    };
+    const onClick = (event: MouseEvent) => {
+      if (
+        event.target instanceof Element &&
+        event.target.closest('a[href^="#"]')
+      ) {
+        root.dataset.smooth = "";
+        addEventListener("scrollend", settle, { once: true });
+      }
+    };
+    addEventListener("click", onClick);
+    return () => {
+      removeEventListener("click", onClick);
+      removeEventListener("scrollend", settle);
+      settle();
+    };
+  }, []);
+
   if (!post) {
     return null;
   }
 
   return (
-    <main className="min-h-dvh paper px-7 py-14 font-serif-display text-ink selection:bg-rose selection:text-paper md:py-24">
+    <main className="min-h-dvh paper px-7 py-14 font-serif-display text-ink md:py-24">
       <ReadingProgress />
       <div className="mx-auto w-full max-w-xl">
         <header className="post-header">
@@ -373,7 +349,7 @@ function PostPage() {
             writing
           </BackLink>
           <h1
-            className="mt-9 text-[clamp(2rem,6.5vw,2.9rem)] leading-[1.1]"
+            className="mt-9 w-fit text-[clamp(2rem,6.5vw,2.9rem)] leading-[1.1]"
             style={{ viewTransitionName: `post-${post.slug}` }}
           >
             {post.title}
@@ -383,11 +359,7 @@ function PostPage() {
             className="rise mt-4 font-mono text-faint text-[11px]"
             style={{ animationDelay: "120ms" }}
           >
-            {[
-              post.dateLabel,
-              ...post.meta,
-              `${post.readingMinutes} min read`,
-            ].join(" · ")}
+            {metaLine(post)}
           </p>
         </header>
 

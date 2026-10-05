@@ -9,7 +9,14 @@ import {
   useState,
 } from "react";
 import BackLink from "@/components/back-link";
-import { Gauge, Lamp, Sparkline, Strip, useTween } from "@/components/fleet";
+import {
+  Gauge,
+  Lamp,
+  minutesAgo,
+  Sparkline,
+  Strip,
+  useTween,
+} from "@/components/fleet";
 import {
   type Fleet,
   fmtGb,
@@ -22,6 +29,7 @@ import {
 } from "@/lib/fleet";
 import { pageMeta, preloadFont } from "@/lib/head";
 import { SCALE, sfx } from "@/lib/sfx";
+import { getJson } from "@/lib/utils";
 import newsreaderItalicWoff2 from "../fonts/newsreader-latin-italic.woff2?url";
 import bodyCss from "../fonts-body.css?url";
 import statusCss from "../status.css?url";
@@ -44,13 +52,14 @@ const getFleet = createServerFn({ method: "GET" }).handler(
 
 export const Route = createFileRoute("/status")({
   component: StatusPage,
-  loader: async () => ({ fleet: await getFleet() }),
+  // `now` rides along so the server and the hydrating client start the clock
+  // at the same moment.
+  loader: async () => ({ fleet: await getFleet(), now: Date.now() }),
   head: ({ matches }) => ({
     meta: pageMeta({
       description: DESCRIPTION,
       image: "/og/workshop.png",
       matches,
-      path: "/status",
       title: "the workshop",
     }),
     links: [
@@ -103,15 +112,17 @@ const wobble = (f: Fleet): Fleet => ({
 function useLiveFleet(initial: Fleet) {
   const [fleet, setFleet] = useState(initial);
   useEffect(() => {
-    const tick = setInterval(() => {
+    const refresh = () => {
       if (document.visibilityState !== "visible") return;
       if (initial.mock) return setFleet(wobble);
-      fetch("/api/fleet")
-        .then((r) => (r.ok ? (r.json() as Promise<Fleet>) : null))
-        .then((f) => f && setFleet(f))
-        .catch(() => undefined);
-    }, TICK_MS);
-    return () => clearInterval(tick);
+      getJson<Fleet>("/api/fleet").then((f) => f && setFleet(f));
+    };
+    const tick = setInterval(refresh, TICK_MS);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(tick);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, [initial.mock]);
   return fleet;
 }
@@ -129,7 +140,9 @@ function NowProvider({
 }) {
   const [now, setNow] = useState(initial);
   useEffect(() => {
-    const clock = setInterval(() => setNow(Date.now()), 1000);
+    const clock = setInterval(() => {
+      if (document.visibilityState === "visible") setNow(Date.now());
+    }, 1000);
     return () => clearInterval(clock);
   }, []);
   return <Now value={now}>{children}</Now>;
@@ -151,7 +164,7 @@ const stagger = (start: number, step: number) => {
 const rise = (ms: number) => ({ animationDelay: `${ms}ms` });
 
 function StatusPage() {
-  const { fleet: initial } = Route.useLoaderData();
+  const { fleet: initial, now } = Route.useLoaderData();
   const fleet = useLiveFleet(initial);
   const sum = summarize(fleet);
   const head = stagger(0, 70);
@@ -159,8 +172,8 @@ function StatusPage() {
   const rows = stagger(780, 30);
 
   return (
-    <NowProvider initial={initial.measuredAt + 12_000}>
-      <main className="min-h-dvh paper px-7 py-10 text-ink selection:bg-rose selection:text-paper md:py-14">
+    <NowProvider initial={now}>
+      <main className="min-h-dvh paper px-7 py-10 text-ink md:py-14">
         <div className="tty mx-auto w-full max-w-4xl">
           <BackLink
             className="rise text-muted text-xs"
@@ -185,7 +198,9 @@ function StatusPage() {
             {words(sum.hosts)} machines, {words(sum.services)} services,{" "}
             {sum.answering === sum.services
               ? "all answering."
-              : `${words(sum.answering)} answering.`}
+              : sum.answering === 0
+                ? "none answering."
+                : `${words(sum.answering)} answering.`}
             {sum.off.length > 0 ? (
               <span className="text-muted">
                 {" "}
@@ -195,7 +210,7 @@ function StatusPage() {
             ) : null}
           </p>
 
-          <div className="mt-10 grid gap-x-6 gap-y-7 md:grid-cols-2">
+          <div className="mt-10 grid gap-x-6 gap-y-7 lg:grid-cols-2">
             {fleet.hosts.map((host, i) => (
               <Panel
                 delay={panels()}
@@ -209,12 +224,15 @@ function StatusPage() {
             ))}
           </div>
 
-          {/* The per-service table (name · blurb · memory · 30d · strip) was
-              pulled in #56; the data still arrives in `fleet.services`. */}
-
           <footer className="rise mt-10 text-faint" style={rise(rows())}>
             <p>
-              measured <Live>{(now) => ago(fleet.measuredAt, now)}</Live> ago
+              {fleet.measuredAt ? (
+                <>
+                  measured <Live>{(at) => ago(fleet.measuredAt, at)}</Live> ago
+                </>
+              ) : (
+                "nothing measured yet"
+              )}
             </p>
           </footer>
         </div>
@@ -278,11 +296,7 @@ function Panel({
             data={host.cpuSpark}
             delay={delay + 200}
             max={100}
-            scrub={
-              quiet
-                ? undefined
-                : (v, ago) => `${v}% · ${ago === 0 ? "now" : `${ago}m ago`}`
-            }
+            scrub={quiet ? undefined : (v, ago) => `${v}% · ${minutesAgo(ago)}`}
           />
         </Vital>
         <Vital
@@ -307,11 +321,7 @@ function Panel({
 
       <p className="panel-beat mt-4">
         <span className="k">heartbeat</span>
-        <Strip
-          cells={host.beats.slice(-30)}
-          delay={delay + 300}
-          end={host.lastSeen}
-        />
+        <Strip cells={host.beats.slice(-30)} delay={delay + 300} />
         <span className="v">
           {quiet ? (
             host.health
@@ -328,7 +338,9 @@ function Panel({
             : `${words(services)} ${services === 1 ? "service" : "services"}`}
           {" · "}
         </span>
-        {host.containers > 0 ? `${host.containers} containers · ` : ""}
+        {host.containers > 0
+          ? `${host.containers} ${host.containers === 1 ? "container" : "containers"} · `
+          : ""}
         <Live>
           {(now) => (
             <span
@@ -338,7 +350,9 @@ function Panel({
                   : undefined
               }
             >
-              {off ? "last seen" : "seen"} {ago(host.lastSeen, now)} ago
+              {host.lastSeen
+                ? `${off ? "last seen" : "seen"} ${ago(host.lastSeen, now)} ago`
+                : "never seen"}
             </span>
           )}
         </Live>

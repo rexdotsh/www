@@ -2,16 +2,17 @@
   position: fixed;
   left: max(1.4rem, env(safe-area-inset-left));
   bottom: max(1.1rem, env(safe-area-inset-bottom));
-  z-index: 60;
+  /* Under the sentence's tap-catcher (30), so a tap there only dismisses. */
+  z-index: 20;
   font-family: var(--font-mono);
   font-size: 10px;
   font-style: italic;
   letter-spacing: 0.06em;
   color: var(--faint);
-  animation: rise-in 600ms var(--ease-strong) 900ms backwards;
 }
 
 .guestbook-line {
+  position: relative;
   color: inherit;
   cursor: pointer;
   transition: color 150ms;
@@ -76,18 +77,18 @@
     visibility 0s 220ms;
 }
 
-.guestbook:is([data-open], :has(:focus-visible)) .guestbook-peek {
+.guestbook[data-open] .guestbook-peek {
   transform: none;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transition:
-    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 280ms var(--ease-spring),
     opacity 160ms var(--ease-strong),
     visibility 0s;
 }
 
-.guestbook:is([data-open], :has(:focus-visible)) .peek-card > * {
+.guestbook[data-open] .peek-card > * {
   opacity: 1;
   translate: 0 0;
 }
@@ -95,6 +96,11 @@
 @media (min-width: 768px) {
   .guestbook[data-loading] {
     display: none;
+  }
+
+  /* Only on the first visit: the rose column is .rise then. */
+  .rise .guestbook {
+    animation: rise-in 600ms var(--ease-strong) 900ms backwards;
   }
 }
 
@@ -109,6 +115,7 @@
   letter-spacing: 0;
   font-size: 11px;
   text-align: left;
+  overflow-wrap: anywhere;
 }
 
 .gb-section {
@@ -146,11 +153,16 @@
 }
 
 .guest-page {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--faint);
   font-size: 10px;
 }
 
 .guest-ago {
+  white-space: nowrap;
   min-width: 3.2em;
   color: var(--muted);
   font-size: 10px;
@@ -200,12 +212,14 @@
 }
 
 .signature-by {
-  display: flex;
-  align-items: baseline;
-  gap: 0.4em;
+  display: block;
   margin-top: 0.2rem;
   font-size: 10px;
   color: var(--muted);
+}
+
+.signature-by > .text-faint {
+  white-space: nowrap;
 }
 
 .dash,
@@ -215,8 +229,10 @@
   transition: transform 220ms var(--ease-strong);
 }
 
-.signature:hover .dash {
-  transform: translateX(3px);
+@media (hover: hover) {
+  .signature:hover .dash {
+    transform: translateX(3px);
+  }
 }
 
 .signature-empty {
@@ -225,8 +241,15 @@
   color: var(--faint);
 }
 
+/* Scrolls inside the card on short screens; the inline bleed keeps the
+   signatures' negative margins from adding a sideways scroll. */
 .gb-view {
   display: block;
+  max-height: calc(100dvh - 6.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-inline: -0.5rem;
+  padding-inline: 0.5rem;
   animation: swap-in 320ms var(--ease-strong) backwards;
 }
 
@@ -249,17 +272,19 @@
   transition: color 150ms;
 }
 
-.gb-write-link:hover,
-.gb-back:hover {
-  color: var(--rose);
-}
+@media (hover: hover) {
+  .gb-write-link:hover,
+  .gb-back:hover {
+    color: var(--rose);
+  }
 
-.gb-write-link:hover .arrow {
-  transform: translateX(3px);
-}
+  .gb-write-link:hover .arrow {
+    transform: translateX(3px);
+  }
 
-.gb-back:hover .arrow {
-  transform: translateX(-3px);
+  .gb-back:hover .arrow {
+    transform: translateX(-3px);
+  }
 }
 
 .gb-thanks {
@@ -327,8 +352,10 @@
   cursor: text;
 }
 
-.ed:hover {
-  text-decoration-color: color-mix(in oklab, var(--rose) 70%, transparent);
+@media (hover: hover) {
+  .ed:hover {
+    text-decoration-color: color-mix(in oklab, var(--rose) 70%, transparent);
+  }
 }
 
 .ed:focus,
@@ -419,8 +446,10 @@
   color: inherit;
 }
 
-.sign-go:not(:disabled):hover .arrow {
-  transform: translateX(3px);
+@media (hover: hover) {
+  .sign-go:not(:disabled):hover .arrow {
+    transform: translateX(3px);
+  }
 }
 
 .sign-dots {
@@ -491,7 +520,6 @@
     margin-top: 0.625rem;
     letter-spacing: 0;
     text-align: center;
-    animation: none;
   }
 
   .gb-corner {
@@ -517,7 +545,7 @@
     z-index: 40;
   }
 
-  .guestbook:is([data-open], :has(:focus-visible)) .guestbook-peek {
+  .guestbook[data-open] .guestbook-peek {
     transform: translateX(-50%);
     transition:
       transform 480ms var(--ease-strong),
