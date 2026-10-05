@@ -1,22 +1,10 @@
 import { useEffect, useState } from "react";
+import type { NowPlaying } from "@/lib/spotify";
 
 const POLL_INTERVAL = 60_000;
 
-export interface SpotifyTrack {
-  album: string;
-  artist: string;
-  id: string;
-  image: Array<{
-    "#text": string;
-    size: "small" | "medium" | "large";
-  }>;
-  isPlaying: boolean;
-  name: string;
-  url: string;
-}
-
 export function useNowPlaying() {
-  const [track, setTrack] = useState<SpotifyTrack | null>(null);
+  const [track, setTrack] = useState<NowPlaying | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,7 +32,7 @@ export function useNowPlaying() {
           signal: abortController.signal,
         });
         if (response.ok) {
-          const data = (await response.json()) as SpotifyTrack | null;
+          const data = (await response.json()) as NowPlaying | null;
           setTrack((current) =>
             current?.id === data?.id && current?.isPlaying === data?.isPlaying
               ? current

@@ -1,5 +1,6 @@
 import {
   type FormEvent,
+  type InputEvent as ReactInputEvent,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   useEffect,
@@ -7,13 +8,9 @@ import {
   useState,
 } from "react";
 import { sfx } from "@/lib/sfx";
-import {
-  GUESTBOOK_LIMITS,
-  type GuestbookEntry,
-  patchStats,
-  useSiteStats,
-  visitor,
-} from "@/lib/stats";
+import { GUESTBOOK_LIMITS, type GuestbookEntry } from "@/lib/stats";
+import { patchStats, useSiteStats, visitor } from "@/lib/use-stats";
+import { isTouch } from "@/lib/utils";
 
 const ROTATE_MS = 6000;
 const SETTLE_MS = 2600;
@@ -29,6 +26,9 @@ const ERRORS: Partial<Record<SignState, string>> = {
 
 const PARENS_RE = /^\(\s*|\s*\)$/g;
 
+const EMPTY_DRAFT = { message: "", name: "" };
+type Draft = typeof EMPTY_DRAFT;
+
 export default function Guestbook({ caption }: { caption: string }) {
   const stats = useSiteStats();
   const [open, setOpen] = useState(false);
@@ -36,7 +36,9 @@ export default function Guestbook({ caption }: { caption: string }) {
   const [mode, setMode] = useState<Mode>("read");
   const [index, setIndex] = useState(0);
   const [fresh, setFresh] = useState<number | null>(null);
+  const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const rootRef = useRef<HTMLSpanElement>(null);
+  const lineRef = useRef<HTMLButtonElement>(null);
   const recent = stats?.recent ?? [];
 
   useEffect(() => {
@@ -85,6 +87,7 @@ export default function Guestbook({ caption }: { caption: string }) {
     return (
       <span className="guestbook" data-loading="">
         <button className="guestbook-line" type="button">
+          <span className="sr-only">guestbook: </span>
           <Caption caption={caption} />
         </button>
       </span>
@@ -108,9 +111,18 @@ export default function Guestbook({ caption }: { caption: string }) {
           setOpen(false);
         }
       }}
-      // JS hover so iOS's sticky :hover-on-tap can't hold it open.
+      onFocus={(event) => {
+        if (event.target.matches(":focus-visible")) {
+          setOpen(true);
+        }
+      }}
+      // JS hover so iOS's sticky :hover-on-tap can't hold it open. The scrim
+      // appearing under a finger fires a synthetic mouse pointerover.
       onPointerEnter={(event) => {
-        if (event.pointerType !== "touch") {
+        if (
+          event.pointerType === "mouse" &&
+          matchMedia("(hover: hover)").matches
+        ) {
           setHover(true);
           sfx("pop");
         }
@@ -120,14 +132,15 @@ export default function Guestbook({ caption }: { caption: string }) {
     >
       <button
         aria-expanded={open}
-        aria-label="guestbook: who else is here"
         className="guestbook-line"
         onClick={() => {
           sfx(open ? "pause" : "pop");
           setOpen((v) => !v);
         }}
+        ref={lineRef}
         type="button"
       >
+        <span className="sr-only">guestbook: </span>
         <Caption caption={caption}>
           <span className="gb-corner">
             {Math.max(1, stats.online)} here
@@ -163,11 +176,18 @@ export default function Guestbook({ caption }: { caption: string }) {
 
           {mode === "write" ? (
             <SignForm
+              draft={draft}
               key="write"
-              onBack={() => setMode("read")}
+              onBack={() => {
+                setMode("read");
+                lineRef.current?.focus();
+              }}
+              onDraft={setDraft}
               onSigned={(entry) => {
                 setFresh(entry.id);
+                setDraft(EMPTY_DRAFT);
                 setMode("read");
+                lineRef.current?.focus();
               }}
             />
           ) : (
@@ -176,10 +196,7 @@ export default function Guestbook({ caption }: { caption: string }) {
                 <span className="gb-section">
                   <span className="gb-label">here lately</span>
                   {recent.slice(0, 3).map((guest) => (
-                    <span
-                      className="guest"
-                      key={`${guest.place}-${guest.ago}-${guest.path}`}
-                    >
+                    <span className="guest" key={guest.tag}>
                       <span className="guest-place">{guest.place}</span>
                       <span className="guest-page">{guest.path}</span>
                       <span className="guest-ago">{guest.ago}</span>
@@ -280,15 +297,18 @@ function Caption({
 }
 
 function SignForm({
+  draft,
   onBack,
+  onDraft,
   onSigned,
 }: {
+  draft: Draft;
   onBack: () => void;
+  onDraft: (update: (draft: Draft) => Draft) => void;
   onSigned: (entry: GuestbookEntry) => void;
 }) {
   const [state, setState] = useState<SignState>("idle");
-  const [name, setName] = useState("");
-  const [message, setMessage] = useState("");
+  const { message, name } = draft;
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -344,7 +364,7 @@ function SignForm({
   };
 
   const ready = message.trim().length > 0;
-  const left = GUESTBOOK_LIMITS.message - message.length;
+  const left = GUESTBOOK_LIMITS.message - Array.from(message).length;
 
   return (
     <form
@@ -359,7 +379,7 @@ function SignForm({
           autoFocus
           label="leave a line"
           max={GUESTBOOK_LIMITS.message}
-          onChange={setMessage}
+          onChange={(text) => onDraft((d) => ({ ...d, message: text }))}
           onEnter={submit}
           onEscape={onBack}
           placeholder="say something, anything"
@@ -371,7 +391,7 @@ function SignForm({
         <Editable
           label="your name"
           max={GUESTBOOK_LIMITS.name}
-          onChange={setName}
+          onChange={(text) => onDraft((d) => ({ ...d, name: text }))}
           onEnter={submit}
           onEscape={onBack}
           placeholder="anonymous"
@@ -445,13 +465,13 @@ function Editable({
   useEffect(() => {
     // Programmatic focus on iOS opens the keyboard without panning the field
     // into view; let touch users tap the field themselves.
-    if (autoFocus && !matchMedia("(hover: none)").matches) {
+    if (autoFocus && !isTouch()) {
       ref.current?.focus();
     }
   }, [autoFocus]);
 
   const onKeyDown = (event: ReactKeyboardEvent<HTMLSpanElement>) => {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && !event.nativeEvent.isComposing) {
       event.preventDefault();
       onEnter();
     } else if (event.key === "Escape") {
@@ -465,16 +485,31 @@ function Editable({
     <span
       aria-label={label}
       aria-multiline="false"
+      autoCapitalize="none"
       className="ed"
       contentEditable="plaintext-only"
       data-placeholder={placeholder}
+      enterKeyHint="send"
+      // Stop at the limit rather than trimming afterwards, which throws the caret to the end.
+      onBeforeInput={(event: ReactInputEvent<HTMLSpanElement>) => {
+        if (
+          event.data &&
+          getSelection()?.isCollapsed &&
+          Array.from(event.currentTarget.textContent ?? "").length >= max
+        ) {
+          event.preventDefault();
+        }
+      }}
       onInput={(event) => {
         const el = event.currentTarget;
-        let text = (el.textContent ?? "").replace(/\s+/g, " ");
-        if (text.length > max) {
-          text = text.slice(0, max);
+        const raw = el.textContent ?? "";
+        // Pastes can bring line breaks and overshoot the limit.
+        let text = raw.replace(/[\r\n\t]+/g, " ");
+        const chars = Array.from(text);
+        if (chars.length > max) {
+          text = chars.slice(0, max).join("");
         }
-        if (text !== el.textContent) {
+        if (text !== raw) {
           el.textContent = text;
           const range = document.createRange();
           range.selectNodeContents(el);

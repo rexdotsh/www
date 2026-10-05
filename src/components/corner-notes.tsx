@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { isMuted, onMuteChange, setMuted, sfx } from "@/lib/sfx";
+import { type MouseEvent, useEffect, useRef, useState } from "react";
+import { isMuted, onMuteChange, SOUND_KEY, setMuted, sfx } from "@/lib/sfx";
+import { reducedMotion } from "@/lib/utils";
 
 type Theme = "light" | "dark";
 
@@ -12,15 +13,18 @@ interface Ripple {
 
 const REVEAL_MS = 550;
 const RIPPLE_MS = 900;
+const THEME_KEY = "theme";
 const THEME_COLORS: Record<Theme, string> = {
   light: "#faf8f2",
   dark: "#131315",
 };
-const LABELS: Record<Theme, string> = {
-  light: "lights off",
-  dark: "lights on",
-};
 
+// Before first paint: the theme, its toolbar colour, and the sound setting the
+// labels below are picked by. React leaves the extra meta alone when hydrating.
+export const FIRST_PAINT_SCRIPT = `var d=document.documentElement,m=document.createElement("meta");try{if(localStorage.getItem("${THEME_KEY}")==="dark")d.dataset.theme="dark";if(localStorage.getItem("${SOUND_KEY}")==="off")d.dataset.sound="off"}catch(e){}m.name="theme-color";m.content=d.dataset.theme?"${THEME_COLORS.dark}":"${THEME_COLORS.light}";document.head.append(m)`;
+
+// iOS Safari re-samples its edge tint when a fixed element appears, which
+// makes it pick up a theme flip.
 function nudgeBarSampling() {
   const probe = document.createElement("div");
   probe.style.cssText =
@@ -40,14 +44,10 @@ export default function CornerNotes() {
   );
   const [muted, setMutedState] = useState(isMuted);
   const [flipped, setFlipped] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [ripple, setRipple] = useState<Ripple | null>(null);
   const rippleTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => {
-    setMounted(true);
-    return onMuteChange(setMutedState);
-  }, []);
+  useEffect(() => onMuteChange(setMutedState), []);
   useEffect(() => () => clearTimeout(rippleTimer.current), []);
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function CornerNotes() {
       ?.setAttribute("content", THEME_COLORS[theme]);
   }, [theme]);
 
-  const toggle = (event: React.MouseEvent) => {
+  const toggle = (event: MouseEvent) => {
     const next: Theme = theme === "dark" ? "light" : "dark";
     const apply = () => {
       if (next === "dark") {
@@ -66,12 +66,12 @@ export default function CornerNotes() {
       }
       try {
         if (next === "dark") {
-          localStorage.setItem("theme", "dark");
+          localStorage.setItem(THEME_KEY, "dark");
         } else {
-          localStorage.removeItem("theme");
+          localStorage.removeItem(THEME_KEY);
         }
       } catch {
-        // Ignore storage errors.
+        // storage blocked (private mode); the theme lasts for this load
       }
       setTheme(next);
       setFlipped(true);
@@ -79,10 +79,7 @@ export default function CornerNotes() {
       sfx(next === "dark" ? "lightsOff" : "lightsOn");
     };
 
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    if (!document.startViewTransition || reduceMotion) {
+    if (!document.startViewTransition || reducedMotion()) {
       apply();
       return;
     }
@@ -114,14 +111,19 @@ export default function CornerNotes() {
     });
   };
 
-  const toggleSound = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const toggleSound = (event: MouseEvent<HTMLButtonElement>) => {
     const next = !isMuted();
     setMuted(next);
+    if (next) {
+      document.documentElement.dataset.sound = "off";
+    } else {
+      delete document.documentElement.dataset.sound;
+    }
     setFlipped(true);
     if (!next) {
       sfx("pop");
     }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (reducedMotion()) {
       return;
     }
     const rect = event.currentTarget.getBoundingClientRect();
@@ -135,8 +137,6 @@ export default function CornerNotes() {
     rippleTimer.current = setTimeout(() => setRipple(null), RIPPLE_MS);
   };
 
-  const lightsLabel = LABELS[mounted ? theme : "light"];
-  const soundLabel = mounted && muted ? "sound off" : "sound on";
   const swap = flipped ? "swap-in" : undefined;
 
   return (
@@ -158,27 +158,19 @@ export default function CornerNotes() {
         <span aria-hidden="true" className="paren">
           (
         </span>{" "}
-        <button
-          aria-label="toggle color theme"
-          className="corner-button"
-          onClick={toggle}
-          type="button"
-        >
-          <span className={swap} key={lightsLabel}>
-            {lightsLabel}
+        <button className="corner-button" onClick={toggle} type="button">
+          <span className={swap} key={theme}>
+            <span data-when="light">lights off</span>
+            <span data-when="dark">lights on</span>
           </span>
         </button>
         <span aria-hidden="true" className="text-faint">
           {" · "}
         </span>
-        <button
-          aria-label="toggle sound effects"
-          className="corner-button"
-          onClick={toggleSound}
-          type="button"
-        >
-          <span className={swap} key={soundLabel}>
-            {soundLabel}
+        <button className="corner-button" onClick={toggleSound} type="button">
+          <span className={swap} key={String(muted)}>
+            <span data-when="sound">sound on</span>
+            <span data-when="muted">sound off</span>
           </span>
         </button>{" "}
         <span aria-hidden="true" className="paren">

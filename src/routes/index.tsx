@@ -1,15 +1,24 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import Guestbook from "@/components/guestbook";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
-import { EMBED_REL } from "@/lib/discord-embed";
-import { type SiteStats, useSiteStats } from "@/lib/stats";
-import { type SpotifyTrack, useNowPlaying } from "@/lib/use-now-playing";
+import { baseUrlOf, EMBED_REL, preloadFont } from "@/lib/head";
+import type { NowPlaying } from "@/lib/spotify";
+import { type SiteStats, visitorTag } from "@/lib/stats";
+import { useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
-
-const DEFAULT_BASE_URL = "https://rex.wf";
+import { useSiteStats, visitor } from "@/lib/use-stats";
+import { isTouch } from "@/lib/utils";
+import instrumentItalicWoff2 from "../fonts/instrument-serif-latin-italic.woff2?url";
 
 const rootRoute = getRouteApi("__root__");
 
@@ -20,13 +29,10 @@ export const Route = createFileRoute("/")({
       {
         rel: EMBED_REL,
         type: "application/json",
-        href: `${(matches[0]?.loaderData as { baseUrl?: string } | undefined)?.baseUrl ?? DEFAULT_BASE_URL}/api/embed.json`,
+        href: `${baseUrlOf(matches)}/api/embed.json`,
       },
+      preloadFont(instrumentItalicWoff2),
     ],
-  }),
-  headers: () => ({
-    "Cache-Control": "public, max-age=0",
-    "Cloudflare-CDN-Cache-Control": "public, max-age=3600",
   }),
 });
 
@@ -50,27 +56,27 @@ const CAPTIONS: Record<SentenceWord, string> = {
   resume: "( pretending to be a document )",
 };
 
-// On phones these also decide whether the rose's caption shows: for builds,
-// writes, workshop and hi the card sits over it. That started by accident and
-// reads better, so workshop is set to do the same.
+// Tuned for a phone page that fits the screen; --below adds whatever is still
+// under the fold. They also decide whether the rose's caption shows: for builds,
+// writes, workshop and hi the card sits over it on purpose. In landscape the
+// rose can't clear a sheet, so it stays put behind it.
 const LIFTS: Record<SentenceWord, string> = {
-  name: "max-md:-translate-y-[50px]",
-  builds: "max-md:-translate-y-[218px]",
-  writes: "max-md:-translate-y-[66px]",
-  workshop: "max-md:-translate-y-[98px]",
-  music: "max-md:-translate-y-[85px]",
-  hi: "max-md:-translate-y-[66px]",
-  resume: "max-md:-translate-y-[50px]",
+  name: "max-md:portrait:-translate-y-[calc(50px_+_var(--below))]",
+  builds: "max-md:portrait:-translate-y-[calc(218px_+_var(--below))]",
+  writes: "max-md:portrait:-translate-y-[calc(66px_+_var(--below))]",
+  workshop: "max-md:portrait:-translate-y-[calc(98px_+_var(--below))]",
+  music: "max-md:portrait:-translate-y-[calc(85px_+_var(--below))]",
+  hi: "max-md:portrait:-translate-y-[calc(66px_+_var(--below))]",
+  resume: "max-md:portrait:-translate-y-[calc(50px_+_var(--below))]",
 };
-const MUSIC_COMPACT_LIFT = "max-md:-translate-y-[73px]";
+const MUSIC_COMPACT_LIFT =
+  "max-md:portrait:-translate-y-[calc(73px_+_var(--below))]";
 
 const VOLUME = 0.5;
 const VOLUME_TOUCH = 0.28;
 
-const isTouch = () => window.matchMedia("(hover: none)").matches;
-
 interface Preview {
-  track: SpotifyTrack;
+  track: NowPlaying;
   url: string;
 }
 
@@ -84,14 +90,19 @@ const roseNotes = (stats: SiteStats | null) => {
     return [];
   }
   const notes: string[] = [];
-  const others = stats.online - 1;
+  const mine = visitorTag(visitor());
+  const counted = stats.recent.some(
+    (r) => r.tag === mine && RECENT_AGO_RE.test(r.ago)
+  );
+  const others = stats.online - (counted ? 1 : 0);
   if (others === 1) {
     notes.push("( one other person is looking at this )");
   } else if (others > 1) {
     notes.push(`( ${others} others are looking at this )`);
   }
   const arrival = stats.recent.find(
-    (r) => RECENT_AGO_RE.test(r.ago) && r.place !== "somewhere"
+    (r) =>
+      r.tag !== mine && RECENT_AGO_RE.test(r.ago) && r.place !== "somewhere"
   );
   if (arrival) {
     notes.push(`( someone in ${arrival.place} just arrived )`);
@@ -127,20 +138,20 @@ const referrerHost = () => {
   }
 };
 
-function useRoseNote(idle: boolean, stats: SiteStats | null) {
+function useRoseNote(idle: boolean, stats: SiteStats | null, greet: boolean) {
   const [note, setNote] = useState<string | null>(null);
   const notesRef = useRef<string[]>([]);
   notesRef.current = roseNotes(stats);
 
   useEffect(() => {
-    const host = referrerHost();
+    const host = greet ? referrerHost() : null;
     if (!host) {
       return;
     }
     setNote(`( ${host} sent you. hi. )`);
     const timer = setTimeout(() => setNote(null), GREETING_MS);
     return () => clearTimeout(timer);
-  }, []);
+  }, [greet]);
 
   useEffect(() => {
     if (!idle) {
@@ -177,17 +188,41 @@ function Home() {
   }, []);
   const live = useNowPlaying();
   const [word, setWord] = useState<SentenceWord | null>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  const [below, setBelow] = useState(0);
+
+  // A card can't be open while the page scrolls, so this holds until it closes.
+  useLayoutEffect(() => {
+    const main = mainRef.current;
+    if (word && main) {
+      setBelow(main.scrollHeight - main.clientHeight - main.scrollTop);
+    }
+  }, [word]);
   const [preview, setPreview] = useState<Preview | null>(null);
   const track = preview?.track ?? live.track;
   const previewUrl = preview?.url ?? live.previewUrl;
   const artFadeRef = useRef(0);
   const fadedOutRef = useRef(false);
   const volumeRef = useRef(VOLUME);
-  const { isPlaying, play, pause, fade, getPosition, duration, setVolume } =
-    usePreview(previewUrl, () => {
-      artFadeRef.current = 0;
-      setPreview(null);
-    });
+  const {
+    isPlaying,
+    play,
+    pause,
+    fade,
+    getPosition,
+    duration,
+    setVolume,
+    warm,
+  } = usePreview(previewUrl, () => {
+    artFadeRef.current = 0;
+    setPreview(null);
+  });
+
+  useEffect(() => {
+    if (word === "music") {
+      warm();
+    }
+  }, [word, warm]);
 
   useEffect(() => {
     if (!isPlaying) {
@@ -210,9 +245,12 @@ function Home() {
       return;
     }
     const previous = document.title;
-    document.title = `♫ ${track.name} · ${track.artist}`;
+    const playing = `♫ ${track.name} · ${track.artist}`;
+    document.title = playing;
     return () => {
-      document.title = previous;
+      if (document.title === playing) {
+        document.title = previous;
+      }
     };
   }, [isPlaying, track]);
 
@@ -235,14 +273,15 @@ function Home() {
     fade(0, volumeRef.current, 2000);
   }, [preview, live.track, live.previewUrl, pause, play, setVolume, fade]);
 
+  // The rose samples a 27x27 grid of it, so the smallest cover will do.
   const albumArt =
-    track?.image.find((image) => image.size === "large")?.["#text"] ??
+    track?.image.find((image) => image.size === "small")?.["#text"] ??
     track?.image.find((image) => image.size === "medium")?.["#text"] ??
     null;
 
   const mode = word ? MODES[word] : preview ? "art" : "rest";
   const stats = useSiteStats();
-  const roseNote = useRoseNote(!(word || preview), stats);
+  const roseNote = useRoseNote(!(word || preview), stats, intro);
 
   const caption = (() => {
     if (roseNote) {
@@ -269,8 +308,11 @@ function Home() {
     : "";
 
   return (
-    <main className="fixed inset-0 overflow-y-auto paper paper-lit font-serif-display text-ink selection:bg-rose selection:text-paper">
-      <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-14 pb-[max(2rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:px-12 md:py-16">
+    <main
+      className="fixed inset-0 overflow-y-auto paper paper-lit font-serif-display text-ink"
+      ref={mainRef}
+    >
+      <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-14 pb-[max(2rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:py-[min(4rem,9vh)] md:pr-[max(3rem,env(safe-area-inset-right))] md:pl-[max(3rem,env(safe-area-inset-left))]">
         <div className="sentence-root relative max-w-2xl md:flex-1">
           <TheSentence
             className="text-[clamp(1.9rem,8.6vw,2.5rem)] leading-[1.22] tracking-[-0.01em] md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"
@@ -289,6 +331,7 @@ function Home() {
         >
           <div
             className={`flex flex-col items-center transition-transform duration-300 ease-strong ${liftClass}`}
+            style={{ "--below": `${below}px` } as CSSProperties}
           >
             <ParticleRose
               artFadeRef={artFadeRef}
