@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 
-const DEFAULT_ORIGIN = "https://rex.wf";
+export const DEFAULT_ORIGIN = "https://rex.wf";
 const PUBLIC_HOSTS = new Map([
   ["mridul.sh", "mridul.sh"],
   ["rex.wf", "rex.wf"],

@@ -1,3 +1,4 @@
+import { DEFAULT_ORIGIN } from "@/lib/site";
 import { ogImageUrl } from "@/lib/utils";
 
 export const preloadFont = (href: string) =>
@@ -9,29 +10,27 @@ export const preloadFont = (href: string) =>
     crossOrigin: "anonymous",
   }) as const;
 
+export const baseUrlOf = (matches: { loaderData?: unknown }[]) =>
+  (matches[0]?.loaderData as { baseUrl?: string } | undefined)?.baseUrl ??
+  DEFAULT_ORIGIN;
+
 export const pageMeta = ({
   description,
   image,
   matches,
-  path,
   title,
 }: {
   description: string;
   image: string;
   matches: { loaderData?: unknown }[];
-  path: string;
   title: string;
 }) => {
-  const baseUrl =
-    (matches[0]?.loaderData as { baseUrl?: string } | undefined)?.baseUrl ??
-    "https://rex.wf";
-  const imageUrl = ogImageUrl(image, baseUrl);
+  const imageUrl = ogImageUrl(image, baseUrlOf(matches));
   return [
     { title },
     { name: "description", content: description },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
-    { property: "og:url", content: `${baseUrl}${path}` },
     { property: "og:image", content: imageUrl },
     { property: "og:image:width", content: "1200" },
     { property: "og:image:height", content: "630" },
@@ -42,6 +41,9 @@ export const pageMeta = ({
     { name: "twitter:image:alt", content: title },
   ];
 };
+
+// https://github.com/discord/discord-api-docs/pull/8606
+export const EMBED_REL = "discord:component-embed";
 
 export const RSS_LINK = {
   rel: "alternate",

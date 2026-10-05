@@ -5,22 +5,23 @@ import {
   useLocation,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import CornerNotes from "@/components/corner-notes";
+import CornerNotes, { FIRST_PAINT_SCRIPT } from "@/components/corner-notes";
 import NotFoundPage from "@/components/not-found";
-import { preloadFont } from "@/lib/head";
+import { getIdentity, LINKS } from "@/lib/content";
+import { baseUrlOf, preloadFont, RSS_LINK } from "@/lib/head";
 import { SITE_HEADERS } from "@/lib/headers";
-import { useBeacon } from "@/lib/stats";
 import { getSiteInfo } from "@/lib/site";
+import { useBeacon } from "@/lib/use-stats";
 import { ogImageUrl } from "@/lib/utils";
 import geistMonoWoff2 from "../fonts/geist-mono-latin.woff2?url";
-import instrumentItalicWoff2 from "../fonts/instrument-serif-latin-italic.woff2?url";
 import instrumentWoff2 from "../fonts/instrument-serif-latin.woff2?url";
 import appCss from "../styles.css?url";
 
-const DEFAULT_BASE_URL = "https://rex.wf";
+const TRAILING_SLASH_RE = /(.)\/$/;
 
 export const Route = createRootRoute({
   headers: () => ({
+    // Route-rule headers don't reach error responses, so 404s need these here.
     ...SITE_HEADERS,
     // The document is static per hostname; keep browser validation cheap while
     // allowing Cloudflare to serve repeat navigations from the edge.
@@ -29,36 +30,41 @@ export const Route = createRootRoute({
   }),
   loader: () => getSiteInfo(),
   staleTime: Number.POSITIVE_INFINITY,
-  head: ({ loaderData }) => {
-    const baseUrl = loaderData?.baseUrl ?? DEFAULT_BASE_URL;
-    const hostname = loaderData?.hostname ?? "rex.wf";
-    const isPublicHost = loaderData?.isPublicHost ?? false;
-    const name = hostname === "mridul.sh" ? "mridul" : "rex";
-    const title = `${name}'s space`;
+  head: ({ loaderData, matches }) => {
+    const baseUrl = baseUrlOf(matches);
+    const identity = getIdentity(loaderData?.hostname ?? "");
+    // Every page has a leaf route under the root; an unknown path has none.
+    const found = matches.length > 1;
+    const title = found ? `${identity.name}'s space` : "not found";
     const description = "projects, writing, and whatever's playing.";
-    const canonicalUrl = new URL("/", baseUrl).href;
-    const imageUrl = ogImageUrl(
-      name === "mridul" ? "/social-card-mridul.png" : "/social-card-rex.png",
-      baseUrl
+    const homeUrl = new URL("/", baseUrl).href;
+    const path = (matches.at(-1)?.pathname ?? "/").replace(
+      TRAILING_SLASH_RE,
+      "$1"
     );
+    const pageUrl = new URL(path, baseUrl).href;
+    const imageUrl = ogImageUrl(`/social-card-${identity.name}.png`, baseUrl);
 
     return {
       meta: [
         { charSet: "utf-8" },
         {
           name: "viewport",
-          content: "width=device-width, initial-scale=1, viewport-fit=cover",
+          content:
+            "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
         },
         { title },
         { name: "description", content: description },
-        { name: "author", content: name },
+        { name: "author", content: identity.name },
         {
           name: "robots",
-          content: isPublicHost ? "index,follow" : "noindex,nofollow",
+          content: loaderData?.isPublicHost
+            ? "index,follow"
+            : "noindex,nofollow",
         },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:url", content: canonicalUrl },
+        { property: "og:url", content: pageUrl },
         { property: "og:type", content: "website" },
         { property: "og:locale", content: "en_US" },
         { property: "og:image", content: imageUrl },
@@ -71,17 +77,17 @@ export const Route = createRootRoute({
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: imageUrl },
         { name: "twitter:image:alt", content: title },
-        { name: "twitter:site", content: "@rexmkv" },
-        { name: "twitter:creator", content: "@rexmkv" },
+        { name: "twitter:site", content: `@${identity.handle}` },
+        { name: "twitter:creator", content: `@${identity.handle}` },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
         preloadFont(instrumentWoff2),
-        preloadFont(instrumentItalicWoff2),
         preloadFont(geistMonoWoff2),
         { rel: "icon", href: "/favicon.ico" },
         { rel: "apple-touch-icon", href: "/image.png" },
-        { rel: "canonical", href: canonicalUrl },
+        RSS_LINK,
+        ...(found ? [{ rel: "canonical", href: pageUrl }] : []),
         {
           rel: "preconnect",
           href: "https://ingest.rex.wf",
@@ -97,13 +103,13 @@ export const Route = createRootRoute({
                 "@type": "WebSite",
                 description,
                 name: title,
-                url: canonicalUrl,
+                url: homeUrl,
               },
               {
                 "@type": "Person",
-                name,
-                sameAs: ["https://github.com/rexdotsh", "https://x.com/rexmkv"],
-                url: canonicalUrl,
+                name: identity.name,
+                sameAs: [LINKS.github, LINKS.twitter],
+                url: homeUrl,
               },
             ],
           }),
@@ -116,11 +122,9 @@ export const Route = createRootRoute({
       ],
     };
   },
-  notFoundComponent: NotFoundPage,
+  notFoundComponent: () => <NotFoundPage />,
   shellComponent: RootDocument,
 });
-
-const THEME_SCRIPT = `try{if(localStorage.getItem("theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}`;
 
 function Beacon() {
   useBeacon(useLocation({ select: (location) => location.pathname }));
@@ -131,9 +135,8 @@ function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta content="#faf8f2" name="theme-color" />
-        {/** biome-ignore lint/security/noDangerouslySetInnerHtml: static first-paint theme script */}
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/** biome-ignore lint/security/noDangerouslySetInnerHtml: static first-paint script */}
+        <script dangerouslySetInnerHTML={{ __html: FIRST_PAINT_SCRIPT }} />
         <HeadContent />
       </head>
       <body className="antialiased">

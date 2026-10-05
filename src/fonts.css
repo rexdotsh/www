@@ -108,6 +108,27 @@
   size-adjust: 83.9385%;
 }
 
+/* Android and most Linux desktops have neither Georgia nor Times. */
+@font-face {
+  font-family: "Instrument Serif Fallback Noto";
+  font-style: normal;
+  src: local("Noto Serif"), local("NotoSerif-Regular");
+  ascent-override: 139.48%;
+  descent-override: 43.68%;
+  line-gap-override: 0%;
+  size-adjust: 70.98%;
+}
+
+@font-face {
+  font-family: "Instrument Serif Fallback Noto";
+  font-style: italic;
+  src: local("Noto Serif Italic"), local("NotoSerif-Italic");
+  ascent-override: 128.83%;
+  descent-override: 40.34%;
+  line-gap-override: 0%;
+  size-adjust: 76.84%;
+}
+
 @font-face {
   font-family: "Geist Mono Fallback";
   src: local("Courier New"), local("CourierNewPSMT");

@@ -9,11 +9,13 @@
     "Geist Mono Variable", "Geist Mono Fallback", "Courier New", monospace;
   --font-serif-display:
     "Instrument Serif", "Instrument Serif Fallback",
-    "Instrument Serif Fallback Times", Georgia, serif;
+    "Instrument Serif Fallback Times", "Instrument Serif Fallback Noto",
+    Georgia, serif;
   --font-serif-body:
     "Newsreader Variable", "Newsreader Fallback", "Newsreader Fallback Times",
-    Georgia, serif;
+    "Newsreader Fallback Noto", Georgia, serif;
   --ease-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --color-paper: var(--background);
   --color-card: var(--card);
   --color-ink: var(--ink);
@@ -67,6 +69,11 @@ body {
   font-family: var(--font-mono);
 }
 
+::selection {
+  background-color: var(--rose);
+  color: var(--background);
+}
+
 .paper {
   background-color: var(--background);
   background-image: var(--paper-grain);
@@ -76,6 +83,7 @@ body {
 
 .tint-strip {
   display: none;
+  pointer-events: none;
 }
 
 @supports (-webkit-touch-callout: none) {
@@ -147,17 +155,29 @@ body {
 }
 
 @media print {
-  :root {
+  :root,
+  :root[data-theme="dark"] {
     color-scheme: light;
   }
   .paper {
     background-image: none;
   }
+  details::details-content {
+    content-visibility: visible;
+    display: block;
+  }
+  .code-card {
+    white-space: pre-wrap;
+  }
   .corner-notes,
+  .guestbook,
   .toc,
   .code-copy,
   .code-lang,
+  .code-summary::after,
   .petal-stage,
+  .player-bar,
+  .player-cue,
   .reading-progress {
     display: none !important;
   }
@@ -176,14 +196,34 @@ body {
   view-transition-name: lights;
 }
 
+/* Both labels render; these follow the first-paint script, so the right one
+   shows before hydration. */
+:root[data-theme="dark"] [data-when="light"],
+:root:not([data-theme="dark"]) [data-when="dark"],
+:root[data-sound="off"] [data-when="sound"],
+:root:not([data-sound="off"]) [data-when="muted"] {
+  display: none;
+}
+
 .corner-button {
+  position: relative;
   color: inherit;
   cursor: pointer;
   transition: color 150ms;
 }
 
-.corner-button:hover {
-  color: var(--rose);
+/* The labels are 10px text; give fingers more to hit without moving them. */
+.corner-button::after,
+.guestbook-line::after {
+  content: "";
+  position: absolute;
+  inset: -0.6rem -0.3rem;
+}
+
+@media (hover: hover) {
+  .corner-button:hover {
+    color: var(--rose);
+  }
 }
 
 .corner-notes .paren {
@@ -191,12 +231,14 @@ body {
   transition: transform 260ms var(--ease-strong);
 }
 
-.corner-notes:hover .paren:first-child {
-  transform: translateX(-3px);
-}
+@media (hover: hover) {
+  .corner-notes:hover .paren:first-child {
+    transform: translateX(-3px);
+  }
 
-.corner-notes:hover .paren:last-child {
-  transform: translateX(3px);
+  .corner-notes:hover .paren:last-child {
+    transform: translateX(3px);
+  }
 }
 
 .sound-ripple {
@@ -297,8 +339,10 @@ html[data-vt="theme"]::view-transition-new(root) {
   transition: color 150ms;
 }
 
-.back-link:hover {
-  color: var(--rose);
+@media (hover: hover) {
+  .back-link:hover {
+    color: var(--rose);
+  }
 }
 
 .back-arrow {
@@ -306,8 +350,10 @@ html[data-vt="theme"]::view-transition-new(root) {
   transition: transform 200ms var(--ease-strong);
 }
 
-.back-link:hover .back-arrow {
-  transform: translateX(-3px);
+@media (hover: hover) {
+  .back-link:hover .back-arrow {
+    transform: translateX(-3px);
+  }
 }
 
 @keyframes vt-leave {
@@ -332,6 +378,16 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation: vt-arrive 300ms var(--ease-strong) both;
 }
 
+/* A name only one page has (the workshop word, a post title) leaves with the
+   page instead of hanging over the next one. */
+::view-transition-old(*):only-child {
+  animation: vt-leave 180ms var(--ease-strong) both;
+}
+
+::view-transition-new(*):only-child {
+  animation: vt-arrive 300ms var(--ease-strong) both;
+}
+
 ::view-transition-group(lights) {
   animation: none;
 }
@@ -346,11 +402,13 @@ html[data-vt="theme"]::view-transition-new(root) {
   animation-duration: 480ms;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .corner-notes {
     position: absolute;
   }
+}
 
+@media (max-width: 767px) {
   /* Card shadows stay inside the 1.5rem sheet margin: Safari 26 ends the
      layout viewport at its bar, so anything past the edge is cut off. */
   :root {
@@ -367,8 +425,9 @@ html[data-vt="theme"]::view-transition-new(root) {
   }
 }
 
+/* Only once something has focus, so loads, restores and find-in-page jump. */
 @media (prefers-reduced-motion: no-preference) {
-  html {
+  html:focus-within {
     scroll-behavior: smooth;
   }
 }
