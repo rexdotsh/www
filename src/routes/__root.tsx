@@ -9,7 +9,6 @@ import CornerNotes, { FIRST_PAINT_SCRIPT } from "@/components/corner-notes";
 import NotFoundPage from "@/components/not-found";
 import { getIdentity, LINKS } from "@/lib/content";
 import { baseUrlOf, preloadFont, RSS_LINK } from "@/lib/head";
-import { SITE_HEADERS } from "@/lib/headers";
 import { getSiteInfo } from "@/lib/site";
 import { useBeacon } from "@/lib/use-stats";
 import { ogImageUrl } from "@/lib/utils";
@@ -21,8 +20,6 @@ const TRAILING_SLASH_RE = /(.)\/$/;
 
 export const Route = createRootRoute({
   headers: () => ({
-    // Route-rule headers don't reach error responses, so 404s need these here.
-    ...SITE_HEADERS,
     // The document is static per hostname; keep browser validation cheap while
     // allowing Cloudflare to serve repeat navigations from the edge.
     "Cache-Control": "public, max-age=0, must-revalidate",

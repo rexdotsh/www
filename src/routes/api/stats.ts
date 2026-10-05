@@ -58,7 +58,7 @@ export const Route = createFileRoute("/api/stats")({
         }
         try {
           const stats = await stub.stats();
-          // Only post reads are shown; the rest of the table is history.
+          // The page only shows post reads; the table also holds old junk paths.
           const paths = Object.fromEntries(
             PUBLISHED_META.map((post) => {
               const path = `/blog/${post.slug}`;
