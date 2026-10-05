@@ -42,8 +42,14 @@ export const pageMeta = ({
   ];
 };
 
-// https://github.com/discord/discord-api-docs/pull/8606
-export const EMBED_REL = "discord:component-embed";
+// Discord's component embed, linked rather than inline so its JSON stays out of
+// the client bundle: https://github.com/discord/discord-api-docs/pull/8606
+export const embedLink = (href: string) =>
+  ({
+    rel: "discord:component-embed",
+    type: "application/vnd.discord.component-embed+json",
+    href,
+  }) as const;
 
 export const RSS_LINK = {
   rel: "alternate",

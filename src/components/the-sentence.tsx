@@ -5,6 +5,7 @@ import {
   type MouseEvent,
   type PointerEvent,
   type ReactNode,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -44,6 +45,7 @@ const NOTES: Record<SentenceWord, number> = {
 
 // Without hover, or as bottom sheets below md, cards open on the first tap or click.
 const SHEETS = "(hover: none), (max-width: 767px)";
+const OPEN = ":hover, :focus-within, [data-peek-open]";
 const PEEK_EDGE = 12;
 
 export const TheSentence = memo(function TheSentence({
@@ -80,8 +82,19 @@ export const TheSentence = memo(function TheSentence({
         onWordHover(null);
       }
     };
+    const onResize = () => {
+      for (const trigger of document.querySelectorAll<HTMLElement>(
+        `.peek-trigger:is(${OPEN})`
+      )) {
+        place(trigger);
+      }
+    };
     addEventListener("keydown", onKey);
-    return () => removeEventListener("keydown", onKey);
+    addEventListener("resize", onResize);
+    return () => {
+      removeEventListener("keydown", onKey);
+      removeEventListener("resize", onResize);
+    };
   }, [onWordHover]);
 
   let wordCount = 0;
@@ -339,23 +352,33 @@ function Peek({
         onHover(null);
       }
     };
-    const onResize = () => {
-      if (wrapperRef.current) {
-        place(wrapperRef.current);
-      }
-    };
     addEventListener("keydown", onKey);
-    addEventListener("resize", onResize);
-    return () => {
-      removeEventListener("keydown", onKey);
-      removeEventListener("resize", onResize);
-    };
+    return () => removeEventListener("keydown", onKey);
   }, [armed, onHover]);
+
+  // A card can grow while it's open (the heatmap arriving): keep it on screen.
+  const watchPeek = useCallback((peekEl: HTMLSpanElement | null) => {
+    const trigger = peekEl?.parentElement;
+    if (!(peekEl && trigger)) {
+      return;
+    }
+    const observer = new ResizeObserver(() =>
+      requestAnimationFrame(() => {
+        if (trigger.matches(OPEN)) {
+          place(trigger);
+        }
+      })
+    );
+    observer.observe(peekEl);
+    return () => observer.disconnect();
+  }, []);
 
   const onClick = (event: MouseEvent<HTMLAnchorElement>) => {
     const touch = touchRef.current;
     touchRef.current = false;
-    if (touch || matchMedia(SHEETS).matches) {
+    const modified =
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+    if (!modified && (touch || matchMedia(SHEETS).matches)) {
       if (!armed) {
         event.preventDefault();
         finishIntro();
@@ -416,13 +439,18 @@ function Peek({
       }}
       onPointerLeave={(event) => {
         const trigger = wrapperRef.current;
-        if (event.pointerType === "touch" || armed || !trigger) {
+        // Keyboard focus keeps the card, or an Escape that closed it, until
+        // focus moves on.
+        if (
+          event.pointerType === "touch" ||
+          armed ||
+          !trigger ||
+          trigger.matches(":has(:focus-visible)")
+        ) {
           return;
         }
         trigger.removeAttribute("data-peek-closed");
-        if (!trigger.matches(":has(:focus-visible)")) {
-          onHover(null);
-        }
+        onHover(null);
       }}
       ref={wrapperRef}
     >
@@ -451,7 +479,11 @@ function Peek({
       ) : (
         <span className={linkClass}>{children}</span>
       )}
-      {peek ? <span className="peek">{peek}</span> : null}
+      {peek ? (
+        <span className="peek" ref={watchPeek}>
+          {peek}
+        </span>
+      ) : null}
       {armed ? (
         // biome-ignore lint/a11y/noStaticElementInteractions: tap-catcher; dismissal also works via focus loss
         // biome-ignore lint/a11y/useKeyWithClickEvents: touch-only affordance

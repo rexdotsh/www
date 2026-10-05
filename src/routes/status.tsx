@@ -9,7 +9,14 @@ import {
   useState,
 } from "react";
 import BackLink from "@/components/back-link";
-import { Gauge, Lamp, Sparkline, Strip, useTween } from "@/components/fleet";
+import {
+  Gauge,
+  Lamp,
+  minutesAgo,
+  Sparkline,
+  Strip,
+  useTween,
+} from "@/components/fleet";
 import {
   type Fleet,
   fmtGb,
@@ -289,11 +296,7 @@ function Panel({
             data={host.cpuSpark}
             delay={delay + 200}
             max={100}
-            scrub={
-              quiet
-                ? undefined
-                : (v, ago) => `${v}% · ${ago === 0 ? "now" : `${ago}m ago`}`
-            }
+            scrub={quiet ? undefined : (v, ago) => `${v}% · ${minutesAgo(ago)}`}
           />
         </Vital>
         <Vital
@@ -318,11 +321,7 @@ function Panel({
 
       <p className="panel-beat mt-4">
         <span className="k">heartbeat</span>
-        <Strip
-          cells={host.beats.slice(-30)}
-          delay={delay + 300}
-          end={host.lastSeen}
-        />
+        <Strip cells={host.beats.slice(-30)} delay={delay + 300} />
         <span className="v">
           {quiet ? (
             host.health

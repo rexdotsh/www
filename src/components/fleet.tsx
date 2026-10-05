@@ -178,17 +178,10 @@ export function Gauge({ frac }: { frac: number }) {
 
 const word = (h: Health) => (h === "none" ? "no data" : h);
 
-const hhmm = (ts: number) => new Date(ts).toISOString().slice(11, 16);
+export const minutesAgo = (n: number) => (n ? `${n}m ago` : "now");
 
-export function Strip({
-  cells,
-  delay,
-  end,
-}: {
-  cells: Health[];
-  delay: number;
-  end: number;
-}) {
+// The last cell is now: any after the last sample are the silence since.
+export function Strip({ cells, delay }: { cells: Health[]; delay: number }) {
   const off = cells.filter((c) => c !== "up").length;
   return (
     <span
@@ -205,11 +198,7 @@ export function Strip({
           data-h={h === "up" ? undefined : h}
           key={`${i}-${h}`}
           style={{ animationDelay: `${delay + i * 8}ms` }}
-          title={
-            end
-              ? `${hhmm(end - (cells.length - 1 - i) * 60_000)} utc · ${word(h)}`
-              : word(h)
-          }
+          title={`${minutesAgo(cells.length - 1 - i)} · ${word(h)}`}
         />
       ))}
     </span>

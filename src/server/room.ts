@@ -58,7 +58,19 @@ export class Room extends DurableObject {
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     this.sql = ctx.storage.sql;
+    const upgrading = !this.first(
+      "SELECT 1 FROM sqlite_master WHERE name = 'visitors'"
+    );
     this.sql.exec(SCHEMA);
+    // Once, as the dedupe tables arrive: whoever is still in visits has been
+    // counted, and whoever just signed keeps their cooldown.
+    if (upgrading) {
+      this.sql.exec("INSERT INTO visitors SELECT DISTINCT visitor FROM visits");
+      this.sql.exec(
+        "INSERT INTO signers SELECT who, ts FROM guestbook WHERE ts > ?",
+        Date.now() - GUESTBOOK_LIMITS.cooldownMs
+      );
+    }
   }
 
   record(beacon: Beacon, city: string) {

@@ -79,7 +79,8 @@ export const Route = createFileRoute("/api/guestbook")({
             name,
             message,
             city: placeOf(request),
-            who: hash ? [visitor, hash] : [visitor],
+            // Prefixed: a visitor id is hex too, and could pose as someone's ip.
+            who: hash ? [visitor, `ip:${hash}`] : [visitor],
           });
           return Response.json(result, { status: result.ok ? 201 : 429 });
         } catch (error) {

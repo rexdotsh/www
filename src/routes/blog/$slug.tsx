@@ -4,7 +4,7 @@ import BackLink from "@/components/back-link";
 import NotFoundPage from "@/components/not-found";
 import { PostBody } from "@/components/post-body";
 import { getIdentity } from "@/lib/content";
-import { baseUrlOf, EMBED_REL, pageMeta, preloadFont } from "@/lib/head";
+import { baseUrlOf, embedLink, pageMeta, preloadFont } from "@/lib/head";
 import { getPost, metaLine, type TocEntry } from "@/lib/posts";
 import { getPostMeta } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
@@ -48,11 +48,7 @@ export const Route = createFileRoute("/blog/$slug")({
         { rel: "stylesheet", href: postCss },
         preloadFont(newsreaderWoff2),
         preloadFont(newsreaderItalicWoff2),
-        {
-          rel: EMBED_REL,
-          type: "application/json",
-          href: `${baseUrl}/api/embed.json?post=${loaderData.slug}`,
-        },
+        embedLink(`${baseUrl}/api/embed.json?post=${loaderData.slug}`),
       ],
       scripts: [
         {
@@ -182,11 +178,13 @@ function Toc({
     };
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
+    // Opening a code block moves the headings without a scroll.
+    const resizeObserver = new ResizeObserver(onScroll);
+    resizeObserver.observe(document.body);
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      resizeObserver.disconnect();
     };
   }, [entries]);
 
@@ -308,6 +306,13 @@ function PostPage() {
   const { slug } = Route.useParams();
   const post = getPost(slug);
   const headerBackRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    document.documentElement.dataset.smooth = "";
+    return () => {
+      delete document.documentElement.dataset.smooth;
+    };
+  }, []);
 
   if (!post) {
     return null;

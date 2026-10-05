@@ -425,9 +425,10 @@ html[data-vt="theme"]::view-transition-new(root) {
   }
 }
 
-/* Only once something has focus, so loads, restores and find-in-page jump. */
+/* Set by the post once it's on screen: deep links and restores still jump,
+   in-page links glide. */
 @media (prefers-reduced-motion: no-preference) {
-  html:focus-within {
+  html[data-smooth] {
     scroll-behavior: smooth;
   }
 }

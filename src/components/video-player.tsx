@@ -268,6 +268,25 @@ export default function VideoPlayer({
               scrub(event);
             }
           }}
+          onKeyDown={(event) => {
+            const video = videoRef.current;
+            if (event.ctrlKey || event.metaKey || event.altKey) {
+              return;
+            }
+            if (event.key === "Home") {
+              seekTo(0);
+            } else if (event.key === "End") {
+              seekTo(video?.duration ?? 0);
+            } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+              seekTo(
+                (video?.currentTime ?? 0) +
+                  (event.key === "ArrowUp" ? SEEK_STEP_S : -SEEK_STEP_S)
+              );
+            } else {
+              return;
+            }
+            event.preventDefault();
+          }}
           role="slider"
           tabIndex={0}
         >

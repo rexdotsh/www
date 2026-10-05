@@ -11,7 +11,7 @@ import Guestbook from "@/components/guestbook";
 import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
-import { baseUrlOf, EMBED_REL, preloadFont } from "@/lib/head";
+import { baseUrlOf, embedLink, preloadFont } from "@/lib/head";
 import type { NowPlaying } from "@/lib/spotify";
 import { type SiteStats, visitorTag } from "@/lib/stats";
 import { useNowPlaying } from "@/lib/use-now-playing";
@@ -26,11 +26,7 @@ export const Route = createFileRoute("/")({
   component: Home,
   head: ({ matches }) => ({
     links: [
-      {
-        rel: EMBED_REL,
-        type: "application/json",
-        href: `${baseUrlOf(matches)}/api/embed.json`,
-      },
+      embedLink(`${baseUrlOf(matches)}/api/embed.json`),
       preloadFont(instrumentItalicWoff2),
     ],
   }),
@@ -90,16 +86,14 @@ const roseNotes = (stats: SiteStats | null) => {
     return [];
   }
   const notes: string[] = [];
-  const mine = visitorTag(visitor());
-  const counted = stats.recent.some(
-    (r) => r.tag === mine && RECENT_AGO_RE.test(r.ago)
-  );
-  const others = stats.online - (counted ? 1 : 0);
+  // Assumes this visit is counted: at worst, one person too few.
+  const others = stats.online - 1;
   if (others === 1) {
     notes.push("( one other person is looking at this )");
   } else if (others > 1) {
     notes.push(`( ${others} others are looking at this )`);
   }
+  const mine = visitorTag(visitor());
   const arrival = stats.recent.find(
     (r) =>
       r.tag !== mine && RECENT_AGO_RE.test(r.ago) && r.place !== "somewhere"
@@ -191,12 +185,17 @@ function Home() {
   const mainRef = useRef<HTMLElement>(null);
   const [below, setBelow] = useState(0);
 
-  // A card can't be open while the page scrolls, so this holds until it closes.
+  // A card can't be open while the page scrolls; only a resize moves this.
   useLayoutEffect(() => {
     const main = mainRef.current;
-    if (word && main) {
-      setBelow(main.scrollHeight - main.clientHeight - main.scrollTop);
+    if (!(word && main)) {
+      return;
     }
+    const measure = () =>
+      setBelow(main.scrollHeight - main.clientHeight - main.scrollTop);
+    measure();
+    addEventListener("resize", measure);
+    return () => removeEventListener("resize", measure);
   }, [word]);
   const [preview, setPreview] = useState<Preview | null>(null);
   const track = preview?.track ?? live.track;

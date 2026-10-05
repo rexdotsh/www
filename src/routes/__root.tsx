@@ -30,8 +30,11 @@ export const Route = createRootRoute({
   head: ({ loaderData, matches }) => {
     const baseUrl = baseUrlOf(matches);
     const identity = getIdentity(loaderData?.hostname ?? "");
-    // Every page has a leaf route under the root; an unknown path has none.
-    const found = matches.length > 1;
+    // An unknown path flags the root (whatever prefix matched under it); an
+    // unknown post's own match is notFound.
+    const found = matches.every(
+      (match) => match.status === "success" && !match._notFound
+    );
     const title = found ? `${identity.name}'s space` : "not found";
     const description = "projects, writing, and whatever's playing.";
     const homeUrl = new URL("/", baseUrl).href;
@@ -61,7 +64,7 @@ export const Route = createRootRoute({
         },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:url", content: pageUrl },
+        ...(found ? [{ property: "og:url", content: pageUrl }] : []),
         { property: "og:type", content: "website" },
         { property: "og:locale", content: "en_US" },
         { property: "og:image", content: imageUrl },

@@ -65,7 +65,9 @@ export class FleetStore extends DurableObject {
     const prev = this.row(host);
     if (prev && ts <= prev.seen) return false;
     const day = Math.floor(ts / 86_400_000);
-    // One cell per minute, not per sample: minutes nobody reported in are down.
+    // A cell per sample, plus a down cell per sample that never came. Not
+    // wall-clock minutes: the agent's timer drifts a second or two a minute,
+    // which a minute grid would draw as outages.
     const gap = prev
       ? Math.min(BEATS, Math.max(0, Math.round((ts - prev.seen) / MINUTE) - 1))
       : 0;

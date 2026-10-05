@@ -323,9 +323,10 @@
   animation: rise-in 320ms var(--ease-strong) backwards;
 }
 
+/* No width here: an image keeps the box its width/height attributes reserve
+   (and isn't stretched past them); the player is a block and fills the column. */
 .post-media {
   display: block;
-  width: 100%;
   margin-top: 1.25em;
   border-radius: 12px;
   border: 1px solid color-mix(in oklab, var(--ink) 10%, transparent);
@@ -337,8 +338,6 @@
 }
 
 img.post-media {
-  width: auto;
-  max-width: 100%;
   margin-inline: auto;
 }
 
