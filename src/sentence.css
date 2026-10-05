@@ -308,6 +308,10 @@
 }
 
 @media (min-width: 768px) {
+  .peek-trigger[data-peek-trim] [data-peek-spare] {
+    display: none;
+  }
+
   .peek-trigger[data-peek-below] .peek {
     top: 100%;
     bottom: auto;
