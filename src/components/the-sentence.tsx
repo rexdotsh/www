@@ -285,11 +285,22 @@ function place(trigger: HTMLElement) {
       innerWidth - half - PEEK_EDGE
     ) - center;
   trigger.style.setProperty("--peek-x", `${x}px`);
-  trigger.toggleAttribute(
-    "data-peek-below",
-    word.top - peek.offsetHeight - tab < PEEK_EDGE &&
+  // Measured as it sits above. Short of room there, its spare line goes
+  // first; if that's not enough, the line stays and the card opens below.
+  trigger.removeAttribute("data-peek-below");
+  trigger.removeAttribute("data-peek-trim");
+  const fits = () => word.top - peek.offsetHeight - tab >= PEEK_EDGE;
+  if (fits()) {
+    return;
+  }
+  trigger.setAttribute("data-peek-trim", "");
+  if (!fits()) {
+    trigger.removeAttribute("data-peek-trim");
+    trigger.toggleAttribute(
+      "data-peek-below",
       innerHeight - word.bottom > word.top
-  );
+    );
+  }
 }
 
 // Arming during the intro would pin the sheet to a word that's still
@@ -673,6 +684,7 @@ function ProjectsPeek() {
       {PROJECTS.map((project, index) => (
         <a
           className={`group block ${index > 0 ? "mt-2.5" : ""}`}
+          data-peek-spare={project.spare ? "" : undefined}
           href={project.href}
           key={project.name}
           rel="noopener noreferrer"
