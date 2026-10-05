@@ -3,6 +3,7 @@ import { HOSTS, hmac, hostKey, type Sample } from "@/lib/fleet";
 
 const SKEW_S = 300;
 const MAX_BODY = 16 * 1024;
+const MAX_CONTAINERS = 1000;
 const SIG_RE = /^[0-9a-f]{64}$/;
 
 export const fleet = () =>
@@ -56,7 +57,7 @@ const nums = (v: unknown, n: number): v is number[] =>
 const parse = (text: string): Sample | null => {
   let raw: Record<string, unknown>;
   try {
-    raw = JSON.parse(text);
+    raw = JSON.parse(text) ?? {};
   } catch {
     return null;
   }
@@ -81,10 +82,14 @@ const parse = (text: string): Sample | null => {
           ? [{ n: c.n, s: c.s, m: num(c.m) ? c.m : undefined }]
           : []
       )
-    : new Array(num(containers) ? containers : 0).fill({
-        n: "",
-        s: "",
-      });
+    : new Array<Sample["containers"][number]>(
+        num(containers) &&
+          Number.isInteger(containers) &&
+          containers >= 0 &&
+          containers <= MAX_CONTAINERS
+          ? containers
+          : 0
+      ).fill({ n: "", s: "" });
   return {
     boot,
     containers: list,

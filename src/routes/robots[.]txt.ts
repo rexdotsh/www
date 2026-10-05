@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { resolveSiteInfo } from "@/lib/site";
+import { notAllowed } from "@/server/api";
 
 export const Route = createFileRoute("/robots.txt")({
   server: {
@@ -25,6 +26,7 @@ Disallow: /
           },
         });
       },
+      ANY: notAllowed("GET"),
     },
   },
 });

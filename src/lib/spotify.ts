@@ -2,7 +2,7 @@ const NOW_PLAYING = "https://api.spotify.com/v1/me/player/currently-playing";
 const RECENTLY_PLAYED =
   "https://api.spotify.com/v1/me/player/recently-played?limit=1";
 
-interface SpotifyTrack {
+interface RawTrack {
   album: { images: Array<{ height: number; url: string }>; name: string };
   artists: Array<{ name: string }>;
   external_urls: { spotify: string };
@@ -21,7 +21,7 @@ export async function getNowPlaying(token: string, signal: AbortSignal) {
       throw new Error("Failed to fetch recently played");
     }
     const data = (await recent.json()) as {
-      items?: Array<{ track: SpotifyTrack }>;
+      items?: Array<{ track: RawTrack }>;
     };
     return data.items?.[0] ? transform(data.items[0].track) : null;
   }
@@ -30,7 +30,7 @@ export async function getNowPlaying(token: string, signal: AbortSignal) {
   }
   const data = (await response.json()) as {
     is_playing?: boolean;
-    item?: SpotifyTrack;
+    item?: RawTrack;
   };
   return data.item ? transform(data.item, data.is_playing) : null;
 }
@@ -38,7 +38,7 @@ export async function getNowPlaying(token: string, signal: AbortSignal) {
 const size = (height: number) =>
   height <= 64 ? "small" : height <= 300 ? "medium" : "large";
 
-function transform(data: SpotifyTrack, isPlaying = false) {
+function transform(data: RawTrack, isPlaying = false) {
   return {
     isPlaying,
     name: data.name,

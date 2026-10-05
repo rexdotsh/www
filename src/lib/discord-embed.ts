@@ -1,9 +1,6 @@
 import { getIdentity, LINKS } from "@/lib/content";
-import type { getPost } from "@/lib/posts";
+import { metaLine, type Post } from "@/lib/posts";
 import type { NowPlaying } from "@/lib/spotify";
-
-// https://github.com/discord/discord-api-docs/pull/8606
-export const EMBED_REL = "discord:component-embed";
 
 type Component = Record<string, unknown>;
 
@@ -34,32 +31,24 @@ export function homeEmbed(
 ) {
   const identity = getIdentity(hostname);
   const blog = new URL(LINKS.blog, baseUrl).href;
+  const workshop = new URL("/status", baseUrl).href;
   const something = track ? `[something](${track.url})` : "something";
   return container([
     section(
-      `# hi, i'm ${identity.name}.\ni [build things](${LINKS.github}), i [write](${blog}) about some of them, share a [workshop](${LINKS.flora}) with friends, and usually have ${something} on. say [hi back](${LINKS.twitter}).`,
+      `# hi, i'm ${identity.name}.\ni [build things](${LINKS.github}), i [write](${blog}) about some of them, keep a [workshop](${workshop}) mostly running, and usually have ${something} on. say [hi back](${LINKS.twitter}).`,
       thumb(new URL("/image.png", baseUrl).href)
     ),
     row(
       link("github", LINKS.github),
       link("x", LINKS.twitter),
       link("writing", blog),
-      link(identity.otherDomain.replace("https://", ""), identity.otherDomain)
+      link(identity.otherDomain, `https://${identity.otherDomain}`)
     ),
   ]);
 }
 
-export function postEmbed(
-  baseUrl: string,
-  imageUrl: string,
-  post: NonNullable<ReturnType<typeof getPost>>
-) {
+export function postEmbed(baseUrl: string, imageUrl: string, post: Post) {
   const url = `${baseUrl}/blog/${post.slug}`;
-  const meta = [
-    post.dateLabel,
-    ...post.meta,
-    `${post.readingMinutes} min read`,
-  ];
   const toc = post.toc
     .filter((entry) => entry.depth < 4)
     .slice(0, 10)
@@ -70,7 +59,7 @@ export function postEmbed(
   return container([
     gallery(imageUrl),
     text(
-      `# [${post.title}](${url})\n${post.description}\n-# ${meta.join(" · ")}`
+      `# [${post.title}](${url})\n${post.description}\n-# ${metaLine(post)}`
     ),
     ...(toc.length > 0 ? [rule, text(`**contents**\n${toc.join("\n")}`)] : []),
     row(

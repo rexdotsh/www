@@ -1,6 +1,7 @@
 // ref: https://github.com/rexdotsh/spotify-preview-url-workaround
 
 import { createFileRoute } from "@tanstack/react-router";
+import { notAllowed } from "@/server/api";
 
 const AUDIO_PREVIEW_REGEX = /"audioPreview":\s*{\s*"url":\s*"([^"]+)"/;
 const SPOTIFY_TRACK_ID_REGEX = /^[A-Za-z0-9]{22}$/;
@@ -18,7 +19,12 @@ export const Route = createFileRoute("/api/spotify/preview/$id")({
 
         try {
           const embedUrl = `https://open.spotify.com/embed/track/${params.id}`;
-          const response = await fetch(embedUrl, { signal: request.signal });
+          const response = await fetch(embedUrl, {
+            signal: AbortSignal.any([
+              request.signal,
+              AbortSignal.timeout(5000),
+            ]),
+          });
           if (!response.ok) {
             throw new Error(`Spotify returned ${response.status}`);
           }
@@ -47,10 +53,11 @@ export const Route = createFileRoute("/api/spotify/preview/$id")({
           console.error("Failed to fetch preview URL:", error);
           return Response.json(
             { error: "Failed to fetch preview URL" },
-            { status: 500 }
+            { status: 502 }
           );
         }
       },
+      ANY: notAllowed("GET"),
     },
   },
 });

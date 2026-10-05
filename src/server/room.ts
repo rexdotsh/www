@@ -5,6 +5,7 @@ import {
   GUESTBOOK_LIMITS,
   type GuestbookEntry,
   type SiteStats,
+  visitorTag,
 } from "@/lib/stats";
 
 const MINUTE = 60_000;
@@ -30,20 +31,23 @@ const SCHEMA = `
     who TEXT NOT NULL,
     hidden INTEGER NOT NULL DEFAULT 0
   );
+  CREATE TABLE IF NOT EXISTS signers (who TEXT NOT NULL, ts INTEGER NOT NULL);
+  CREATE TABLE IF NOT EXISTS visitors (visitor TEXT PRIMARY KEY);
+  CREATE TABLE IF NOT EXISTS greeters (month TEXT NOT NULL, visitor TEXT NOT NULL, PRIMARY KEY (month, visitor));
 `;
 
 const month = (ts: number) => new Date(ts).toISOString().slice(0, 7);
 const clamp = (n: number, max: number) =>
   Math.max(0, Math.min(max, Math.round(n)));
 
-export interface Signature {
+interface Signature {
   city: string;
   message: string;
   name: string;
   who: string[];
 }
 
-export type SignResult =
+type SignResult =
   | { ok: true; entry: GuestbookEntry }
   | { ok: false; reason: "cooldown" | "empty" };
 
@@ -71,7 +75,15 @@ export class Room extends DurableObject {
         "INSERT INTO paths (path, views) VALUES (?, 1) ON CONFLICT(path) DO UPDATE SET views = views + 1",
         beacon.path
       );
-      this.bump("total");
+      // Counts people, not page views: only a visitor id's first view.
+      if (
+        this.sql.exec(
+          "INSERT OR IGNORE INTO visitors (visitor) VALUES (?)",
+          beacon.visitor
+        ).rowsWritten > 0
+      ) {
+        this.bump("total");
+      }
     } else if (beacon.type === "leave") {
       this.sql.exec(
         "INSERT INTO reads (ts, path, depth, seconds) VALUES (?, ?, ?, ?)",
@@ -80,14 +92,22 @@ export class Room extends DurableObject {
         clamp(beacon.depth, 100),
         clamp(beacon.seconds, 3600)
       );
-    } else {
+    } else if (
+      this.sql.exec(
+        "INSERT OR IGNORE INTO greeters (month, visitor) VALUES (?, ?)",
+        month(now),
+        beacon.visitor
+      ).rowsWritten > 0
+    ) {
       this.bump(`hi:${month(now)}`);
     }
-    this.writes += 1;
+    // In memory, so it restarts at 0 with every wake: prune on the first write after one.
     if (this.writes % PRUNE_EVERY === 0) {
       this.sql.exec("DELETE FROM visits WHERE ts < ?", now - VISITS_KEEP);
       this.sql.exec("DELETE FROM reads WHERE ts < ?", now - READS_KEEP);
+      this.sql.exec("DELETE FROM greeters WHERE month < ?", month(now));
     }
+    this.writes += 1;
   }
 
   stats(): SiteStats {
@@ -101,8 +121,8 @@ export class Room extends DurableObject {
     const counts = this.first<{ online: number; today: number; week: number }>(
       `SELECT
         count(DISTINCT CASE WHEN ts > ? THEN visitor END) AS online,
-        sum(ts > ?) AS today,
-        count(*) AS week
+        count(DISTINCT CASE WHEN ts > ? THEN visitor END) AS today,
+        count(DISTINCT visitor) AS week
       FROM visits WHERE ts > ?`,
       now - ONLINE_WINDOW,
       now - DAY,
@@ -114,14 +134,15 @@ export class Room extends DurableObject {
       week: counts?.week ?? 0,
       total: this.count("total"),
       recent: this.sql
-        .exec<{ city: string; path: string; ts: number }>(
-          "SELECT city, path, max(ts) AS ts FROM visits GROUP BY visitor ORDER BY ts DESC LIMIT 5"
+        .exec<{ city: string; path: string; ts: number; visitor: string }>(
+          "SELECT visitor, city, path, max(ts) AS ts FROM visits GROUP BY visitor ORDER BY ts DESC LIMIT 5"
         )
         .toArray()
         .map((row) => ({
           place: row.city,
           path: row.path,
           ago: ago(row.ts, now),
+          tag: visitorTag(row.visitor),
         })),
       paths,
       hi: this.count(`hi:${month(now)}`),
@@ -157,14 +178,20 @@ export class Room extends DurableObject {
     }
     const now = Date.now();
     const name = input.name || "anonymous";
+    this.sql.exec(
+      "DELETE FROM signers WHERE ts <= ?",
+      now - GUESTBOOK_LIMITS.cooldownMs
+    );
     const marks = input.who.map(() => "?").join(", ");
     const seen = this.first<{ n: number }>(
-      `SELECT count(*) AS n FROM guestbook WHERE ts > ? AND who IN (${marks})`,
-      now - GUESTBOOK_LIMITS.cooldownMs,
+      `SELECT count(*) AS n FROM signers WHERE who IN (${marks})`,
       ...input.who
     );
     if (seen && seen.n > 0) {
       return { ok: false, reason: "cooldown" };
+    }
+    for (const who of input.who) {
+      this.sql.exec("INSERT INTO signers (who, ts) VALUES (?, ?)", who, now);
     }
     const row = this.first<{ id: number }>(
       "INSERT INTO guestbook (ts, name, message, city, who) VALUES (?, ?, ?, ?, ?) RETURNING id",

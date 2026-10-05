@@ -33,7 +33,7 @@ const push = <T>(ring: T[] | undefined, value: T, size: number) =>
   [...(ring ?? []), value].slice(-size);
 
 const pad = (ring: number[], size: number) =>
-  [...new Array(size).fill(-1), ...ring].slice(ring.length);
+  [...new Array<number>(size).fill(-1), ...ring].slice(ring.length);
 
 const cells = (
   ring: number[],
@@ -45,7 +45,7 @@ const cells = (
   ...pad(ring, size - missed).map(
     (b): Health => (b === 1 ? "up" : b === 0 ? bad : "none")
   ),
-  ...new Array(missed).fill(tail),
+  ...new Array<Health>(missed).fill(tail),
 ];
 
 export class FleetStore extends DurableObject {

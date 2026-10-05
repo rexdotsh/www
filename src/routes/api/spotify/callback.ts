@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { finishConnect } from "@/lib/spotify-auth";
+import { notAllowed } from "@/server/api";
 
 export const Route = createFileRoute("/api/spotify/callback")({
   server: {
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/api/spotify/callback")({
           });
         }
       },
+      ANY: notAllowed("GET"),
     },
   },
 });

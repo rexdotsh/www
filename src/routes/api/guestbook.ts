@@ -4,26 +4,33 @@ import { GUESTBOOK_LIMITS, VISITOR_RE } from "@/lib/stats";
 import {
   ipHash,
   isBot,
+  isCrossSite,
   isPreview,
   isRude,
   limited,
+  notAllowed,
   placeOf,
   room,
+  tooLarge,
 } from "@/server/api";
 
 const MAX_BODY = 1024;
-// biome-ignore lint/suspicious/noControlCharactersInRegex: stripping them is the point
-const CONTROL_RE = /[\u0000-\u001f\u007f]/g;
+// Controls, lone surrogates and invisible format characters (bidi overrides,
+// zero-widths), but not the joiners emoji and some scripts are built from.
+const UNSAFE_RE = /(?![\u200c\u200d])[\p{Cc}\p{Cf}\p{Cs}]/gu;
+const VISIBLE_RE = /[\p{L}\p{N}\p{P}\p{S}]/u;
 
-const clean = (value: unknown, max: number) =>
-  typeof value === "string"
-    ? value
-        .replace(CONTROL_RE, "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .toLowerCase()
-        .slice(0, max)
-    : "";
+const clean = (value: unknown, max: number) => {
+  if (typeof value !== "string") {
+    return "";
+  }
+  const text = Array.from(
+    value.replace(/\s+/g, " ").replace(UNSAFE_RE, "").trim().toLowerCase()
+  )
+    .slice(0, max)
+    .join("");
+  return VISIBLE_RE.test(text) ? text : "";
+};
 
 export const Route = createFileRoute("/api/guestbook")({
   server: {
@@ -33,8 +40,11 @@ export const Route = createFileRoute("/api/guestbook")({
         if (!stub) {
           return new Response(null, { status: 503 });
         }
-        if (isBot(request) || isPreview(request)) {
+        if (isBot(request) || isPreview(request) || isCrossSite(request)) {
           return new Response(null, { status: 403 });
+        }
+        if (tooLarge(request, MAX_BODY)) {
+          return new Response(null, { status: 413 });
         }
         if (await limited(request, "guestbook")) {
           return Response.json(
@@ -48,7 +58,7 @@ export const Route = createFileRoute("/api/guestbook")({
         }
         let body: Record<string, unknown>;
         try {
-          body = JSON.parse(text) as Record<string, unknown>;
+          body = (JSON.parse(text) ?? {}) as Record<string, unknown>;
         } catch {
           return new Response(null, { status: 400 });
         }
@@ -94,6 +104,7 @@ export const Route = createFileRoute("/api/guestbook")({
         await stub.hide(id);
         return new Response(null, { status: 204 });
       },
+      ANY: notAllowed("POST, DELETE"),
     },
   },
 });

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { mockFleet } from "@/lib/fleet";
 import { fleet } from "@/server/fleet-auth";
+import { notAllowed } from "@/server/api";
 
 const headers = {
   "Cache-Control": "public, max-age=15",
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/api/fleet/")({
           return new Response(null, { status: 503 });
         }
       },
+      ANY: notAllowed("GET"),
     },
   },
 });

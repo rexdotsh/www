@@ -233,7 +233,7 @@ const wobble = (seed: number, base: number, spread: number) => {
   });
 };
 
-const fill = <T>(n: number, v: T) => new Array(n).fill(v);
+const fill = <T>(n: number, v: T) => new Array<T>(n).fill(v);
 
 const mockHost = (
   id: string,

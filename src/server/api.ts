@@ -22,6 +22,17 @@ export const isBot = (request: Request) =>
 export const isPreview = (request: Request) =>
   !resolveSiteInfo(request).isPublicHost;
 
+// A text/plain POST skips the CORS preflight, so other sites could write
+// through their visitors' browsers.
+export const isCrossSite = (request: Request) =>
+  request.headers.get("sec-fetch-site") === "cross-site";
+
+export const tooLarge = (request: Request, max: number) =>
+  Number(request.headers.get("content-length")) > max;
+
+export const notAllowed = (allow: string) => () =>
+  new Response(null, { status: 405, headers: { Allow: allow } });
+
 export const limited = async (request: Request, scope: string) => {
   const ip = request.headers.get("cf-connecting-ip");
   if (!(env.RATE_LIMIT && ip)) {
@@ -107,8 +118,9 @@ const INDIAN_METROS = new Set([
 
 export const placeOf = (request: Request) => {
   const cf = incoming(request.cf) ? request.cf : undefined;
-  const country = cf?.country ?? request.headers.get("cf-ipcountry");
-  const city = cf?.city ?? request.headers.get("cf-ipcity");
+  // Cloudflare sends "XX" for unknown, which its types leave out.
+  const country: string | undefined = cf?.country;
+  const city = cf?.city;
   const place =
     country === "IN" && city && !INDIAN_METROS.has(plain(city))
       ? (cf?.region ?? city)
