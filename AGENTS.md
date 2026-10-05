@@ -2,15 +2,15 @@
 
 Personal site + blog for **rex** / **mridul** (same person; name switches on hostname, see `src/lib/content.ts:getIdentity`). Live at rex.wf and mridul.sh.
 
-Homepage is one interactive "sentence" with peek cards and a particle rose (`src/routes/index.tsx`, `src/components/the-sentence.tsx`). Plus a Spotify widget, a GitHub heatmap, and an MDX blog (`src/content/*.mdx`).
+Homepage is one interactive "sentence" with peek cards and a particle rose (`src/routes/index.tsx`, `src/components/the-sentence.tsx`). Plus a Spotify widget, a GitHub heatmap, and an MDX blog (`src/content/*.mdx`). A new post needs an entry in `src/lib/posts-meta.ts` and `bun run og:gen` for its card; a code block in a new language needs it added to `langs` in `vite.config.ts`.
 
 ## Stack
 
 TanStack Start + Router (file-based routes in `src/routes/`), React 19, Vite 8, Tailwind v4 + plain CSS, MDX, deployed to Cloudflare Workers via Nitro + Wrangler. **Bun** for everything. Biome via `ultracite` for lint/format (lefthook runs it pre-commit).
 
-No database, no auth, no user accounts, no tests, no UI library — everything is bespoke. Analytics is self-hosted Umami, injected in `src/routes/__root.tsx`. Storage is the `SPOTIFY_TOKENS` KV binding and two Durable Objects in `workers/room`: `Room` (visitor stats + guestbook, `src/server/room.ts`) and `FleetStore` (`/status` samples, `src/server/fleet.ts`). The DOs live in their own worker because Cloudflare won't issue preview URLs to a worker that implements one.
+No external database, no auth, no user accounts, no tests, no UI library — everything is bespoke. Analytics is self-hosted Umami, injected in `src/routes/__root.tsx`. Storage is the `SPOTIFY_TOKENS` KV binding and two Durable Objects in `workers/room`: `Room` (visitor stats + guestbook, `src/server/room.ts`) and `FleetStore` (`/status` samples, `src/server/fleet.ts`). The DOs live in their own worker because Cloudflare won't issue preview URLs to a worker that implements one.
 
-**Deploys:** `www` deploys itself via Workers Builds on every push to `main` (PRs get preview builds). Never run `bun run deploy` by hand. The production deploy command ends with `bun run purge`: HTML is edge-cached for an hour and each deploy drops the previous build's hashed assets, so the cache is purged or stale pages load without their CSS/JS (`CLOUDFLARE_PURGE_TOKEN`, a Workers Builds secret). The DO worker is not on Workers Builds — after changing anything under `workers/room`, a DO class, or `src/lib/fleet.ts` (the DO bundles its own copy: `HOSTS` roles/specs, the `SERVICES` whitelist, thresholds), run `bun run deploy:room` yourself, and do it *before* merging if `www` binds to a new class.
+**Deploys:** `www` deploys itself via Workers Builds on every push to `main` (PRs get preview builds). Never run `bun run deploy` by hand. The production deploy command ends with `bun run purge`: HTML is edge-cached for an hour and each deploy drops the previous build's hashed assets, so the cache is purged or stale pages load without their CSS/JS (`CLOUDFLARE_PURGE_TOKEN`, a Workers Builds secret). The DO worker is not on Workers Builds — after changing anything under `workers/room`, a DO class, `src/lib/fleet.ts` (the DO bundles its own copy: `HOSTS` roles/specs, the `SERVICES` whitelist, thresholds) or `src/lib/stats.ts` (guestbook limits, `ago`), run `bun run deploy:room` yourself, and do it *before* merging if `www` binds to a new class.
 
 `/status` ("the workshop") shows the four servers. The per-box sampler is `rexdotsh/fleet-agent`, checked out as the `agent/` submodule (`git submodule update --init`). Shapes and the service whitelist live in `src/lib/fleet.ts`.
 
