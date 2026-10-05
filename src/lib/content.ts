@@ -34,7 +34,7 @@ export const PROJECTS = [
   },
   {
     name: "flora",
-    description: "random things for the web, with friends",
+    description: "random things for the web",
     href: LINKS.flora,
   },
   {
