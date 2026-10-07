@@ -136,7 +136,6 @@
 }
 
 .gb-count {
-  color: color-mix(in oklab, var(--faint) 70%, transparent);
   font-variant-numeric: tabular-nums;
 }
 

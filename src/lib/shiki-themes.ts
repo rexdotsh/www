@@ -38,7 +38,7 @@ const paperTheme = (
 
 export const PAPER = paperTheme("paper", {
   body: "#2b2620",
-  comment: "#a29a89",
+  comment: "#726a5a",
   constant: "#8f1236",
   entity: "#17140f",
   keyword: "#b3123a",
@@ -47,9 +47,9 @@ export const PAPER = paperTheme("paper", {
 
 export const PAPER_DARK = paperTheme("paper-dark", {
   body: "#cfcdc9",
-  comment: "#75716a",
+  comment: "#8a8780",
   constant: "#ef7d99",
   entity: "#e8e6e3",
-  keyword: "#e5476d",
+  keyword: "#e94b70",
   string: "#c9a769",
 });
