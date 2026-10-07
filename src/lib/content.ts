@@ -24,7 +24,7 @@ export const LINKS = {
 export const PROJECTS = [
   {
     name: "kleis",
-    description: "an oauth proxy for coding agents",
+    description: "oauth proxy for coding agents",
     href: "https://github.com/rexdotsh/kleis",
   },
   {
