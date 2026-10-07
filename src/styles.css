@@ -29,9 +29,9 @@
   --background: light-dark(#faf8f2, #131315);
   --card: light-dark(#ffffff, #1c1c1f);
   --ink: light-dark(#17140f, #e8e6e3);
-  --rose: light-dark(#b3123a, #e5476d);
-  --muted: light-dark(#847c6c, #98948d);
-  --faint: light-dark(#a29a89, #6f6c66);
+  --rose: light-dark(#b3123a, #e94b70);
+  --muted: light-dark(#605849, #a09c94);
+  --faint: light-dark(#726a5a, #8a8780);
   --heat-0: light-dark(#efe9dc, #232326);
   --heat-1: light-dark(#f0c3cd, #52273a);
   --heat-2: light-dark(#e5798f, #96304f);
