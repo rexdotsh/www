@@ -49,6 +49,13 @@ function transform(data: RawTrack, isPlaying = false) {
     // smallest.
     cover,
     thumb: images.find((image) => image.height <= 64)?.url ?? cover,
+    // The shape homepages loaded before cover/thumb still read; a tab that gets
+    // a track without it crashes. Drop once those tabs are gone.
+    image: images.map((image) => ({
+      "#text": image.url,
+      size:
+        image.height <= 64 ? "small" : image.height <= 300 ? "medium" : "large",
+    })),
     url: data.external_urls.spotify,
     id: data.id,
   };

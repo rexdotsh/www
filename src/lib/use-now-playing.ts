@@ -34,7 +34,9 @@ export function useNowPlaying() {
         if (response.ok) {
           const data = (await response.json()) as NowPlaying | null;
           setTrack((current) =>
-            current?.id === data?.id && current?.isPlaying === data?.isPlaying
+            current?.id === data?.id &&
+            current?.isPlaying === data?.isPlaying &&
+            current?.cover === data?.cover
               ? current
               : data
           );
