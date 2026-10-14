@@ -8,10 +8,9 @@ import type { ReactNode } from "react";
 import CornerNotes, { FIRST_PAINT_SCRIPT } from "@/components/corner-notes";
 import NotFoundPage from "@/components/not-found";
 import { getIdentity, LINKS } from "@/lib/content";
-import { baseUrlOf, preloadFont, RSS_LINK } from "@/lib/head";
+import { baseUrlOf, pageMeta, preloadFont, RSS_LINK } from "@/lib/head";
 import { getSiteInfo } from "@/lib/site";
 import { useBeacon } from "@/lib/use-stats";
-import { ogImageUrl } from "@/lib/utils";
 import geistMonoWoff2 from "../fonts/geist-mono-latin.woff2?url";
 import instrumentWoff2 from "../fonts/instrument-serif-latin.woff2?url";
 import appCss from "../styles.css?url";
@@ -43,7 +42,6 @@ export const Route = createRootRoute({
       "$1"
     );
     const pageUrl = new URL(path, baseUrl).href;
-    const imageUrl = ogImageUrl(`/social-card-${identity.name}.png`, baseUrl);
 
     return {
       meta: [
@@ -53,8 +51,12 @@ export const Route = createRootRoute({
           content:
             "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
         },
-        { title },
-        { name: "description", content: description },
+        ...pageMeta({
+          description,
+          image: `/social-card-${identity.name}.png`,
+          matches,
+          title,
+        }),
         { name: "author", content: identity.name },
         {
           name: "robots",
@@ -62,21 +64,11 @@ export const Route = createRootRoute({
             ? "index,follow"
             : "noindex,nofollow",
         },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
         ...(found ? [{ property: "og:url", content: pageUrl }] : []),
         { property: "og:type", content: "website" },
         { property: "og:locale", content: "en_US" },
-        { property: "og:image", content: imageUrl },
         { property: "og:image:type", content: "image/png" },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { property: "og:image:alt", content: title },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", content: imageUrl },
-        { name: "twitter:image:alt", content: title },
         { name: "twitter:site", content: `@${identity.handle}` },
         { name: "twitter:creator", content: `@${identity.handle}` },
       ],
