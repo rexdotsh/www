@@ -33,6 +33,13 @@ export function useNowPlaying() {
         });
         if (response.ok) {
           const data = (await response.json()) as NowPlaying | null;
+          // A worker from before cover/thumb (a rollback) sends only the list.
+          if (data) {
+            const find = (size: string) =>
+              data.image.find((image) => image.size === size)?.["#text"];
+            data.cover ??= find("medium") ?? null;
+            data.thumb ??= find("small") ?? data.cover;
+          }
           setTrack((current) =>
             current?.id === data?.id &&
             current?.isPlaying === data?.isPlaying &&
