@@ -297,7 +297,7 @@ function Panel({
           render={(v) => [fmtMb(v), `${pct(v, host.memTotal)}%`]}
           sub={`of ${fmtMb(host.memTotal)}`}
         >
-          <Gauge frac={host.memUsed / host.memTotal} />
+          <Gauge total={host.memTotal} used={host.memUsed} />
         </Vital>
         <Vital
           label="disk"
@@ -306,7 +306,7 @@ function Panel({
           render={(v) => [fmtGb(v), `${pct(v, host.diskTotal)}%`]}
           sub={`of ${fmtGb(host.diskTotal)}`}
         >
-          <Gauge frac={host.diskUsed / host.diskTotal} />
+          <Gauge total={host.diskTotal} used={host.diskUsed} />
         </Vital>
       </div>
 
