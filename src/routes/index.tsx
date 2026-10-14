@@ -29,38 +29,49 @@ export const Route = createFileRoute("/")({
   }),
 });
 
-const MODES: Record<SentenceWord, RoseMode> = {
-  name: "shiver",
-  builds: "cube",
-  writes: "caret",
-  workshop: "churn",
-  music: "art",
-  hi: "hi",
-  resume: "paper",
-};
-
-const CAPTIONS: Record<SentenceWord, string> = {
-  name: "( flustered )",
-  builds: "( assembling )",
-  writes: "( waiting for the first word )",
-  workshop: "( keeping the lights on )",
-  music: "( listening for something )",
-  hi: "( saying it back )",
-  resume: "( pretending to be a document )",
-};
-
-// Tuned for a phone page that fits the screen; --below adds whatever is still
-// under the fold. They also decide whether the rose's caption shows: for builds,
-// writes, workshop and hi the card sits over it on purpose. In landscape the
-// rose can't clear a sheet, so it stays put behind it.
-const LIFTS: Record<SentenceWord, string> = {
-  name: "max-md:portrait:-translate-y-[calc(50px_+_var(--below))]",
-  builds: "max-md:portrait:-translate-y-[calc(218px_+_var(--below))]",
-  writes: "max-md:portrait:-translate-y-[calc(66px_+_var(--below))]",
-  workshop: "max-md:portrait:-translate-y-[calc(98px_+_var(--below))]",
-  music: "max-md:portrait:-translate-y-[calc(85px_+_var(--below))]",
-  hi: "max-md:portrait:-translate-y-[calc(66px_+_var(--below))]",
-  resume: "max-md:portrait:-translate-y-[calc(50px_+_var(--below))]",
+// Lifts are tuned for a phone page that fits the screen; --below adds whatever
+// is still under the fold. They also decide whether the rose's caption shows:
+// for builds, writes, workshop and hi the card sits over it on purpose. In
+// landscape the rose can't clear a sheet, so it stays put behind it.
+const ROSE: Record<
+  SentenceWord,
+  { caption: string; lift: string; mode: RoseMode }
+> = {
+  name: {
+    mode: "shiver",
+    caption: "( flustered )",
+    lift: "max-md:portrait:-translate-y-[calc(50px_+_var(--below))]",
+  },
+  builds: {
+    mode: "cube",
+    caption: "( assembling )",
+    lift: "max-md:portrait:-translate-y-[calc(218px_+_var(--below))]",
+  },
+  writes: {
+    mode: "caret",
+    caption: "( waiting for the first word )",
+    lift: "max-md:portrait:-translate-y-[calc(66px_+_var(--below))]",
+  },
+  workshop: {
+    mode: "churn",
+    caption: "( keeping the lights on )",
+    lift: "max-md:portrait:-translate-y-[calc(98px_+_var(--below))]",
+  },
+  music: {
+    mode: "art",
+    caption: "( listening for something )",
+    lift: "max-md:portrait:-translate-y-[calc(85px_+_var(--below))]",
+  },
+  hi: {
+    mode: "hi",
+    caption: "( saying it back )",
+    lift: "max-md:portrait:-translate-y-[calc(66px_+_var(--below))]",
+  },
+  resume: {
+    mode: "paper",
+    caption: "( pretending to be a document )",
+    lift: "max-md:portrait:-translate-y-[calc(50px_+_var(--below))]",
+  },
 };
 const MUSIC_COMPACT_LIFT =
   "max-md:portrait:-translate-y-[calc(73px_+_var(--below))]";
@@ -196,7 +207,7 @@ function Home() {
 
   const albumArt = track?.thumb ?? null;
 
-  const mode = word ? MODES[word] : previewing ? "art" : "rest";
+  const mode = word ? ROSE[word].mode : previewing ? "art" : "rest";
   const stats = useSiteStats();
   const roseNote = useRoseNote(!(word || previewing), stats, intro);
 
@@ -213,15 +224,15 @@ function Home() {
           ? "( dressed as the cover, press play )"
           : "( dressed as the album cover )";
       }
-      return CAPTIONS.music;
+      return ROSE.music.caption;
     }
-    return word ? CAPTIONS[word] : "( alive, technically )";
+    return word ? ROSE[word].caption : "( alive, technically )";
   })();
 
   const liftClass = word
     ? word === "music" && !track?.isPlaying
       ? MUSIC_COMPACT_LIFT
-      : LIFTS[word]
+      : ROSE[word].lift
     : "";
 
   return (
