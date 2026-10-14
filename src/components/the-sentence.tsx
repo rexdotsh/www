@@ -297,14 +297,14 @@ function place(trigger: HTMLElement) {
   }
 }
 
-// Arming during the intro would pin the sheet to a word that's still
-// transformed; skip to the end first. (Not the caret or equaliser: they loop.)
 const onLinkEnter = (event: PointerEvent) => {
   if (event.pointerType !== "touch") {
     sfx("pop");
   }
 };
 
+// Arming during the intro would pin the sheet to a word that's still
+// transformed; skip to the end first. (Not the caret or equaliser: they loop.)
 function finishIntro() {
   for (const animation of document.getAnimations()) {
     if (
