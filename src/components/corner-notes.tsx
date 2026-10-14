@@ -91,22 +91,25 @@ export default function CornerNotes() {
     );
     document.documentElement.dataset.vt = "theme";
     const transition = document.startViewTransition(apply);
-    transition.ready.then(() => {
-      document.documentElement.animate(
-        {
-          clipPath: [
-            `circle(0px at ${x}px ${y}px)`,
-            `circle(${radius}px at ${x}px ${y}px)`,
-          ],
-        },
-        {
-          duration: REVEAL_MS,
-          easing: "cubic-bezier(0.23, 1, 0.32, 1)",
-          pseudoElement: "::view-transition-new(root)",
-        }
-      );
-    });
-    transition.finished.finally(() => {
+    // Rejects when the transition is skipped (a second toggle mid-reveal).
+    transition.ready
+      .then(() => {
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${radius}px at ${x}px ${y}px)`,
+            ],
+          },
+          {
+            duration: REVEAL_MS,
+            easing: "cubic-bezier(0.23, 1, 0.32, 1)",
+            pseudoElement: "::view-transition-new(root)",
+          }
+        );
+      })
+      .catch(() => undefined);
+    void transition.finished.finally(() => {
       delete document.documentElement.dataset.vt;
     });
   };

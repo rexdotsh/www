@@ -119,13 +119,15 @@ export default function VideoPlayer({
 
   const fullscreen = () => {
     const frame = frameRef.current;
+    // oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- tsc's dom types lack ios safari's webkitEnterFullscreen
     const video = videoRef.current as
       | (HTMLVideoElement & { webkitEnterFullscreen?: () => void })
       | null;
+    // Both reject when the browser refuses (an iframe without permission).
     if (document.fullscreenElement) {
-      document.exitFullscreen();
+      document.exitFullscreen().catch(() => undefined);
     } else if (frame?.requestFullscreen) {
-      frame.requestFullscreen();
+      frame.requestFullscreen().catch(() => undefined);
     } else {
       video?.webkitEnterFullscreen?.();
     }
