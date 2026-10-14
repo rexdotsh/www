@@ -326,16 +326,14 @@ export function MusicPeek({
   playing: boolean;
   track: NowPlaying;
 }) {
-  const { isPlaying } = track;
-  const albumArt =
-    track.image.find((image) => image.size === "medium")?.["#text"] ?? "";
+  const { cover, isPlaying } = track;
   return (
     <PeekCard
       compact={!isPlaying}
       label={isPlaying ? "right now" : "last played"}
     >
       <span className={`flex items-center ${isPlaying ? "gap-3" : "gap-2.5"}`}>
-        {albumArt ? (
+        {cover ? (
           <span className="relative shrink-0">
             <img
               alt=""
@@ -343,7 +341,7 @@ export function MusicPeek({
               height={isPlaying ? 48 : 40}
               loading="lazy"
               referrerPolicy="no-referrer"
-              src={albumArt}
+              src={cover}
               width={isPlaying ? 48 : 40}
             />
             {onToggle ? (

@@ -194,11 +194,7 @@ function Home() {
     }
   }, [word, warm]);
 
-  // The rose samples a 27x27 grid of it, so the smallest cover will do.
-  const albumArt =
-    track?.image.find((image) => image.size === "small")?.["#text"] ??
-    track?.image.find((image) => image.size === "medium")?.["#text"] ??
-    null;
+  const albumArt = track?.thumb ?? null;
 
   const mode = word ? MODES[word] : previewing ? "art" : "rest";
   const stats = useSiteStats();
