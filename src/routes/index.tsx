@@ -1,7 +1,6 @@
 import { createFileRoute, getRouteApi } from "@tanstack/react-router";
 import {
   type CSSProperties,
-  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -12,12 +11,10 @@ import ParticleRose, { type RoseMode } from "@/components/particle-rose";
 import { TheSentence, type SentenceWord } from "@/components/the-sentence";
 import TintStrips from "@/components/tint-strips";
 import { baseUrlOf, embedLink, preloadFont } from "@/lib/head";
-import type { NowPlaying } from "@/lib/spotify";
 import { type SiteStats, visitorTag } from "@/lib/stats";
 import { useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
 import { useSiteStats, visitor } from "@/lib/use-stats";
-import { isTouch } from "@/lib/utils";
 import instrumentItalicWoff2 from "../fonts/instrument-serif-latin-italic.woff2?url";
 
 const rootRoute = getRouteApi("__root__");
@@ -67,14 +64,6 @@ const LIFTS: Record<SentenceWord, string> = {
 };
 const MUSIC_COMPACT_LIFT =
   "max-md:portrait:-translate-y-[calc(73px_+_var(--below))]";
-
-const VOLUME = 0.5;
-const VOLUME_TOUCH = 0.28;
-
-interface Preview {
-  track: NowPlaying;
-  url: string;
-}
 
 const GREETING_MS = 4200;
 const NOTE_EVERY_MS = 11_000;
@@ -180,7 +169,8 @@ function Home() {
   useEffect(() => {
     introPlayed = true;
   }, []);
-  const live = useNowPlaying();
+  const { artFadeRef, previewing, previewUrl, toggle, track, warm } =
+    usePreview(useNowPlaying());
   const [word, setWord] = useState<SentenceWord | null>(null);
   const mainRef = useRef<HTMLElement>(null);
   const [below, setBelow] = useState(0);
@@ -197,25 +187,6 @@ function Home() {
     addEventListener("resize", measure);
     return () => removeEventListener("resize", measure);
   }, [word]);
-  const [preview, setPreview] = useState<Preview | null>(null);
-  const track = preview?.track ?? live.track;
-  const previewUrl = preview?.url ?? live.previewUrl;
-  const artFadeRef = useRef(0);
-  const fadedOutRef = useRef(false);
-  const volumeRef = useRef(VOLUME);
-  const {
-    isPlaying,
-    play,
-    pause,
-    fade,
-    getPosition,
-    duration,
-    setVolume,
-    warm,
-  } = usePreview(previewUrl, () => {
-    artFadeRef.current = 0;
-    setPreview(null);
-  });
 
   useEffect(() => {
     if (word === "music") {
@@ -223,71 +194,22 @@ function Home() {
     }
   }, [word, warm]);
 
-  useEffect(() => {
-    if (!isPlaying) {
-      return;
-    }
-    const interval = setInterval(() => {
-      const total = duration || 30;
-      const position = getPosition();
-      artFadeRef.current = Math.min(1, position / total);
-      if (total - position < 6 && !fadedOutRef.current) {
-        fadedOutRef.current = true;
-        fade(volumeRef.current, 0, 5500);
-      }
-    }, 250);
-    return () => clearInterval(interval);
-  }, [isPlaying, duration, getPosition, fade]);
-
-  useEffect(() => {
-    if (!(isPlaying && track)) {
-      return;
-    }
-    const previous = document.title;
-    const playing = `♫ ${track.name} · ${track.artist}`;
-    document.title = playing;
-    return () => {
-      if (document.title === playing) {
-        document.title = previous;
-      }
-    };
-  }, [isPlaying, track]);
-
-  const togglePreview = useCallback(() => {
-    if (preview) {
-      pause();
-      artFadeRef.current = 0;
-      setPreview(null);
-      return;
-    }
-    if (!(live.track && live.previewUrl)) {
-      return;
-    }
-    fadedOutRef.current = false;
-    volumeRef.current = isTouch() ? VOLUME_TOUCH : VOLUME;
-    artFadeRef.current = 0;
-    setPreview({ track: live.track, url: live.previewUrl });
-    setVolume(0);
-    play();
-    fade(0, volumeRef.current, 2000);
-  }, [preview, live.track, live.previewUrl, pause, play, setVolume, fade]);
-
   // The rose samples a 27x27 grid of it, so the smallest cover will do.
   const albumArt =
     track?.image.find((image) => image.size === "small")?.["#text"] ??
     track?.image.find((image) => image.size === "medium")?.["#text"] ??
     null;
 
-  const mode = word ? MODES[word] : preview ? "art" : "rest";
+  const mode = word ? MODES[word] : previewing ? "art" : "rest";
   const stats = useSiteStats();
-  const roseNote = useRoseNote(!(word || preview), stats, intro);
+  const roseNote = useRoseNote(!(word || previewing), stats, intro);
 
   const caption = (() => {
     if (roseNote) {
       return roseNote;
     }
-    if (word === "music" || (!word && preview)) {
-      if (preview) {
+    if (word === "music" || (!word && previewing)) {
+      if (previewing) {
         return "( humming along )";
       }
       if (albumArt) {
@@ -316,9 +238,9 @@ function Home() {
           <TheSentence
             className="text-[clamp(1.9rem,8.6vw,2.5rem)] leading-[1.22] tracking-[-0.01em] md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"
             hostname={hostname}
-            onPreviewToggle={previewUrl ? togglePreview : undefined}
+            onPreviewToggle={previewUrl ? toggle : undefined}
             onWordHover={setWord}
-            previewPlaying={preview !== null}
+            previewPlaying={previewing}
             track={track}
             wordStagger={intro}
           />
