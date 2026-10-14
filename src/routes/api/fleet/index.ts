@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { mockFleet } from "@/lib/fleet";
-import { fleet } from "@/server/fleet-auth";
-import { notAllowed } from "@/server/api";
+import { fleetSnapshot, notAllowed } from "@/server/api";
 
 const headers = {
   "Cache-Control": "public, max-age=15",
@@ -12,12 +10,8 @@ export const Route = createFileRoute("/api/fleet/")({
   server: {
     handlers: {
       GET: async () => {
-        const stub = fleet();
-        if (!stub) {
-          return Response.json(mockFleet(), { headers });
-        }
         try {
-          return Response.json(await stub.snapshot(), { headers });
+          return Response.json(await fleetSnapshot(), { headers });
         } catch (error) {
           console.error("fleet", error);
           return new Response(null, { status: 503 });

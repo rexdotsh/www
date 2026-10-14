@@ -6,11 +6,6 @@ const MAX_BODY = 16 * 1024;
 const MAX_CONTAINERS = 1000;
 const SIG_RE = /^[0-9a-f]{64}$/;
 
-export const fleet = () =>
-  import.meta.env.DEV || !env.FLEET
-    ? null
-    : env.FLEET.get(env.FLEET.idFromName("fleet"));
-
 const enc = new TextEncoder();
 
 // FLEET_SECRET is fixed per deploy, so a box's derived key can live as long as the isolate.

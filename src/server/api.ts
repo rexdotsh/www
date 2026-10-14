@@ -4,13 +4,29 @@ import {
   englishRecommendedTransformers,
   RegExpMatcher,
 } from "obscenity";
+import { type Fleet, mockFleet } from "@/lib/fleet";
 import { resolveSiteInfo } from "@/lib/site";
 
-// The Room DO lives in the `www-room` worker; nothing to talk to under `vite dev`.
+// The DOs live in the `www-room` worker; nothing to talk to under `vite dev`.
 export const room = () =>
   import.meta.env.DEV || !env.ROOM
     ? null
     : env.ROOM.get(env.ROOM.idFromName("site"));
+
+export const fleet = () =>
+  import.meta.env.DEV || !env.FLEET
+    ? null
+    : env.FLEET.get(env.FLEET.idFromName("fleet"));
+
+export const fleetSnapshot = async (): Promise<Fleet> => {
+  const stub = fleet();
+  if (!stub) {
+    return mockFleet();
+  }
+  // RPC results carry Symbol.dispose and widen tuples; the DO built a real Fleet.
+  const { hosts, services, measuredAt } = await stub.snapshot();
+  return { hosts, services, measuredAt } as Fleet;
+};
 
 const BOT_RE =
   /bot|crawl|spider|slurp|preview|fetch|curl|wget|headless|lighthouse|monitor/i;
