@@ -1,12 +1,6 @@
 import { useEffect, useState } from "react";
-import type { Beacon, SiteStats } from "@/lib/stats";
+import type { BeaconEvent, SiteStats } from "@/lib/stats";
 import { getJson, whenIdle } from "@/lib/utils";
-
-type BeaconInput = Beacon extends infer B
-  ? B extends { visitor: string }
-    ? Omit<B, "visitor">
-    : never
-  : never;
 
 const VISITOR_KEY = "visitor";
 let visitorId: string | null = null;
@@ -33,7 +27,7 @@ export const visitor = () => {
   return visitorId;
 };
 
-export const beacon = (payload: BeaconInput) => {
+export const beacon = (payload: BeaconEvent) => {
   const body = JSON.stringify({ ...payload, visitor: visitor() });
   if ("sendBeacon" in navigator) {
     navigator.sendBeacon("/api/beacon", body);
