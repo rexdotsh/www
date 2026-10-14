@@ -16,6 +16,17 @@ export const PAGES = [
   ...PUBLISHED_META.map((post) => `/blog/${post.slug}`),
 ];
 
+export const STATIC_CACHE = {
+  "Cache-Control": "public, max-age=3600",
+  "Cloudflare-CDN-Cache-Control":
+    "public, max-age=86400, stale-while-revalidate=604800",
+};
+
+export const LIVE_CACHE = {
+  "Cache-Control": "public, max-age=15",
+  "Cloudflare-CDN-Cache-Control": "public, max-age=30",
+};
+
 // The DOs live in the `www-room` worker; nothing to talk to under `vite dev`.
 export const room = () =>
   import.meta.env.DEV || !env.ROOM

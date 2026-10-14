@@ -1,12 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import type { SiteStats } from "@/lib/stats";
-import { notAllowed, room } from "@/server/api";
-
-const headers = {
-  "Cache-Control": "public, max-age=15",
-  "Cloudflare-CDN-Cache-Control": "public, max-age=30",
-};
+import { LIVE_CACHE, notAllowed, room } from "@/server/api";
 
 const FALLBACK: SiteStats = {
   online: 3,
@@ -54,7 +49,7 @@ export const Route = createFileRoute("/api/stats")({
       GET: async () => {
         const stub = room();
         if (!stub) {
-          return Response.json(FALLBACK, { headers });
+          return Response.json(FALLBACK, { headers: LIVE_CACHE });
         }
         try {
           const stats = await stub.stats();
@@ -65,7 +60,7 @@ export const Route = createFileRoute("/api/stats")({
               return [path, stats.paths[path] ?? 0];
             })
           );
-          return Response.json({ ...stats, paths }, { headers });
+          return Response.json({ ...stats, paths }, { headers: LIVE_CACHE });
         } catch (error) {
           console.error("stats", error);
           return new Response(null, { status: 503 });

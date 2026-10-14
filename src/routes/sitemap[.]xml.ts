@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { resolveSiteInfo } from "@/lib/site";
-import { notAllowed, PAGES } from "@/server/api";
+import { notAllowed, PAGES, STATIC_CACHE } from "@/server/api";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
@@ -24,9 +24,7 @@ ${PAGES.map(
 
         return new Response(sitemap, {
           headers: {
-            "Cache-Control": "public, max-age=3600",
-            "Cloudflare-CDN-Cache-Control":
-              "public, max-age=86400, stale-while-revalidate=604800",
+            ...STATIC_CACHE,
             "Content-Type": "application/xml; charset=utf-8",
           },
         });

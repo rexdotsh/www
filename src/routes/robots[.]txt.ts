@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { resolveSiteInfo } from "@/lib/site";
-import { notAllowed } from "@/server/api";
+import { notAllowed, STATIC_CACHE } from "@/server/api";
 
 export const Route = createFileRoute("/robots.txt")({
   server: {
@@ -19,9 +19,7 @@ Disallow: /
 
         return new Response(robots, {
           headers: {
-            "Cache-Control": "public, max-age=3600",
-            "Cloudflare-CDN-Cache-Control":
-              "public, max-age=86400, stale-while-revalidate=604800",
+            ...STATIC_CACHE,
             "Content-Type": "text/plain; charset=utf-8",
           },
         });
