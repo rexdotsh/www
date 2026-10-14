@@ -17,7 +17,7 @@ import {
 const MAX_BODY = 1024;
 // Controls, lone surrogates and invisible format characters (bidi overrides,
 // zero-widths), but not the joiners emoji and some scripts are built from.
-const UNSAFE_RE = /(?![\u200c\u200d])[\p{Cc}\p{Cf}\p{Cs}]/gu;
+const UNSAFE_RE = /(?![\u200C\u200D])[\p{Cc}\p{Cf}\p{Cs}]/gu;
 const VISIBLE_RE = /[\p{L}\p{N}\p{P}\p{S}]/u;
 
 const clean = (value: unknown, max: number) => {
@@ -25,7 +25,7 @@ const clean = (value: unknown, max: number) => {
     return "";
   }
   const text = Array.from(
-    value.replace(/\s+/g, " ").replace(UNSAFE_RE, "").trim().toLowerCase()
+    value.replaceAll(/\s+/g, " ").replaceAll(UNSAFE_RE, "").trim().toLowerCase()
   )
     .slice(0, max)
     .join("");

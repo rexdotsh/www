@@ -51,7 +51,7 @@ const OG_IMAGE_VERSION = [
   ...(existsSync(OG_DIR)
     ? readdirSync(OG_DIR)
         .filter((file) => file.endsWith(".png"))
-        .sort()
+        .toSorted()
         .map((file) => `og/${file}`)
     : []),
 ]

@@ -134,7 +134,7 @@ export default function NotFoundPage({ to = "/" }: { to?: "/" | "/blog" }) {
     forEachCell((el, r, c) => {
       const dx = rect.left + c * cellW + cellW / 2 - (mp?.x ?? 0);
       const dy = rect.top + r * cellH + cellH / 2 - (mp?.y ?? 0);
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      const dist = Math.hypot(dx, dy);
 
       if (mp && dist < REPEL_RADIUS) {
         const force = REPEL_STRENGTH / (dist * dist + 1);

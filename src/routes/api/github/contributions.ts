@@ -30,7 +30,7 @@ function parse(html: string) {
     return null;
   }
 
-  const sorted = [...days.entries()].sort(([a], [b]) => a.localeCompare(b));
+  const sorted = [...days.entries()].toSorted(([a], [b]) => a.localeCompare(b));
   const weeks: number[][] = [];
   let previousDate = 0;
   for (const [date, level] of sorted) {

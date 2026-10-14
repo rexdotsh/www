@@ -69,7 +69,7 @@ export function useNowPlaying() {
     };
     document.addEventListener("visibilitychange", onVisibility);
 
-    poll();
+    void poll();
     return () => {
       abortController.abort();
       clearTimeout(timeout);

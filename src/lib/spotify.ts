@@ -3,8 +3,8 @@ const RECENTLY_PLAYED =
   "https://api.spotify.com/v1/me/player/recently-played?limit=1";
 
 interface RawTrack {
-  album: { images: Array<{ height: number; url: string }>; name: string };
-  artists: Array<{ name: string }>;
+  album: { images: { height: number; url: string }[]; name: string };
+  artists: { name: string }[];
   external_urls: { spotify: string };
   id: string;
   name: string;
@@ -21,7 +21,7 @@ export async function getNowPlaying(token: string, signal: AbortSignal) {
       throw new Error("Failed to fetch recently played");
     }
     const data = (await recent.json()) as {
-      items?: Array<{ track: RawTrack }>;
+      items?: { track: RawTrack }[];
     };
     return data.items?.[0] ? transform(data.items[0].track) : null;
   }

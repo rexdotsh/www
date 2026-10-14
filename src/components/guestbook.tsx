@@ -503,7 +503,7 @@ function Editable({
         const el = event.currentTarget;
         const raw = el.textContent ?? "";
         // Pastes can bring line breaks and overshoot the limit.
-        let text = raw.replace(/[\r\n\t]+/g, " ");
+        let text = raw.replaceAll(/[\r\n\t]+/g, " ");
         const chars = Array.from(text);
         if (chars.length > max) {
           text = chars.slice(0, max).join("");

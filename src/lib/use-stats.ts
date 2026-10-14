@@ -113,10 +113,10 @@ const start = () => {
   if (timer) {
     return;
   }
-  load();
+  void load();
   timer = setInterval(() => {
     if (document.visibilityState === "visible") {
-      load();
+      void load();
     }
   }, REFRESH_MS);
 };
