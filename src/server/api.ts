@@ -5,7 +5,16 @@ import {
   RegExpMatcher,
 } from "obscenity";
 import { type Fleet, mockFleet } from "@/lib/fleet";
+import { PUBLISHED_META } from "@/lib/posts-meta";
 import { resolveSiteInfo } from "@/lib/site";
+
+// What the sitemap lists and what a beacon may report.
+export const PAGES = [
+  "/",
+  "/blog",
+  "/status",
+  ...PUBLISHED_META.map((post) => `/blog/${post.slug}`),
+];
 
 // The DOs live in the `www-room` worker; nothing to talk to under `vite dev`.
 export const room = () =>
