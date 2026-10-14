@@ -40,7 +40,7 @@ let pending: { at: number; pitch: number; sound: Sound } | null = null;
 const PENDING_MS = 500;
 const listeners = new Set<(muted: boolean) => void>();
 
-const syncMuted = () => {
+export const isMuted = () => {
   if (typeof window === "undefined") {
     return muted;
   }
@@ -52,20 +52,15 @@ const syncMuted = () => {
   return muted;
 };
 
-const createAudio = () => {
-  if (typeof window === "undefined" || typeof AudioContext === "undefined") {
+const createAudio = (): AudioState | null => {
+  if (typeof AudioContext === "undefined") {
     return null;
   }
-  if (audio) {
-    return audio;
-  }
-
   const context = new AudioContext();
   const output = context.createGain();
   output.gain.value = MASTER_GAIN;
   output.connect(context.destination);
-  audio = { context, output, noise: null };
-  return audio;
+  return { context, output, noise: null };
 };
 
 const envelope = (
@@ -138,11 +133,6 @@ const hiss = (
 
 type SoundPlayer = (state: AudioState, pitch?: number) => void;
 
-const confirmation = (state: AudioState) => {
-  const detune = 1 + (Math.random() - 0.5) * 0.06;
-  tone(state, "sine", 520 * detune, 820 * detune, 0.32, 0.008, 0.1);
-};
-
 const playSound: Record<Sound, SoundPlayer> = {
   tick: (state, pitch = 720) =>
     tone(
@@ -154,7 +144,10 @@ const playSound: Record<Sound, SoundPlayer> = {
       0.008,
       0.16
     ),
-  pop: confirmation,
+  pop: (state) => {
+    const detune = 1 + (Math.random() - 0.5) * 0.06;
+    tone(state, "sine", 520 * detune, 820 * detune, 0.32, 0.008, 0.1);
+  },
   lightsOff: (state) => {
     tone(state, "triangle", 320, 160, 0.4, 0.005, 0.13);
     hiss(state, 3000, 400, 0.14, 0.003, 0.05);
@@ -208,66 +201,54 @@ function flush(state: AudioState) {
   if (
     request &&
     performance.now() - request.at < PENDING_MS &&
-    !syncMuted() &&
+    !isMuted() &&
     state.context.state === "running"
   ) {
     playSound[request.sound](state, request.pitch);
   }
 }
 
-function unlock() {
-  if (syncMuted()) {
-    return;
-  }
-  const state = audio ?? createAudio();
-  if (!state) {
-    return;
-  }
+function whenRunning(state: AudioState, then: () => void) {
   if (state.context.state === "running") {
-    flush(state);
-    stopUnlock();
+    then();
     return;
   }
   state.context
     .resume()
     .then(() => {
       if (state.context.state === "running") {
-        flush(state);
-        stopUnlock();
+        then();
       }
     })
     .catch(() => undefined);
 }
 
-export const sfx = (sound: Sound, pitch = 720) => {
-  if (syncMuted()) {
+function unlock() {
+  if (isMuted()) {
     return;
   }
+  audio ??= createAudio();
   const state = audio;
-  if (!state) {
-    pending = { at: performance.now(), pitch, sound };
-    return;
+  if (state) {
+    whenRunning(state, () => {
+      flush(state);
+      stopUnlock();
+    });
   }
-  if (state.context.state === "running") {
-    pending = null;
-    playSound[sound](state, pitch);
-    return;
-  }
+}
 
+export const sfx = (sound: Sound, pitch = 720) => {
+  if (isMuted()) {
+    return;
+  }
   pending = { at: performance.now(), pitch, sound };
-  state.context
-    .resume()
-    .then(() => {
-      if (state.context.state === "running") {
-        flush(state);
-      }
-    })
-    .catch(() => undefined);
+  const state = audio;
+  if (state) {
+    whenRunning(state, () => flush(state));
+  }
 };
 
 export const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
-
-export const isMuted = () => syncMuted();
 
 export const setMuted = (next: boolean) => {
   muted = next;
