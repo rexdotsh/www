@@ -27,16 +27,12 @@ export interface SiteStats {
   week: number;
 }
 
-export type Beacon =
-  | { type: "view"; path: string; visitor: string }
-  | {
-      type: "leave";
-      path: string;
-      visitor: string;
-      depth: number;
-      seconds: number;
-    }
-  | { type: "hi"; visitor: string };
+export type BeaconEvent =
+  | { type: "view"; path: string }
+  | { type: "leave"; path: string; depth: number; seconds: number }
+  | { type: "hi" };
+
+export type Beacon = BeaconEvent & { visitor: string };
 
 export const GUESTBOOK_LIMITS = {
   name: 24,

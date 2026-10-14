@@ -23,7 +23,6 @@ import {
   fmtMb,
   fmtUptime,
   type Host,
-  mockFleet,
   pct,
   summarize,
 } from "@/lib/fleet";
@@ -37,18 +36,10 @@ import statusCss from "../status.css?url";
 const DESCRIPTION = "four machines and what they run.";
 
 // A server fn so client-side navigation doesn't pull cloudflare:workers into the browser bundle.
-const getFleet = createServerFn({ method: "GET" }).handler(
-  async (): Promise<Fleet> => {
-    const { fleet } = await import("@/server/fleet-auth");
-    const stub = fleet();
-    if (!stub) {
-      return mockFleet();
-    }
-    // RPC results carry Symbol.dispose and widen tuples; the DO built a real Fleet.
-    const { hosts, services, measuredAt } = await stub.snapshot();
-    return { hosts, services, measuredAt } as Fleet;
-  }
-);
+const getFleet = createServerFn({ method: "GET" }).handler(async () => {
+  const { fleetSnapshot } = await import("@/server/api");
+  return fleetSnapshot();
+});
 
 export const Route = createFileRoute("/status")({
   component: StatusPage,
@@ -306,7 +297,7 @@ function Panel({
           render={(v) => [fmtMb(v), `${pct(v, host.memTotal)}%`]}
           sub={`of ${fmtMb(host.memTotal)}`}
         >
-          <Gauge frac={host.memUsed / host.memTotal} />
+          <Gauge total={host.memTotal} used={host.memUsed} />
         </Vital>
         <Vital
           label="disk"
@@ -315,7 +306,7 @@ function Panel({
           render={(v) => [fmtGb(v), `${pct(v, host.diskTotal)}%`]}
           sub={`of ${fmtGb(host.diskTotal)}`}
         >
-          <Gauge frac={host.diskUsed / host.diskTotal} />
+          <Gauge total={host.diskTotal} used={host.diskUsed} />
         </Vital>
       </div>
 

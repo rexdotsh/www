@@ -1,7 +1,7 @@
 // ref: https://github.com/rexdotsh/spotify-preview-url-workaround
 
 import { createFileRoute } from "@tanstack/react-router";
-import { notAllowed } from "@/server/api";
+import { notAllowed, STATIC_CACHE } from "@/server/api";
 
 const AUDIO_PREVIEW_REGEX = /"audioPreview":\s*{\s*"url":\s*"([^"]+)"/;
 const SPOTIFY_TRACK_ID_REGEX = /^[A-Za-z0-9]{22}$/;
@@ -39,16 +39,7 @@ export const Route = createFileRoute("/api/spotify/preview/$id")({
             );
           }
 
-          return Response.json(
-            { url: previewUrl },
-            {
-              headers: {
-                "Cache-Control": "public, max-age=3600",
-                "Cloudflare-CDN-Cache-Control":
-                  "public, max-age=86400, stale-while-revalidate=604800",
-              },
-            }
-          );
+          return Response.json({ url: previewUrl }, { headers: STATIC_CACHE });
         } catch (error) {
           console.error("Failed to fetch preview URL:", error);
           return Response.json(

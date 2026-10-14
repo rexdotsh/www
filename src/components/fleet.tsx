@@ -156,7 +156,8 @@ export function useTween(target: number) {
 
 const GAUGE_CELLS = 17;
 
-export function Gauge({ frac }: { frac: number }) {
+export function Gauge({ total, used }: { total: number; used: number }) {
+  const frac = total ? used / total : 0;
   const on = Math.round(Math.max(0, Math.min(1, frac)) * GAUGE_CELLS);
   return (
     <span

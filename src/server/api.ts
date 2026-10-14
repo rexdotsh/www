@@ -4,13 +4,49 @@ import {
   englishRecommendedTransformers,
   RegExpMatcher,
 } from "obscenity";
+import { type Fleet, mockFleet } from "@/lib/fleet";
+import { PUBLISHED_META } from "@/lib/posts-meta";
 import { resolveSiteInfo } from "@/lib/site";
 
-// The Room DO lives in the `www-room` worker; nothing to talk to under `vite dev`.
+// What the sitemap lists and what a beacon may report.
+export const PAGES = [
+  "/",
+  "/blog",
+  "/status",
+  ...PUBLISHED_META.map((post) => `/blog/${post.slug}`),
+];
+
+export const STATIC_CACHE = {
+  "Cache-Control": "public, max-age=3600",
+  "Cloudflare-CDN-Cache-Control":
+    "public, max-age=86400, stale-while-revalidate=604800",
+};
+
+export const LIVE_CACHE = {
+  "Cache-Control": "public, max-age=15",
+  "Cloudflare-CDN-Cache-Control": "public, max-age=30",
+};
+
+// The DOs live in the `www-room` worker; nothing to talk to under `vite dev`.
 export const room = () =>
   import.meta.env.DEV || !env.ROOM
     ? null
     : env.ROOM.get(env.ROOM.idFromName("site"));
+
+export const fleet = () =>
+  import.meta.env.DEV || !env.FLEET
+    ? null
+    : env.FLEET.get(env.FLEET.idFromName("fleet"));
+
+export const fleetSnapshot = async (): Promise<Fleet> => {
+  const stub = fleet();
+  if (!stub) {
+    return mockFleet();
+  }
+  // RPC results carry Symbol.dispose and widen tuples; the DO built a real Fleet.
+  const { hosts, services, measuredAt } = await stub.snapshot();
+  return { hosts, services, measuredAt } as Fleet;
+};
 
 const BOT_RE =
   /bot|crawl|spider|slurp|preview|fetch|curl|wget|headless|lighthouse|monitor/i;

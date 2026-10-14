@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getIdentity } from "@/lib/content";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { resolveSiteInfo } from "@/lib/site";
-import { notAllowed } from "@/server/api";
+import { notAllowed, STATIC_CACHE } from "@/server/api";
 
 const escapeXml = (value: string) =>
   value
@@ -50,9 +50,7 @@ ${items}
 
         return new Response(rss, {
           headers: {
-            "Cache-Control": "public, max-age=3600",
-            "Cloudflare-CDN-Cache-Control":
-              "public, max-age=86400, stale-while-revalidate=604800",
+            ...STATIC_CACHE,
             "Content-Type": "application/rss+xml; charset=utf-8",
           },
         });

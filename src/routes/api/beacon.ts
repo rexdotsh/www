@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { waitUntil } from "cloudflare:workers";
-import { PUBLISHED_META } from "@/lib/posts-meta";
 import { type Beacon, VISITOR_RE } from "@/lib/stats";
 import {
   isBot,
@@ -8,18 +7,14 @@ import {
   isPreview,
   limited,
   notAllowed,
+  PAGES,
   placeOf,
   room,
   tooLarge,
 } from "@/server/api";
 
 const MAX_BODY = 512;
-const PATHS = new Set([
-  "/",
-  "/blog",
-  "/status",
-  ...PUBLISHED_META.map((post) => `/blog/${post.slug}`),
-]);
+const PATHS = new Set(PAGES);
 
 const parse = (raw: unknown): Beacon | null => {
   if (!raw || typeof raw !== "object") {

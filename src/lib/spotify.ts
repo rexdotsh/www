@@ -35,18 +35,26 @@ export async function getNowPlaying(token: string, signal: AbortSignal) {
   return data.item ? transform(data.item, data.is_playing) : null;
 }
 
-const size = (height: number) =>
-  height <= 64 ? "small" : height <= 300 ? "medium" : "large";
-
 function transform(data: RawTrack, isPlaying = false) {
+  const { images } = data.album;
+  const cover =
+    images.find((image) => image.height > 64 && image.height <= 300)?.url ??
+    null;
   return {
     isPlaying,
     name: data.name,
     artist: data.artists.map((artist) => artist.name).join(", "),
     album: data.album.name,
-    image: data.album.images.map((img) => ({
-      "#text": img.url,
-      size: size(img.height),
+    // The card shows the ~300px cover; the rose samples a 27x27 grid of the
+    // smallest.
+    cover,
+    thumb: images.find((image) => image.height <= 64)?.url ?? cover,
+    // The shape homepages loaded before cover/thumb still read; a tab that gets
+    // a track without it crashes. Drop once those tabs are gone.
+    image: images.map((image) => ({
+      "#text": image.url,
+      size:
+        image.height <= 64 ? "small" : image.height <= 300 ? "medium" : "large",
     })),
     url: data.external_urls.spotify,
     id: data.id,

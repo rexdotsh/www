@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { NowPlaying } from "@/lib/spotify";
+import { isTouch } from "@/lib/utils";
 
 const FADE_STEP_MS = 30;
+const VOLUME = 0.5;
+const VOLUME_TOUCH = 0.28;
 
 // Route preview volume through one shared gain context on iOS.
 let context: AudioContext | null = null;
@@ -18,18 +22,36 @@ interface Graph {
   source: MediaElementAudioSourceNode;
 }
 
+interface Preview {
+  track: NowPlaying;
+  url: string;
+}
+
 const clamp = (level: number) => Math.min(1, Math.max(0, level));
 
-export function usePreview(url: string | null, onEnd: () => void) {
+// While a preview plays, its track stays put even if the next poll moves on.
+export function usePreview(live: {
+  previewUrl: string | null;
+  track: NowPlaying | null;
+}) {
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const track = preview?.track ?? live.track;
+  const url = preview?.url ?? live.previewUrl;
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const graphRef = useRef<Graph | null>(null);
   const plainRef = useRef(false);
   const levelRef = useRef(0);
   const fadeRef = useRef<ReturnType<typeof setInterval>>(undefined);
-  const onEndRef = useRef(onEnd);
-  onEndRef.current = onEnd;
+  const artFadeRef = useRef(0);
+  const fadedOutRef = useRef(false);
+  const volumeRef = useRef(VOLUME);
   const [isPlaying, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
+
+  const end = useCallback(() => {
+    artFadeRef.current = 0;
+    setPreview(null);
+  }, []);
 
   useEffect(() => {
     if (!url) {
@@ -43,13 +65,12 @@ export function usePreview(url: string | null, onEnd: () => void) {
     audio.src = url;
     const onPlay = () => setPlaying(true);
     const onPause = () => setPlaying(false);
-    const onEnded = () => onEndRef.current();
     const onMetadata = () =>
       setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
     // Retry without CORS if the gain graph cannot read the media.
     const onError = () => {
       if (plainRef.current || graphRef.current) {
-        onEndRef.current();
+        end();
         return;
       }
       plainRef.current = true;
@@ -59,7 +80,7 @@ export function usePreview(url: string | null, onEnd: () => void) {
     };
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
-    audio.addEventListener("ended", onEnded);
+    audio.addEventListener("ended", end);
     audio.addEventListener("loadedmetadata", onMetadata);
     audio.addEventListener("error", onError);
     audioRef.current = audio;
@@ -72,7 +93,7 @@ export function usePreview(url: string | null, onEnd: () => void) {
       audio.pause();
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
-      audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("ended", end);
       audio.removeEventListener("loadedmetadata", onMetadata);
       audio.removeEventListener("error", onError);
       graphRef.current?.source.disconnect();
@@ -82,7 +103,7 @@ export function usePreview(url: string | null, onEnd: () => void) {
       audio.load();
       audioRef.current = null;
     };
-  }, [url]);
+  }, [url, end]);
 
   const applyLevel = useCallback((level: number) => {
     const next = clamp(level);
@@ -99,14 +120,6 @@ export function usePreview(url: string | null, onEnd: () => void) {
       audio.volume = next;
     }
   }, []);
-
-  const setVolume = useCallback(
-    (volume: number) => {
-      clearInterval(fadeRef.current);
-      applyLevel(volume);
-    },
-    [applyLevel]
-  );
 
   const fade = useCallback(
     (from: number, to: number, ms: number) => {
@@ -151,15 +164,8 @@ export function usePreview(url: string | null, onEnd: () => void) {
     if (graphRef.current && context?.state !== "running") {
       context?.resume().catch(() => undefined);
     }
-    audio.play().catch(() => onEndRef.current());
-  }, []);
-
-  const pause = useCallback(() => {
-    clearInterval(fadeRef.current);
-    audioRef.current?.pause();
-  }, []);
-
-  const getPosition = useCallback(() => audioRef.current?.currentTime ?? 0, []);
+    audio.play().catch(end);
+  }, [end]);
 
   const warm = useCallback(() => {
     if (audioRef.current) {
@@ -167,14 +173,62 @@ export function usePreview(url: string | null, onEnd: () => void) {
     }
   }, []);
 
+  useEffect(() => {
+    if (!isPlaying) {
+      return;
+    }
+    const interval = setInterval(() => {
+      const total = duration || 30;
+      const position = audioRef.current?.currentTime ?? 0;
+      artFadeRef.current = Math.min(1, position / total);
+      if (total - position < 6 && !fadedOutRef.current) {
+        fadedOutRef.current = true;
+        fade(volumeRef.current, 0, 5500);
+      }
+    }, 250);
+    return () => clearInterval(interval);
+  }, [isPlaying, duration, fade]);
+
+  useEffect(() => {
+    if (!(isPlaying && track)) {
+      return;
+    }
+    const previous = document.title;
+    const playing = `♫ ${track.name} · ${track.artist}`;
+    document.title = playing;
+    return () => {
+      if (document.title === playing) {
+        document.title = previous;
+      }
+    };
+  }, [isPlaying, track]);
+
+  const toggle = useCallback(() => {
+    if (preview) {
+      clearInterval(fadeRef.current);
+      audioRef.current?.pause();
+      end();
+      return;
+    }
+    if (!(live.track && live.previewUrl)) {
+      return;
+    }
+    fadedOutRef.current = false;
+    volumeRef.current = isTouch() ? VOLUME_TOUCH : VOLUME;
+    artFadeRef.current = 0;
+    setPreview({ track: live.track, url: live.previewUrl });
+    clearInterval(fadeRef.current);
+    applyLevel(0);
+    play();
+    fade(0, volumeRef.current, 2000);
+  }, [preview, live.track, live.previewUrl, end, applyLevel, play, fade]);
+
   return {
-    duration,
-    fade,
-    getPosition,
-    isPlaying,
-    pause,
-    play,
-    setVolume,
+    artFadeRef,
+    previewing: preview !== null,
+    previewUrl: url,
+    toggle,
+    track,
     warm,
   };
 }
