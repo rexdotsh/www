@@ -259,7 +259,7 @@ export const TheSentence = memo(function TheSentence({
             >
               resume
             </Peek>{" "}
-            — for the professionally curious.{"\u00a0"})
+            — for the professionally curious.{"\u00A0"})
           </span>
         </p>
       ) : null}
@@ -305,6 +305,12 @@ function place(trigger: HTMLElement) {
 
 // Arming during the intro would pin the sheet to a word that's still
 // transformed; skip to the end first. (Not the caret or equaliser: they loop.)
+const onLinkEnter = (event: PointerEvent) => {
+  if (event.pointerType !== "touch") {
+    sfx("pop");
+  }
+};
+
 function finishIntro() {
   for (const animation of document.getAnimations()) {
     if (
@@ -408,12 +414,6 @@ function Peek({
     // which would pop its card open again.
     if (event.detail) {
       event.currentTarget.blur();
-    }
-  };
-
-  const onLinkEnter = (event: PointerEvent) => {
-    if (event.pointerType !== "touch") {
-      sfx("pop");
     }
   };
 
@@ -573,7 +573,7 @@ function HiPeek({ handle }: { handle: string }) {
       return;
     }
     event.preventDefault();
-    copy(EMAIL).then((ok) => {
+    void copy(EMAIL).then((ok) => {
       if (!ok) {
         location.href = LINKS.email;
       }
@@ -635,7 +635,7 @@ function useContributions() {
   useEffect(
     () =>
       whenIdle(() => {
-        getJson<Contributions>("/api/github/contributions").then(setData);
+        void getJson<Contributions>("/api/github/contributions").then(setData);
       }),
     []
   );
@@ -709,7 +709,7 @@ const WorkshopPeek = memo(function WorkshopPeek() {
       return;
     }
     return whenIdle(() => {
-      getJson<Fleet>("/api/fleet").then((live) => live && setFleet(live));
+      void getJson<Fleet>("/api/fleet").then((live) => live && setFleet(live));
     });
   }, []);
   return (

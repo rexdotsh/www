@@ -20,5 +20,5 @@ export const whenIdle = (fn: () => void) => {
 
 export const getJson = <T>(url: string) =>
   fetch(url)
-    .then((response) => (response.ok ? (response.json() as Promise<T>) : null))
+    .then((response) => (response.ok ? response.json<T>() : null))
     .catch(() => null);

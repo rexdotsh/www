@@ -60,7 +60,7 @@ const incoming = (
 ): cf is IncomingRequestCfProperties => Boolean(cf && "country" in cf);
 
 const plain = (name: string) =>
-  name.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+  name.normalize("NFD").replaceAll(/\p{M}/gu, "").toLowerCase();
 
 const INDIAN_METROS = new Set([
   "bengaluru",

@@ -726,7 +726,7 @@ export default function ParticleRose({
       }
     };
     // Intro waits for the real font, else Safari draws it twice.
-    Promise.all([
+    void Promise.all([
       document.fonts.load(CANVAS_FONT, CANVAS_GLYPHS).catch(() => undefined),
       document.fonts.ready,
     ]).then(() => {

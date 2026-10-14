@@ -115,7 +115,7 @@ function useLiveFleet(initial: Fleet) {
     const refresh = () => {
       if (document.visibilityState !== "visible") return;
       if (initial.mock) return setFleet(wobble);
-      getJson<Fleet>("/api/fleet").then((f) => f && setFleet(f));
+      void getJson<Fleet>("/api/fleet").then((f) => f && setFleet(f));
     };
     const tick = setInterval(refresh, TICK_MS);
     document.addEventListener("visibilitychange", refresh);

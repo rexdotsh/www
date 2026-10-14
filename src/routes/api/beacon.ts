@@ -74,7 +74,7 @@ export const Route = createFileRoute("/api/beacon")({
         if (text.length > MAX_BODY) {
           return new Response(null, { status: 413 });
         }
-        let beacon: Beacon | null = null;
+        let beacon: Beacon | null;
         try {
           beacon = parse(JSON.parse(text));
         } catch {
