@@ -156,7 +156,7 @@ export default function NotFoundPage({ to = "/" }: { to?: "/" | "/blog" }) {
   };
 
   return (
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: visual effect
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- visual effect
     <main
       className="fixed inset-0 overflow-hidden paper text-ink"
       onMouseLeave={() => setPointer(null)}

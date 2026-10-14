@@ -135,7 +135,7 @@ function RootDocument({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/** biome-ignore lint/security/noDangerouslySetInnerHtml: static first-paint script */}
+        {/* oxlint-disable-next-line react/no-danger -- static first-paint script */}
         <script dangerouslySetInnerHTML={{ __html: FIRST_PAINT_SCRIPT }} />
         <HeadContent />
       </head>

@@ -1,15 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import monoWoff from "@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff" with {
-  type: "file",
-};
-import serifItalicWoff from "@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff" with {
-  type: "file",
-};
-import serifWoff from "@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff" with {
-  type: "file",
-};
+import monoWoff from "@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff" with { type: "file" };
+import serifItalicWoff from "@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff" with { type: "file" };
+import serifWoff from "@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff" with { type: "file" };
 import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 import { ASCII_ROSE } from "../src/lib/ascii-rose";

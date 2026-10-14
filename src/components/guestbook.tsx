@@ -97,8 +97,6 @@ export default function Guestbook({ caption }: { caption: string }) {
   const latest = recent[index % Math.max(1, recent.length)];
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: relays focus loss of the button and card inside it
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same; the interactive elements are the children
     <span
       className="guestbook"
       data-open={open || hover ? "" : undefined}
@@ -376,6 +374,7 @@ function SignForm({
       <span className="sign-text">
         “
         <Editable
+          // oxlint-disable-next-line jsx-a11y/no-autofocus -- opened by choosing to sign: the line is what comes next
           autoFocus
           label="leave a line"
           max={GUESTBOOK_LIMITS.message}

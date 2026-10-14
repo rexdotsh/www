@@ -42,7 +42,6 @@ export function Sparkline({
 
   const group = useRef<SVGGElement>(null);
   const mounted = useRef(false);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: re-run on every new sample
   useLayoutEffect(() => {
     const el = group.current;
     if (!el) return;
@@ -55,6 +54,7 @@ export function Sparkline({
     el.getBoundingClientRect();
     el.style.transition = `transform ${SLIDE_MS}ms var(--ease-strong)`;
     el.style.transform = "translateX(0)";
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- re-run on every new sample
   }, [data]);
 
   const onMove = (e: PointerEvent<HTMLElement>) => {
