@@ -77,11 +77,11 @@
 }
 
 @media (hover: hover) and (pointer: fine) and (min-width: 768px) {
-  .sentence-root:has(.peek-trigger:not([data-peek-closed]):hover)
-    .word:not(:has(.peek-trigger:hover))
-    .word-body,
   .sentence-root:has(.peek-trigger:not([data-peek-closed]) :focus-visible)
     .word:not(:has(:focus-visible))
+    .word-body,
+  .sentence-root:has(.peek-trigger:not([data-peek-closed]):hover)
+    .word:not(:has(.peek-trigger:hover))
     .word-body {
     filter: blur(3px);
     opacity: 0.35;
