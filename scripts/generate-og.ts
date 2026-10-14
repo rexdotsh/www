@@ -8,7 +8,7 @@ import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 import { ASCII_ROSE } from "../src/lib/ascii-rose";
 import { HOSTS } from "../src/lib/fleet";
-import { POSTS_META } from "../src/lib/posts-meta";
+import { PUBLISHED_META } from "../src/lib/posts-meta";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.resolve(SCRIPT_DIR, "..", "public");
@@ -22,9 +22,17 @@ const SITES = [
   { domain: "mridul.sh", file: "social-card-mridul.png", name: "mridul" },
 ];
 
+const PAPER = "#faf8f2";
+const INK = "#17140f";
+const ROSE = "#b3123a";
+const MUTED = "#847c6c";
+const FAINT = "#a29a89";
+
+type Style = Record<string, string | number>;
+
 interface Node {
   props: {
-    style?: Record<string, string | number>;
+    style?: Style;
     children?: Node | Node[] | string;
   };
   type: string;
@@ -32,17 +40,33 @@ interface Node {
 
 const el = (
   type: string,
-  style: Record<string, string | number>,
+  style: Style,
   children?: Node | Node[] | string
-): Node => ({ type, props: { style, children } });
+): Node => ({
+  type,
+  props: { style, children },
+});
 
-const rose = (fontSize: number, style: Record<string, string | number>): Node =>
+const page = (style: Style, children: Node[]): Node =>
+  el(
+    "div",
+    {
+      width: "100%",
+      height: "100%",
+      display: "flex",
+      background: PAPER,
+      ...style,
+    },
+    children
+  );
+
+const rose = (fontSize: number, style: Style): Node =>
   el(
     "div",
     {
       display: "flex",
       flexDirection: "column",
-      color: "#b3123a",
+      color: ROSE,
       fontFamily: "Geist Mono",
       fontSize,
       lineHeight: 1.05,
@@ -57,179 +81,93 @@ const mono = (
   text: string,
   color: string,
   fontSize: number,
-  style: Record<string, string | number> = {}
+  style: Style = {}
 ): Node =>
   el("div", { fontFamily: "Geist Mono", fontSize, color, ...style }, text);
 
-const siteCard = (name: string, domain: string): Node =>
+const label = (text: string): Node =>
+  mono(text, FAINT, 20, { letterSpacing: 7, textTransform: "uppercase" });
+
+const headline = (text: string, fontSize: number, style: Style = {}): Node =>
   el(
     "div",
     {
-      width: "100%",
-      height: "100%",
       display: "flex",
-      background: "#faf8f2",
-      position: "relative",
-      overflow: "hidden",
+      fontFamily: "Instrument Serif",
+      fontSize,
+      lineHeight: 1,
+      color: INK,
+      ...style,
     },
-    [
-      rose(30, { position: "absolute", right: -170, bottom: -140 }),
-      el(
-        "div",
-        {
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          height: "100%",
-          padding: "72px 84px",
-        },
-        [
-          mono(domain, "#a29a89", 20, { letterSpacing: 6 }),
-          el("div", { display: "flex", flexDirection: "column" }, [
-            el(
-              "div",
-              {
-                display: "flex",
-                fontFamily: "Instrument Serif",
-                fontSize: 96,
-                lineHeight: 1,
-                color: "#17140f",
-              },
-              [
-                el("span", {}, `hi, i'm ${name}`),
-                el("span", { color: "#b3123a" }, "."),
-              ]
-            ),
-            el(
-              "div",
-              {
-                display: "flex",
-                fontFamily: "Instrument Serif Italic",
-                fontSize: 44,
-                color: "#b3123a",
-                marginTop: 18,
-              },
-              "say hi back."
-            ),
-          ]),
-          mono("( alive, technically )", "#a29a89", 18, {
-            fontStyle: "italic",
-          }),
-        ]
-      ),
-    ]
+    [el("span", {}, text), el("span", { color: ROSE }, ".")]
   );
 
-const card = (title: string, metaLine: string, label = "writing"): Node =>
-  el(
-    "div",
-    {
-      width: "100%",
-      height: "100%",
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "center",
-      background: "#faf8f2",
-      padding: "64px 72px",
-    },
-    [
-      el(
-        "div",
-        {
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          height: "100%",
-          flexGrow: 1,
-          paddingRight: 40,
-        },
-        [
-          el(
-            "div",
-            {
-              fontFamily: "Geist Mono",
-              fontSize: 20,
-              letterSpacing: 7,
-              textTransform: "uppercase",
-              color: "#a29a89",
-            },
-            label
-          ),
+const siteCard = (name: string, domain: string): Node =>
+  page({ position: "relative", overflow: "hidden" }, [
+    rose(30, { position: "absolute", right: -170, bottom: -140 }),
+    el(
+      "div",
+      {
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        height: "100%",
+        padding: "72px 84px",
+      },
+      [
+        mono(domain, FAINT, 20, { letterSpacing: 6 }),
+        el("div", { display: "flex", flexDirection: "column" }, [
+          headline(`hi, i'm ${name}`, 96),
           el(
             "div",
             {
               display: "flex",
-              fontFamily: "Instrument Serif",
-              fontSize: 74,
-              lineHeight: 1.08,
-              color: "#17140f",
-              maxWidth: 660,
+              fontFamily: "Instrument Serif Italic",
+              fontSize: 44,
+              color: ROSE,
+              marginTop: 18,
             },
-            [el("span", {}, title), el("span", { color: "#b3123a" }, ".")]
+            "say hi back."
           ),
-          el(
-            "div",
-            {
-              fontFamily: "Geist Mono",
-              fontSize: 20,
-              color: "#847c6c",
-            },
-            metaLine
-          ),
-        ]
-      ),
-      el(
-        "div",
-        {
-          display: "flex",
-          flexDirection: "column",
-          color: "#ce2955",
-          fontFamily: "Geist Mono",
-          fontSize: 13,
-          lineHeight: 1.05,
-        },
-        ASCII_ROSE.split("\n").map((line) =>
-          el("div", { whiteSpace: "pre" }, line.length > 0 ? line : " ")
-        )
-      ),
-    ]
-  );
+        ]),
+        mono("( alive, technically )", FAINT, 18, { fontStyle: "italic" }),
+      ]
+    ),
+  ]);
+
+const card = (title: string, metaLine: string, kicker = "writing"): Node =>
+  page({ flexDirection: "row", alignItems: "center", padding: "64px 72px" }, [
+    el(
+      "div",
+      {
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        height: "100%",
+        flexGrow: 1,
+        paddingRight: 40,
+      },
+      [
+        label(kicker),
+        headline(title, 74, { lineHeight: 1.08, maxWidth: 660 }),
+        mono(metaLine, MUTED, 20),
+      ]
+    ),
+    rose(13, { color: "#ce2955" }),
+  ]);
 
 const workshopCard = (): Node =>
-  el(
-    "div",
+  page(
     {
-      width: "100%",
-      height: "100%",
-      display: "flex",
       flexDirection: "column",
       justifyContent: "space-between",
-      background: "#faf8f2",
       padding: "64px 84px",
     },
     [
-      mono("status", "#a29a89", 20, {
-        letterSpacing: 7,
-        textTransform: "uppercase",
-      }),
+      label("status"),
       el("div", { display: "flex", flexDirection: "column" }, [
-        el(
-          "div",
-          {
-            display: "flex",
-            fontFamily: "Instrument Serif",
-            fontSize: 104,
-            lineHeight: 1,
-            color: "#17140f",
-          },
-          [
-            el("span", {}, "the workshop"),
-            el("span", { color: "#b3123a" }, "."),
-          ]
-        ),
-        mono("four machines and what they run.", "#847c6c", 24, {
-          marginTop: 18,
-        }),
+        headline("the workshop", 104),
+        mono("four machines and what they run.", MUTED, 24, { marginTop: 18 }),
       ]),
       el(
         "div",
@@ -240,9 +178,9 @@ const workshopCard = (): Node =>
               width: 10,
               height: 10,
               borderRadius: 5,
-              background: "#b3123a",
+              background: ROSE,
             }),
-            mono(host, "#17140f", 20, { width: 80 }),
+            mono(host, INK, 20, { width: 80 }),
             el(
               "div",
               { display: "flex", flexGrow: 1, gap: 3, height: 16 },
@@ -304,7 +242,7 @@ await Promise.all([
     card("writing", "( infrequent. long. )", "blog"),
     path.join(OUT_DIR, "blog.png")
   ),
-  ...POSTS_META.filter((entry) => !entry.draft).map((post) =>
+  ...PUBLISHED_META.map((post) =>
     render(
       card(post.title, post.dateLabel),
       path.join(OUT_DIR, `${post.slug}.png`)
