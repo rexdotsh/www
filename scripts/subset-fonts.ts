@@ -99,11 +99,11 @@ mkdirSync(OUT, { recursive: true });
 
 let before = 0;
 let after = 0;
+// oxlint-disable no-await-in-loop -- sequential on purpose
 for (const face of FACES) {
   let input = face.source;
   if (face.axis) {
     input = `${TMP}/${face.file}.ttf`;
-    // biome-ignore lint/performance/noAwaitInLoops: sequential on purpose
     await run([
       ...UV,
       "fonttools",
@@ -127,9 +127,10 @@ for (const face of FACES) {
   const [from, to] = [statSync(face.source).size, statSync(output).size];
   before += from;
   after += to;
-  // biome-ignore lint/suspicious/noConsole: build script
+  // oxlint-disable-next-line no-console -- build script
   console.log(`${face.file.padEnd(40)} ${from} -> ${to}`);
 }
+// oxlint-enable no-await-in-loop
 rmSync(TMP, { force: true, recursive: true });
 
 const css = (faces: Face[]) =>
@@ -225,5 +226,5 @@ writeFileSync(
       "Metric-matched local fallbacks; see fonts.css."
     )
 );
-// biome-ignore lint/suspicious/noConsole: build script
+// oxlint-disable-next-line no-console -- build script
 console.log(`\n${before} -> ${after} bytes`);

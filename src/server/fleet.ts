@@ -42,8 +42,8 @@ const cells = (
   tail: Health,
   missed: number
 ) => [
-  ...pad(ring, size - missed).map(
-    (b): Health => (b === 1 ? "up" : b === 0 ? bad : "none")
+  ...pad(ring, size - missed).map((b): Health =>
+    b === 1 ? "up" : b === 0 ? bad : "none"
   ),
   ...new Array<Health>(missed).fill(tail),
 ];

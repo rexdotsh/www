@@ -93,7 +93,6 @@ function Figure({
   }, []);
 
   return (
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: tracks fade-in
     <img
       alt={alt}
       className="post-media"

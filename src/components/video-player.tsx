@@ -179,7 +179,7 @@ export default function VideoPlayer({
   const cueVisible = !playing || awake;
 
   return (
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: keyboard shortcuts
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- keyboard shortcuts
     <div
       aria-label="video"
       className="player post-media"
@@ -189,7 +189,7 @@ export default function VideoPlayer({
       role="group"
     >
       <div className="player-stage" onPointerLeave={sleep} onPointerMove={wake}>
-        {/* biome-ignore lint/a11y/useMediaCaption: silent video */}
+        {/* oxlint-disable-next-line jsx-a11y/media-has-caption -- silent video */}
         <video
           className="player-video"
           onClick={toggle}

@@ -472,8 +472,7 @@ img.post-media {
   align-items: center;
   flex: 1;
   height: 1.75rem;
-  background:
-    linear-gradient(
+  background: linear-gradient(
       color-mix(in oklab, var(--ink) 12%, transparent),
       color-mix(in oklab, var(--ink) 12%, transparent)
     )

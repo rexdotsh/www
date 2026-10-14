@@ -120,9 +120,9 @@ function isValidState(state: string) {
   const [issuedAt, sig] = state.split(".");
   return Boolean(
     issuedAt &&
-      sig &&
-      Date.now() - Number.parseInt(issuedAt, 36) < STATE_TTL_MS &&
-      safeEqual(sig, signState(issuedAt))
+    sig &&
+    Date.now() - Number.parseInt(issuedAt, 36) < STATE_TTL_MS &&
+    safeEqual(sig, signState(issuedAt))
   );
 }
 

@@ -422,8 +422,6 @@ function Peek({
   };
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: relays focus state of the link and card inside it
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same; the interactive elements are the children
     <span
       className="peek-trigger relative inline-block"
       data-peek-open={armed ? "" : undefined}
@@ -496,9 +494,7 @@ function Peek({
         </span>
       ) : null}
       {armed ? (
-        // biome-ignore lint/a11y/noStaticElementInteractions: tap-catcher; dismissal also works via focus loss
-        // biome-ignore lint/a11y/useKeyWithClickEvents: touch-only affordance
-        // biome-ignore lint/a11y/noNoninteractiveElementInteractions: touch-only tap-catcher
+        // oxlint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events -- a touch-only tap-catcher; dismissal also works via focus loss
         <span
           className="fixed inset-0 z-30"
           onClick={(event) => {

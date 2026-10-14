@@ -32,7 +32,7 @@
   transition: border-color 220ms var(--ease-strong);
   mask:
     linear-gradient(#000 0 0) 0.8rem 0 / calc(var(--label) * 1ch + 1.9ch + 7px)
-    1px no-repeat,
+      1px no-repeat,
     linear-gradient(#000 0 0);
   mask-composite: exclude;
 }

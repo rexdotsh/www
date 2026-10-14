@@ -319,7 +319,6 @@ export default function ParticleRose({
   const wakeRef = useRef<() => void>(() => undefined);
   const loadArtRef = useRef<(url: string | null) => void>(() => undefined);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: the canvas loop intentionally reads mutable refs without restarting
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
@@ -794,9 +793,9 @@ export default function ParticleRose({
       canvas.removeEventListener("pointerdown", onPointerDown);
       canvas.removeEventListener("pointerleave", onPointerLeave);
     };
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- the canvas loop intentionally reads mutable refs without restarting
   }, []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: mode changes wake a loop held outside React state
   useEffect(() => {
     wakeRef.current();
   }, [mode]);
