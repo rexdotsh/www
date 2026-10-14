@@ -31,8 +31,6 @@ export type SentenceWord =
   | "hi"
   | "resume";
 
-const PUNCTUATION = /^[,.;:!?]+/;
-
 const NOTES: Record<SentenceWord, number> = {
   name: SCALE[0],
   builds: SCALE[1],
@@ -135,6 +133,7 @@ export const TheSentence = memo(function TheSentence({
         href?: string;
         key: SentenceWord;
         peek: ReactNode;
+        tail?: string;
         text: ReactNode;
         to?: "/blog" | "/status";
         tone?: "name";
@@ -145,6 +144,7 @@ export const TheSentence = memo(function TheSentence({
       key: "name",
       href: `https://${identity.otherDomain}`,
       text: identity.name,
+      tail: ".",
       tone: "name",
       peek: (
         <TextPeek
@@ -154,14 +154,15 @@ export const TheSentence = memo(function TheSentence({
         />
       ),
     },
-    ". i ",
+    " i ",
     {
       key: "builds",
       href: LINKS.github,
       text: "build things",
+      tail: ",",
       peek: <ProjectsPeek />,
     },
-    ", i ",
+    " i ",
     { key: "writes", to: "/blog", text: "write", peek: <PostsPeek /> },
     " about some of them, keep a ",
     {
@@ -189,16 +190,9 @@ export const TheSentence = memo(function TheSentence({
   return (
     <>
       <h1 className={className}>
-        {parts.map((part, index) => {
-          const next = parts[index + 1];
-          return typeof part === "string" ? (
-            <Fragment key={part}>
-              {w(
-                typeof parts[index - 1] === "object"
-                  ? part.replace(PUNCTUATION, "")
-                  : part
-              )}
-            </Fragment>
+        {parts.map((part, index) =>
+          typeof part === "string" ? (
+            <Fragment key={index}>{w(part)}</Fragment>
           ) : (
             <Fragment key={part.key}>
               {wrap(
@@ -212,11 +206,11 @@ export const TheSentence = memo(function TheSentence({
                 >
                   {part.text}
                 </Peek>,
-                typeof next === "string" ? PUNCTUATION.exec(next)?.[0] : ""
+                part.tail
               )}
             </Fragment>
-          );
-        })}
+          )
+        )}
         {wrap(
           <>
             {"say "}
@@ -344,11 +338,6 @@ function Peek({
   const wrapperRef = useRef<HTMLSpanElement>(null);
   // Per gesture, not per device: a finger on a touch laptop arms too.
   const touchRef = useRef(false);
-  const linkClass = `sentence-link ${
-    tone === "name"
-      ? "text-ink decoration-dotted decoration-ink/30 hover:decoration-ink/70"
-      : "text-rose italic decoration-rose/30 hover:decoration-rose"
-  }`;
 
   const report = (word: SentenceWord | null) => {
     const trigger = wrapperRef.current;
@@ -417,8 +406,17 @@ function Peek({
     }
   };
 
-  const onLinkDown = (event: PointerEvent) => {
-    touchRef.current = event.pointerType === "touch";
+  const link = {
+    className: `sentence-link ${
+      tone === "name"
+        ? "text-ink decoration-dotted decoration-ink/30 hover:decoration-ink/70"
+        : "text-rose italic decoration-rose/30 hover:decoration-rose"
+    }`,
+    onClick,
+    onPointerDown: (event: PointerEvent) => {
+      touchRef.current = event.pointerType === "touch";
+    },
+    onPointerEnter: onLinkEnter,
   };
 
   return (
@@ -464,29 +462,15 @@ function Peek({
       ref={wrapperRef}
     >
       {to ? (
-        <Link
-          className={linkClass}
-          onClick={onClick}
-          onPointerDown={onLinkDown}
-          onPointerEnter={onLinkEnter}
-          to={to}
-        >
+        <Link {...link} to={to}>
           {children}
         </Link>
       ) : href ? (
-        <a
-          className={linkClass}
-          href={href}
-          onClick={onClick}
-          onPointerDown={onLinkDown}
-          onPointerEnter={onLinkEnter}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
+        <a {...link} href={href} rel="noopener noreferrer" target="_blank">
           {children}
         </a>
       ) : (
-        <span className={linkClass}>{children}</span>
+        <span className={link.className}>{children}</span>
       )}
       {peek ? (
         <span className="peek" ref={watchPeek}>
