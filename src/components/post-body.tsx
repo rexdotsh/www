@@ -109,6 +109,37 @@ function Figure({
   );
 }
 
+function Fleuron() {
+  return (
+    <div className="fleuron" role="separator">
+      <svg
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="0.6"
+        viewBox="36 4 48 16"
+      >
+        <path
+          className="fleuron-core"
+          d="M60 8C62.4 9.8 62.4 14.2 60 16 57.6 14.2 57.6 9.8 60 8Z"
+          pathLength="1"
+        />
+        {["", "matrix(-1 0 0 1 120 0)"].map((flip) => (
+          <g key={flip} transform={flip || undefined}>
+            <path
+              d="M55.5 12C49 12 46.5 7 42 7.4 38 7.8 37.6 12.8 41 13.2 43.4 13.5 44 10.6 42 10.2"
+              pathLength="1"
+            />
+            <path d="M51 12.4C47.5 15.4 43.5 17 38.5 16.4" pathLength="1" />
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
 const COMPONENTS: MDXComponents = {
   a: ({ href, children }) =>
     href?.startsWith("http") ? (
@@ -123,6 +154,7 @@ const COMPONENTS: MDXComponents = {
   h2: heading("h2"),
   h3: heading("h3"),
   h4: heading("h4"),
+  hr: Fleuron,
   pre: Pre,
   Video: VideoPlayer,
 };

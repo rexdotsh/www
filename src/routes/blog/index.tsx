@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import BackLink from "@/components/back-link";
+import RoseSprig from "@/components/rose-sprig";
 import { LINKS } from "@/lib/content";
 import { pageMeta, preloadFont } from "@/lib/head";
 import { PUBLISHED_META } from "@/lib/posts-meta";
@@ -29,7 +30,8 @@ export const Route = createFileRoute("/blog/")({
 function BlogIndex() {
   return (
     <main className="min-h-dvh paper px-7 py-14 font-serif-display text-ink md:py-24">
-      <div className="mx-auto w-full max-w-xl">
+      <div className="relative mx-auto w-full max-w-xl">
+        <RoseSprig className="absolute top-2 right-0 w-11 lg:top-6 lg:right-auto lg:left-[calc(100%+4.5rem)] lg:w-28" />
         <BackLink className="rise font-mono text-muted text-xs" to="/">
           home
         </BackLink>
@@ -66,7 +68,7 @@ function BlogIndex() {
                   className="mt-1 block w-fit text-[clamp(1.4rem,4.5vw,1.8rem)] leading-tight transition-colors duration-200 group-hover:text-rose"
                   style={{ viewTransitionName: `post-${post.slug}` }}
                 >
-                  {post.title}
+                  <span className="post-ink">{post.title}</span>
                   <span
                     aria-hidden="true"
                     className="ml-2 inline-block text-rose transition-transform duration-200 ease-strong group-hover:translate-x-1"

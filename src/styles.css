@@ -171,6 +171,7 @@ body {
   }
   .corner-notes,
   .guestbook,
+  .lamplight,
   .toc,
   .code-copy,
   .code-lang,
@@ -224,6 +225,30 @@ body {
   .corner-button:hover {
     color: var(--rose);
   }
+}
+
+.lamplight {
+  position: fixed;
+  top: -26rem;
+  left: -26rem;
+  z-index: 55;
+  width: 52rem;
+  height: 52rem;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 214 180 / 0.085),
+    rgb(255 190 160 / 0.035) 40%,
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 900ms var(--ease-strong);
+  will-change: translate;
+}
+
+:root[data-theme="dark"] .lamplight[data-lit] {
+  opacity: 1;
 }
 
 .corner-notes .paren {

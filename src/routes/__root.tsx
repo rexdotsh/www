@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import CornerNotes, { FIRST_PAINT_SCRIPT } from "@/components/corner-notes";
+import Lamplight from "@/components/lamplight";
 import NotFoundPage from "@/components/not-found";
 import { getIdentity, LINKS } from "@/lib/content";
 import { baseUrlOf, pageMeta, preloadFont, RSS_LINK } from "@/lib/head";
@@ -135,6 +136,7 @@ function RootDocument({ children }: { children: ReactNode }) {
         <CornerNotes />
         <Beacon />
         {children}
+        <Lamplight />
         <Scripts />
       </body>
     </html>
