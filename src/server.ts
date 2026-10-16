@@ -41,7 +41,7 @@ export default {
         headers.set(name, value);
       }
     }
-    // A 308 without this is kept by browsers forever; a moved link should heal.
+    // Browsers may cache a bare 308 with no bound; a moved link should heal.
     if (to) {
       headers.set("Cache-Control", "public, max-age=86400");
     }
