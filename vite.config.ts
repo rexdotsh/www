@@ -1,3 +1,4 @@
+import { cloudflare } from "@cloudflare/vite-plugin";
 import mdx from "@mdx-js/rollup";
 import rehypeShikiFromHighlighter from "@shikijs/rehype/core";
 import rehypeExtractToc from "@stefanprobst/rehype-extract-toc";
@@ -5,7 +6,6 @@ import rehypeExtractTocExport from "@stefanprobst/rehype-extract-toc/mdx";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
-import { nitro } from "nitro/vite";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import rehypeSlug from "rehype-slug";
@@ -14,8 +14,7 @@ import remarkReadingTime from "remark-reading-time";
 import remarkReadingTimeExport from "remark-reading-time/mdx.js";
 import { createHighlighterCore, type ShikiTransformer } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
-import { defineConfig } from "vite";
-import { LINKS } from "./src/lib/content.ts";
+import { defineConfig, type Plugin } from "vite";
 import { SITE_HEADERS } from "./src/lib/headers.ts";
 import { PAPER, PAPER_DARK } from "./src/lib/shiki-themes.ts";
 
@@ -34,11 +33,39 @@ const highlighter = await createHighlighterCore({
   engine: createJavaScriptRegexEngine(),
 });
 
-const STATIC_ASSET_HEADERS = {
-  headers: {
-    "cache-control": "public, max-age=86400",
-    "cloudflare-cdn-cache-control":
-      "public, max-age=31536000, stale-while-revalidate=604800",
+const LONG_LIVED = {
+  "Cache-Control": "public, max-age=86400",
+  "Cloudflare-CDN-Cache-Control":
+    "public, max-age=31536000, stale-while-revalidate=604800",
+};
+
+// Static assets are served before the worker runs, so their headers come from
+// a _headers file (the worker sets its own in src/server.ts).
+const ASSET_HEADERS: Record<string, Record<string, string>> = {
+  "/assets/*": { "Cache-Control": "public, max-age=31536000, immutable" },
+  "/favicon.ico": LONG_LIVED,
+  "/image.png": LONG_LIVED,
+  "/social-card-*": LONG_LIVED,
+  "/og/*": LONG_LIVED,
+  "/*": SITE_HEADERS,
+};
+
+const assetHeaders: Plugin = {
+  name: "asset-headers",
+  applyToEnvironment: (environment) => environment.name === "client",
+  generateBundle() {
+    this.emitFile({
+      type: "asset",
+      fileName: "_headers",
+      source: Object.entries(ASSET_HEADERS)
+        .map(
+          ([path, headers]) =>
+            `${path}\n${Object.entries(headers)
+              .map(([name, value]) => `  ${name}: ${value}\n`)
+              .join("")}`
+        )
+        .join(""),
+    });
   },
 };
 
@@ -67,11 +94,6 @@ export default defineConfig({
   define: {
     "import.meta.env.VITE_OG_IMAGE_VERSION": JSON.stringify(OG_IMAGE_VERSION),
   },
-  build: {
-    rolldownOptions: {
-      external: ["cloudflare:workers"],
-    },
-  },
   server: {
     port: 3000,
   },
@@ -79,6 +101,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   plugins: [
+    cloudflare({ viteEnvironment: { name: "ssr" } }),
     {
       enforce: "pre",
       ...mdx({
@@ -103,24 +126,6 @@ export default defineConfig({
     tailwindcss(),
     tanstackStart(),
     viteReact(),
-    nitro({
-      preset: "cloudflare_module",
-      routeRules: {
-        "/**": {
-          headers: SITE_HEADERS,
-        },
-        "/favicon.ico": STATIC_ASSET_HEADERS,
-        "/image.png": STATIC_ASSET_HEADERS,
-        "/social-card-rex.png": STATIC_ASSET_HEADERS,
-        "/social-card-mridul.png": STATIC_ASSET_HEADERS,
-        "/og/**": STATIC_ASSET_HEADERS,
-        // Server functions carry live data; without this the Worker cache keeps them for hours.
-        "/_serverFn/**": { headers: { "cache-control": "no-store" } },
-        "/twitter": { redirect: { to: LINKS.twitter, status: 308 } },
-        "/x": { redirect: { to: LINKS.twitter, status: 308 } },
-        "/github": { redirect: { to: LINKS.github, status: 308 } },
-        "/flora": { redirect: { to: LINKS.flora, status: 308 } },
-      },
-    }),
+    assetHeaders,
   ],
 });
