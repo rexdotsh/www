@@ -20,6 +20,11 @@ declare module "*.mdx" {
   export default Content;
 }
 
+// Viewport Segments API: shipped in Chromium, behind a flag in Safari 27.1.
+interface Window {
+  readonly viewport?: { readonly segments: readonly DOMRect[] | null };
+}
+
 // bun's file loader hands back the resolved path
 declare module "*.woff" {
   const path: string;
