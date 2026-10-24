@@ -575,6 +575,21 @@ img.post-media {
   }
 }
 
+/* Held like a book, the page sits left of the fold and the contents right
+   of it. 3.5rem is the main's inline padding. */
+@media (horizontal-viewport-segments: 2) {
+  .page-column {
+    margin-inline: 0;
+    max-width: calc(env(viewport-segment-width 0 0) - 3.5rem);
+  }
+
+  .toc-column {
+    display: block;
+    left: env(viewport-segment-left 1 0);
+    width: min(16rem, calc(env(viewport-segment-width 1 0) - 3.5rem));
+  }
+}
+
 .toc {
   position: sticky;
   top: 6rem;

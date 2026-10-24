@@ -240,7 +240,7 @@ function Home() {
       className="fixed inset-0 overflow-y-auto paper paper-lit font-serif-display text-ink"
       ref={mainRef}
     >
-      <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-14 pb-[max(2rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:py-[min(4rem,9vh)] md:pr-[max(3rem,env(safe-area-inset-right))] md:pl-[max(3rem,env(safe-area-inset-left))]">
+      <div className="home mx-auto flex min-h-full w-full max-w-6xl flex-col justify-between gap-8 px-7 pt-14 pb-[max(2rem,env(safe-area-inset-bottom))] md:flex-row md:items-center md:justify-normal md:gap-14 md:py-[min(4rem,9vh)] md:pr-[max(3rem,env(safe-area-inset-right))] md:pl-[max(3rem,env(safe-area-inset-left))]">
         <div className="sentence-root relative max-w-2xl md:flex-1">
           <TheSentence
             className="text-[clamp(1.9rem,8.6vw,2.5rem)] leading-[1.22] tracking-[-0.01em] md:text-[clamp(1.9rem,4.4vw,3.5rem)] md:leading-[1.2]"
@@ -258,7 +258,7 @@ function Home() {
           style={{ animationDelay: "200ms" }}
         >
           <div
-            className={`flex flex-col items-center transition-transform duration-300 ease-strong ${liftClass}`}
+            className={`rose-lift flex flex-col items-center transition-transform duration-300 ease-strong ${liftClass}`}
             style={{ "--below": `${below}px` } as CSSProperties}
           >
             <ParticleRose

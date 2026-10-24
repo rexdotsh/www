@@ -261,7 +261,8 @@ export const TheSentence = memo(function TheSentence({
   );
 });
 
-// Cards open centred above the word; shift or flip them to stay on screen.
+// Cards open centred above the word; shift or flip them to stay on screen,
+// and on a folding one, on the word's side of the fold.
 function place(trigger: HTMLElement) {
   const peek = trigger.querySelector<HTMLElement>(".peek");
   if (!peek) {
@@ -269,21 +270,30 @@ function place(trigger: HTMLElement) {
   }
   const word = trigger.getBoundingClientRect();
   const center = word.left + word.width / 2;
+  const middle = word.top + word.height / 2;
+  const area =
+    window.viewport?.segments?.find(
+      (s) =>
+        s.left <= center &&
+        center <= s.right &&
+        s.top <= middle &&
+        middle <= s.bottom
+    ) ?? new DOMRect(0, 0, innerWidth, innerHeight);
   const half = peek.offsetWidth / 2;
   // The label tab sits half out of the card's top edge.
   const tab =
     (peek.querySelector<HTMLElement>(".peek-tab")?.offsetHeight ?? 0) / 2;
   const x =
     Math.min(
-      Math.max(center, half + PEEK_EDGE),
-      innerWidth - half - PEEK_EDGE
+      Math.max(center, area.left + half + PEEK_EDGE),
+      area.right - half - PEEK_EDGE
     ) - center;
   trigger.style.setProperty("--peek-x", `${x}px`);
   // Measured as it sits above. Short of room there, its spare line goes
   // first; if that's not enough, the line stays and the card opens below.
   trigger.removeAttribute("data-peek-below");
   trigger.removeAttribute("data-peek-trim");
-  const fits = () => word.top - peek.offsetHeight - tab >= PEEK_EDGE;
+  const fits = () => word.top - peek.offsetHeight - tab >= area.top + PEEK_EDGE;
   if (fits()) {
     return;
   }
@@ -292,7 +302,7 @@ function place(trigger: HTMLElement) {
     trigger.removeAttribute("data-peek-trim");
     trigger.toggleAttribute(
       "data-peek-below",
-      innerHeight - word.bottom > word.top
+      area.bottom - word.bottom > word.top - area.top
     );
   }
 }

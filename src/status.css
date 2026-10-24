@@ -197,3 +197,25 @@
   padding-top: 0.6rem;
   border-top: 1px dashed color-mix(in oklab, var(--ink) 12%, transparent);
 }
+
+/* Held like a book, a column of machines either side of the fold, and the
+   heading on the left page. 3.5rem is the main's inline padding. */
+@media (horizontal-viewport-segments: 2) {
+  .tty {
+    max-width: none;
+  }
+
+  .tty > * {
+    max-width: calc(env(viewport-segment-width 0 0) - 3.5rem);
+  }
+
+  .tty > .panels {
+    max-width: none;
+    grid-template-columns:
+      calc(env(viewport-segment-width 0 0) - 3.5rem)
+      calc(env(viewport-segment-width 1 0) - 3.5rem);
+    column-gap: calc(
+      env(viewport-segment-left 1 0) - env(viewport-segment-right 0 0) + 3.5rem
+    );
+  }
+}

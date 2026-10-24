@@ -339,7 +339,7 @@ function PostPage() {
   return (
     <main className="min-h-dvh paper px-7 py-14 font-serif-display text-ink md:py-24">
       <ReadingProgress />
-      <div className="mx-auto w-full max-w-xl">
+      <div className="page-column mx-auto w-full max-w-xl">
         <header className="post-header">
           <BackLink
             className="rise font-mono text-muted text-xs"

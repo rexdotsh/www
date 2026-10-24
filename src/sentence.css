@@ -455,3 +455,53 @@
     display: none;
   }
 }
+
+/* A partly folded screen: the sentence on one side of the fold, the rose on
+   the other. The rose can't lift clear of a sheet across the fold, so it
+   stays put behind it, as in landscape. */
+@media (horizontal-viewport-segments: 2) {
+  .home {
+    display: grid;
+    grid-template-columns:
+      env(viewport-segment-width 0 0)
+      env(viewport-segment-width 1 0);
+    column-gap: calc(
+      env(viewport-segment-left 1 0) - env(viewport-segment-right 0 0)
+    );
+    align-items: center;
+    max-width: none;
+    padding-inline: 0;
+  }
+
+  .home .sentence-root {
+    padding-inline: max(2.5rem, env(safe-area-inset-left)) 2rem;
+  }
+}
+
+@media (vertical-viewport-segments: 2) {
+  .home {
+    display: grid;
+    grid-template-rows:
+      env(viewport-segment-height 0 0)
+      env(viewport-segment-height 0 1);
+    row-gap: calc(
+      env(viewport-segment-top 0 1) - env(viewport-segment-bottom 0 0)
+    );
+    align-items: center;
+    padding-block: 0;
+  }
+}
+
+@media (horizontal-viewport-segments: 2), (vertical-viewport-segments: 2) {
+  .rose-lift {
+    translate: none;
+  }
+}
+
+@media (max-width: 767px) and (horizontal-viewport-segments: 2) {
+  .peek {
+    left: calc(
+      env(viewport-segment-left 1 0) + env(viewport-segment-width 1 0) / 2
+    );
+  }
+}
