@@ -74,7 +74,18 @@ const rampFor = (ch: string) => {
   const index = RAMP_GLYPHS.findIndex((glyphs) => glyphs.includes(ch));
   return index === -1 ? GLOW - 1 : index;
 };
-const toCss = ([r, g, b]: Rgb) => `rgb(${r},${g},${b})`;
+// Canvas rounds channels to bytes anyway, so each blend is built and parsed
+// once instead of per particle per frame.
+const cssCache = new Map<number, string>();
+const toCss = (r: number, g: number, b: number) => {
+  const key = (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
+  let css = cssCache.get(key);
+  if (!css) {
+    css = `rgb(${key >> 16},${(key >> 8) & 255},${key & 255})`;
+    cssCache.set(key, css);
+  }
+  return css;
+};
 
 function readPalette(host: HTMLElement): Rgb[] {
   const probe = document.createElement("span");
@@ -347,7 +358,7 @@ export default function ParticleRose({
     const tint = () => {
       for (const p of particles) {
         p.rgb = palette[p.ramp];
-        p.color = toCss(p.rgb);
+        p.color = toCss(...p.rgb);
       }
     };
 
@@ -584,11 +595,19 @@ export default function ParticleRose({
           const k = artFadeRef.current ** 1.5;
           const [r, g, b] = p.art;
           const [rr, rg, rb] = p.rgb;
-          context.fillStyle = `rgb(${r + (rr - r) * k},${g + (rg - g) * k},${b + (rb - b) * k})`;
+          context.fillStyle = toCss(
+            r + (rr - r) * k,
+            g + (rg - g) * k,
+            b + (rb - b) * k
+          );
           context.fillText("#", p.x, p.y);
         } else if (blush > 0) {
           const [r, g, b] = p.rgb;
-          context.fillStyle = `rgb(${r + (glowR - r) * blush},${g + (glowG - g) * blush},${b + (glowB - b) * blush})`;
+          context.fillStyle = toCss(
+            r + (glowR - r) * blush,
+            g + (glowG - g) * blush,
+            b + (glowB - b) * blush
+          );
           context.fillText(ch, p.x, p.y);
         } else {
           context.fillStyle = p.color;
