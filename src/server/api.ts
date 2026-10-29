@@ -1,9 +1,4 @@
 import { env } from "cloudflare:workers";
-import {
-  englishDataset,
-  englishRecommendedTransformers,
-  RegExpMatcher,
-} from "obscenity";
 import { type Fleet, mockFleet } from "@/lib/fleet";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { resolveSiteInfo } from "@/lib/site";
@@ -77,17 +72,6 @@ export const limited = async (request: Request, scope: string) => {
   const { success } = await env.RATE_LIMIT.limit({ key: `${scope}:${ip}` });
   return !success;
 };
-
-const profanity = new RegExpMatcher({
-  ...englishDataset.build(),
-  ...englishRecommendedTransformers,
-});
-
-const PUNCTUATION_RE = /[^\p{L}\p{N}\s]/gu;
-
-export const isRude = (text: string) =>
-  profanity.hasMatch(text) ||
-  profanity.hasMatch(text.replace(PUNCTUATION_RE, ""));
 
 const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
 
