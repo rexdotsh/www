@@ -1,3 +1,5 @@
+import { whenIdle } from "@/lib/utils";
+
 export type Sound =
   | "tick"
   | "pop"
@@ -33,6 +35,11 @@ interface AudioState {
 }
 
 let audio: AudioState | null = null;
+// Opening the audio device can take 100ms+ cold, too long to hold up the first
+// tap: it's built once the page has settled (not mid-intro, where it would drop
+// frames), then kept suspended until that tap resumes it.
+let spare: AudioState | null = null;
+const SPARE_AFTER_MS = 5000;
 let muted = false;
 let pending: { at: number; pitch: number; sound: Sound } | null = null;
 // A sound queued while audio is locked plays on the unlocking gesture only if
@@ -227,7 +234,7 @@ function unlock() {
   if (isMuted()) {
     return;
   }
-  audio ??= createAudio();
+  audio ??= spare ?? createAudio();
   const state = audio;
   if (state) {
     whenRunning(state, () => {
@@ -282,4 +289,14 @@ if (typeof window !== "undefined") {
   for (const event of UNLOCK_EVENTS) {
     window.addEventListener(event, unlock, UNLOCK_OPTIONS);
   }
+  setTimeout(
+    () =>
+      whenIdle(() => {
+        if (!(audio || isMuted())) {
+          spare = createAudio();
+          spare?.context.suspend().catch(() => undefined);
+        }
+      }),
+    SPARE_AFTER_MS
+  );
 }
