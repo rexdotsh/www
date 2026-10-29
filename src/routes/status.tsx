@@ -29,7 +29,7 @@ import {
 import { pageMeta, preloadFont } from "@/lib/head";
 import { SCALE, sfx } from "@/lib/sfx";
 import { getJson } from "@/lib/utils";
-import newsreaderItalicWoff2 from "../fonts/newsreader-latin-italic.woff2?url";
+import newsreaderItalicWoff2 from "../fonts/newsreader-italic-core.woff2?url";
 import bodyCss from "../fonts-body.css?url";
 import statusCss from "../status.css?url";
 

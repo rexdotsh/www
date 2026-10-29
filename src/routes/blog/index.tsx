@@ -3,7 +3,7 @@ import BackLink from "@/components/back-link";
 import { LINKS } from "@/lib/content";
 import { pageMeta, preloadFont } from "@/lib/head";
 import { PUBLISHED_META } from "@/lib/posts-meta";
-import newsreaderItalicWoff2 from "../../fonts/newsreader-latin-italic.woff2?url";
+import newsreaderItalicWoff2 from "../../fonts/newsreader-italic-core.woff2?url";
 import bodyCss from "../../fonts-body.css?url";
 import postCss from "../../post.css?url";
 

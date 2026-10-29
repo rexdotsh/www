@@ -9,8 +9,8 @@ import { getPost, metaLine, type TocEntry } from "@/lib/posts";
 import { getPostMeta } from "@/lib/posts-meta";
 import { SCALE, sfx } from "@/lib/sfx";
 import { ogImageUrl } from "@/lib/utils";
-import newsreaderItalicWoff2 from "../../fonts/newsreader-latin-italic.woff2?url";
-import newsreaderWoff2 from "../../fonts/newsreader-latin.woff2?url";
+import newsreaderItalicWoff2 from "../../fonts/newsreader-italic-core.woff2?url";
+import newsreaderWoff2 from "../../fonts/newsreader-core.woff2?url";
 import bodyCss from "../../fonts-body.css?url";
 import postCss from "../../post.css?url";
 

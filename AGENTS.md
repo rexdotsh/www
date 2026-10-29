@@ -2,7 +2,7 @@
 
 Personal site + blog for **rex** / **mridul** (same person; name switches on hostname, see `src/lib/content.ts:getIdentity`). Live at rex.wf and mridul.sh.
 
-Homepage is one interactive "sentence" with peek cards and a particle rose (`src/routes/index.tsx`, `src/components/the-sentence.tsx`, `src/components/peek-cards.tsx`). Plus a Spotify widget, a GitHub heatmap, and an MDX blog (`src/content/*.mdx`). A new post needs an entry in `src/lib/posts-meta.ts` and `bun run og:gen` for its card; a code block in a new language needs it added to `langs` in `vite.config.ts`.
+Homepage is one interactive "sentence" with peek cards and a particle rose (`src/routes/index.tsx`, `src/components/the-sentence.tsx`, `src/components/peek-cards.tsx`). Plus a Spotify widget, a GitHub heatmap, and an MDX blog (`src/content/*.mdx`). A new post needs an entry in `src/lib/posts-meta.ts` and `bun run og:gen` for its card; a code block in a new language needs it added to `langs` in `vite.config.ts`. The webfonts are cut to what the site draws: a new symbol, weight or OpenType feature in one of them needs the sets in `scripts/subset-fonts.py` updated and `bun run fonts:subset` rerun.
 
 ## Stack
 

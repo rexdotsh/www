@@ -11,8 +11,8 @@ import { getIdentity, LINKS } from "@/lib/content";
 import { baseUrlOf, pageMeta, preloadFont, RSS_LINK } from "@/lib/head";
 import { getSiteInfo } from "@/lib/site";
 import { useBeacon } from "@/lib/use-stats";
-import geistMonoWoff2 from "../fonts/geist-mono-latin.woff2?url";
-import instrumentWoff2 from "../fonts/instrument-serif-latin.woff2?url";
+import geistMonoWoff2 from "../fonts/geist-mono-core.woff2?url";
+import instrumentWoff2 from "../fonts/instrument-serif-core.woff2?url";
 import appCss from "../styles.css?url";
 
 const TRAILING_SLASH_RE = /(.)\/$/;
