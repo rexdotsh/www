@@ -323,7 +323,11 @@ export default function ParticleRose({
     const canvas = canvasRef.current;
     const container = containerRef.current;
     const context = canvas?.getContext("2d");
-    if (!(canvas && container && context)) {
+    // The settled rose minus a falling petal: a petal frame is one blit and one
+    // glyph instead of the whole rose.
+    const backdrop = document.createElement("canvas");
+    const backdropContext = backdrop.getContext("2d");
+    if (!(canvas && container && context && backdropContext)) {
       return;
     }
 
@@ -331,6 +335,7 @@ export default function ParticleRose({
 
     let particles: Particle[] = [];
     let size = 0;
+    let dpr = 1;
     let raf = 0;
     let startedAt = 0;
     let initialized = false;
@@ -343,6 +348,7 @@ export default function ParticleRose({
     let palette = readPalette(container);
     const pointer = { active: false, x: -9999, y: -9999 };
     let inViewport = true;
+    let settled = false;
 
     const tint = () => {
       for (const p of particles) {
@@ -396,7 +402,7 @@ export default function ParticleRose({
 
     const setup = (scattered: boolean) => {
       size = container.clientWidth * BLEED;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = size * dpr;
       canvas.height = size * dpr;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -417,24 +423,49 @@ export default function ParticleRose({
       applyArt();
     };
 
-    const drawStatic = () => {
-      context.font = baseFont;
-      context.globalAlpha = 1;
-      context.clearRect(0, 0, size, size);
+    const drawStatic = (target = context, skip?: Particle) => {
+      target.font = baseFont;
+      target.globalAlpha = 1;
+      target.clearRect(0, 0, size, size);
       for (const p of particles) {
-        context.fillStyle = p.color;
-        context.fillText(p.ch, p.homeX, p.homeY);
+        if (p !== skip) {
+          target.fillStyle = p.color;
+          target.fillText(p.ch, p.homeX, p.homeY);
+        }
       }
     };
 
-    let petal: {
+    interface Petal {
       p: Particle;
       phase: "fall" | "return";
       startAt: number;
       x0: number;
       y0: number;
-    } | null = null;
+    }
+    let petal: Petal | null = null;
     let nextPetalAt = performance.now() + 9000 + Math.random() * 8000;
+
+    // Moves the petal and returns its opacity, or null once it's home.
+    const stepPetal = (falling: Petal, now: number) => {
+      const { p } = falling;
+      if (falling.phase === "fall") {
+        const u = (now - falling.startAt) / 2800;
+        if (u < 1) {
+          p.x = falling.x0 + Math.sin(u * TAU * 1.2) * size * 0.02;
+          p.y = falling.y0 + u * u * size * 0.3;
+          return 1 - u;
+        }
+        falling.phase = "return";
+        falling.startAt = now;
+        p.x = p.homeX;
+        p.y = p.homeY;
+        p.vx = 0;
+        p.vy = 0;
+        return 0;
+      }
+      const u = (now - falling.startAt) / 900;
+      return u < 1 ? u : null;
+    };
 
     const tick = (now: number) => {
       if (!startedAt) {
@@ -465,10 +496,42 @@ export default function ParticleRose({
       if (resting && !petal && now > nextPetalAt) {
         const p = particles[Math.floor(Math.random() * particles.length)];
         petal = { p, phase: "fall", startAt: now, x0: p.x, y0: p.y };
+        if (settled) {
+          backdrop.width = canvas.width;
+          backdrop.height = canvas.height;
+          backdropContext.setTransform(dpr, 0, 0, dpr, 0, 0);
+          backdropContext.textAlign = "center";
+          backdropContext.textBaseline = "middle";
+          drawStatic(backdropContext, p);
+        }
       }
       if (petal && !resting) {
         petal = null;
         nextPetalAt = now + 9000 + Math.random() * 8000;
+      }
+      settled &&= petal !== null && !pointer.active;
+
+      if (settled && petal) {
+        const fade = stepPetal(petal, now);
+        if (fade === null) {
+          petal = null;
+          nextPetalAt = now + 14_000 + Math.random() * 10_000;
+          backdrop.width = 0;
+          drawStatic();
+          raf = 0;
+          scheduleIdleWake();
+          return;
+        }
+        context.save();
+        context.resetTransform();
+        context.drawImage(backdrop, 0, 0);
+        context.restore();
+        context.globalAlpha = fade;
+        context.fillStyle = petal.p.color;
+        context.fillText(petal.p.ch, petal.p.x, petal.p.y);
+        context.globalAlpha = 1;
+        raf = inViewport && !document.hidden ? requestAnimationFrame(tick) : 0;
+        return;
       }
 
       for (const p of particles) {
@@ -482,29 +545,12 @@ export default function ParticleRose({
         let { ch } = p;
 
         if (petal?.p === p) {
-          if (petal.phase === "fall") {
-            const u = (now - petal.startAt) / 2800;
-            if (u >= 1) {
-              petal.phase = "return";
-              petal.startAt = now;
-              p.x = p.homeX;
-              p.y = p.homeY;
-              p.vx = 0;
-              p.vy = 0;
-              alpha = 0;
-            } else {
-              p.x = petal.x0 + Math.sin(u * TAU * 1.2) * size * 0.02;
-              p.y = petal.y0 + u * u * size * 0.3;
-              alpha *= 1 - u;
-            }
+          const fade = stepPetal(petal, now);
+          if (fade === null) {
+            petal = null;
+            nextPetalAt = now + 14_000 + Math.random() * 10_000;
           } else {
-            const u = (now - petal.startAt) / 900;
-            if (u >= 1) {
-              petal = null;
-              nextPetalAt = now + 14_000 + Math.random() * 10_000;
-            } else {
-              alpha *= u;
-            }
+            alpha *= fade;
           }
         } else {
           const dx = p.homeX - center;
@@ -619,6 +665,7 @@ export default function ParticleRose({
         )
       ) {
         drawStatic();
+        settled = true;
         raf = 0;
         scheduleIdleWake();
         return;
@@ -763,6 +810,7 @@ export default function ParticleRose({
     canvas.addEventListener("pointerleave", onPointerLeave);
 
     const onThemeChange = () => {
+      settled = false;
       palette = readPalette(container);
       tint();
       if (reduceMotion) {
