@@ -81,6 +81,10 @@ const toCss = (r: number, g: number, b: number) => {
   const key = (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(b);
   let css = cssCache.get(key);
   if (!css) {
+    // A preview fading album art into the rose blends a new set every step.
+    if (cssCache.size > 4096) {
+      cssCache.clear();
+    }
     css = `rgb(${key >> 16},${(key >> 8) & 255},${key & 255})`;
     cssCache.set(key, css);
   }
