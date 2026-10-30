@@ -12,16 +12,24 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import remarkReadingTime from "remark-reading-time";
 import remarkReadingTimeExport from "remark-reading-time/mdx.js";
-import { createHighlighterCore, type ShikiTransformer } from "shiki/core";
+import {
+  createHighlighterCore,
+  hastToHtml,
+  type ShikiTransformer,
+} from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 import { defineConfig, type Plugin } from "vite";
 import { SITE_HEADERS } from "./src/lib/headers.ts";
 import { PAPER, PAPER_DARK } from "./src/lib/shiki-themes.ts";
 
+// The tokens ride as one html string: hundreds of spans as JSX would bloat the
+// post chunk and give hydration a fiber for each.
 const rawCodeTransformer: ShikiTransformer = {
   pre(node) {
     node.properties["data-code"] = this.source;
     node.properties["data-lang"] = this.options.lang;
+    node.properties["data-html"] = hastToHtml(node.children);
+    node.children = [];
   },
 };
 

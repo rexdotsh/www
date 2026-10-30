@@ -11,8 +11,12 @@ import { useCopied } from "@/lib/use-copied";
 
 const QUIET_LANGS = new Set(["text", "txt", "plaintext", "plain", ""]);
 
-function Pre({ children, tabIndex, ...props }: ComponentProps<"pre">) {
-  const data = props as { "data-code"?: string; "data-lang"?: string };
+function Pre({ tabIndex, ...props }: ComponentProps<"pre">) {
+  const data = props as {
+    "data-code"?: string;
+    "data-html"?: string;
+    "data-lang"?: string;
+  };
   const code = data["data-code"] ?? "";
   const lang = data["data-lang"] ?? "";
   const [copied, copy] = useCopied();
@@ -30,9 +34,12 @@ function Pre({ children, tabIndex, ...props }: ComponentProps<"pre">) {
           </span>
         )}
       </span>
-      <pre className="code-card" tabIndex={tabIndex}>
-        {children}
-      </pre>
+      <pre
+        className="code-card"
+        // oxlint-disable-next-line react/no-danger -- shiki's tokens, baked at build time
+        dangerouslySetInnerHTML={{ __html: data["data-html"] ?? "" }}
+        tabIndex={tabIndex}
+      />
     </div>
   );
 }
