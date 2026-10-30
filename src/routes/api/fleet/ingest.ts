@@ -6,16 +6,12 @@ export const Route = createFileRoute("/api/fleet/ingest")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const stub = fleet();
-        if (!stub) {
-          return new Response(null, { status: 503 });
-        }
         const result = await verify(request);
         if (!result.ok) {
           return new Response(null, { status: result.status });
         }
         try {
-          const fresh = await stub.ingest(
+          const fresh = await fleet().ingest(
             result.host,
             result.sample,
             result.ts

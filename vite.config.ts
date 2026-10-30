@@ -129,7 +129,20 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   plugins: [
-    cloudflare({ viteEnvironment: { name: "ssr" } }),
+    cloudflare({
+      viteEnvironment: { name: "ssr" },
+      auxiliaryWorkers: [
+        {
+          configPath: "./workers/room/wrangler.jsonc",
+          // Room is SQLite-backed in production through the v1 transfer from
+          // `www`, which local dev can't follow; without this it has no SQL.
+          config: ({ migrations }) => {
+            migrations[0] = { tag: "v1", new_sqlite_classes: ["Room"] };
+          },
+          devOnly: true,
+        },
+      ],
+    }),
     {
       enforce: "pre",
       ...mdx({

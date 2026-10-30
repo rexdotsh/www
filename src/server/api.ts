@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { type Fleet, mockFleet } from "@/lib/fleet";
+import type { Fleet } from "@/lib/fleet";
 import { PUBLISHED_META } from "@/lib/posts-meta";
 import { resolveSiteInfo } from "@/lib/site";
 
@@ -22,24 +22,13 @@ export const LIVE_CACHE = {
   "Cloudflare-CDN-Cache-Control": "public, max-age=30",
 };
 
-// The DOs live in the `www-room` worker; nothing to talk to under `vite dev`.
-export const room = () =>
-  import.meta.env.DEV || !env.ROOM
-    ? null
-    : env.ROOM.get(env.ROOM.idFromName("site"));
+export const room = () => env.ROOM.get(env.ROOM.idFromName("site"));
 
-export const fleet = () =>
-  import.meta.env.DEV || !env.FLEET
-    ? null
-    : env.FLEET.get(env.FLEET.idFromName("fleet"));
+export const fleet = () => env.FLEET.get(env.FLEET.idFromName("fleet"));
 
 export const fleetSnapshot = async (): Promise<Fleet> => {
-  const stub = fleet();
-  if (!stub) {
-    return mockFleet();
-  }
   // RPC results carry Symbol.dispose and widen tuples; the DO built a real Fleet.
-  const { hosts, services, measuredAt } = await stub.snapshot();
+  const { hosts, services, measuredAt } = await fleet().snapshot();
   return { hosts, services, measuredAt } as Fleet;
 };
 

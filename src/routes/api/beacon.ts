@@ -50,13 +50,7 @@ export const Route = createFileRoute("/api/beacon")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const stub = room();
-        if (
-          !stub ||
-          isBot(request) ||
-          isPreview(request) ||
-          isCrossSite(request)
-        ) {
+        if (isBot(request) || isPreview(request) || isCrossSite(request)) {
           return new Response(null, { status: 204 });
         }
         if (tooLarge(request, MAX_BODY)) {
@@ -80,7 +74,7 @@ export const Route = createFileRoute("/api/beacon")({
         }
         // Beacons fire as the page goes away; don't let the visitor leaving cancel the write.
         waitUntil(
-          stub
+          room()
             .record(beacon, placeOf(request))
             .catch((error) => console.error("beacon", error))
         );
