@@ -15,7 +15,7 @@ import { type SiteStats, visitorTag } from "@/lib/stats";
 import { useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
 import { useSiteStats, visitor } from "@/lib/use-stats";
-import instrumentItalicWoff2 from "../fonts/instrument-serif-latin-italic.woff2?url";
+import instrumentItalicWoff2 from "../fonts/instrument-serif-italic-core.woff2?url";
 
 const rootRoute = getRouteApi("__root__");
 
