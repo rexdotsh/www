@@ -105,6 +105,26 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  environments: {
+    // React only changes with a dependency bump: on its own its hash survives
+    // deploys, instead of riding in the entry chunk every route change renames.
+    client: {
+      build: {
+        rolldownOptions: {
+          output: {
+            codeSplitting: {
+              groups: [
+                {
+                  name: "react",
+                  test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
   resolve: {
     tsconfigPaths: true,
   },
