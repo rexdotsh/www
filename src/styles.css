@@ -1,7 +1,5 @@
 @import "tailwindcss";
 @import "./fonts.css";
-@import "./sentence.css";
-@import "./guestbook.css";
 @import "./fleet.css";
 
 @theme inline {
@@ -330,6 +328,28 @@ html[data-vt="theme"]::view-transition-new(root) {
 
 .rise {
   animation: rise-in 600ms var(--ease-strong) backwards;
+}
+
+@keyframes full-stop {
+  0%,
+  42% {
+    opacity: 0;
+    transform: translateY(-0.4em) scale(0.5);
+  }
+  72% {
+    opacity: 1;
+    transform: translateY(0.05em) scale(1.18);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.full-stop {
+  display: inline-block;
+  animation: full-stop 950ms var(--ease-strong) backwards;
+  animation-delay: inherit;
 }
 
 .back-link {
