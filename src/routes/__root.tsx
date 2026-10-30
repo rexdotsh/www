@@ -19,10 +19,12 @@ const TRAILING_SLASH_RE = /(.)\/$/;
 
 export const Route = createRootRoute({
   headers: () => ({
-    // The document is static per hostname; keep browser validation cheap while
-    // allowing Cloudflare to serve repeat navigations from the edge.
+    // The document is static per hostname and deploy, and the Worker cache is
+    // keyed on the deployed version: the edge can serve it until the next one,
+    // re-rendering in the background now and then.
     "Cache-Control": "public, max-age=0, must-revalidate",
-    "Cloudflare-CDN-Cache-Control": "public, max-age=3600",
+    "Cloudflare-CDN-Cache-Control":
+      "public, max-age=86400, stale-while-revalidate=31536000",
   }),
   loader: () => getSiteInfo(),
   staleTime: Number.POSITIVE_INFINITY,
