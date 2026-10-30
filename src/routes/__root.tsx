@@ -32,7 +32,7 @@ export const Route = createRootRoute({
     const baseUrl = baseUrlOf(matches);
     const identity = getIdentity(loaderData?.hostname ?? "");
     // An unknown path flags the root (whatever prefix matched under it); an
-    // unknown post's own match is notFound.
+    // unknown post's own match is notFound. The not-found page is all mono.
     const found = matches.every(
       (match) => match.status === "success" && !match._notFound
     );
@@ -76,7 +76,7 @@ export const Route = createRootRoute({
       ],
       links: [
         { rel: "stylesheet", href: appCss },
-        preloadFont(instrumentWoff2),
+        ...(found ? [preloadFont(instrumentWoff2)] : []),
         preloadFont(geistMonoWoff2),
         { rel: "icon", href: "/favicon.ico" },
         { rel: "apple-touch-icon", href: "/image.png" },
