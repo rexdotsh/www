@@ -30,6 +30,7 @@ from fontTools.ttLib import TTFont
 from fontTools.varLib import instancer
 
 SOURCE = "https://raw.githubusercontent.com/google/fonts/6157dfaa640ca5738b4d1a7070fe389c3036d7fc/ofl"
+GEIST = "https://raw.githubusercontent.com/vercel/geist-font/72f67167dd304a842ef8899da57fa25c5cf21756/fonts"
 OUT = Path("src/fonts")
 
 ASCII = set(range(0x20, 0x7F))
@@ -42,8 +43,9 @@ BOX = {0x2500, 0x2514, 0x251C, 0x2588, 0x2591}
 FACES = [
     # css, family, style, file, source, axis limits (applied in order), features, core extras, ext extras
     ("fonts.css", "Geist Mono Variable", "normal", "geist-mono", "geistmono/GeistMono[wght].ttf", [{"wght": (400, 700)}], [], BOX, set()),
-    ("fonts.css", "Instrument Serif", "normal", "instrument-serif", "instrumentserif/InstrumentSerif-Regular.ttf", [], ["kern", "liga"], set(), set()),
-    ("fonts.css", "Instrument Serif", "italic", "instrument-serif-italic", "instrumentserif/InstrumentSerif-Italic.ttf", [], ["kern", "liga"], set(), set()),
+    ("fonts.css", "Geist Serif", "normal", "geist-serif", f"{GEIST}/GeistSerif/ttf/GeistSerif-Regular.ttf", [], ["kern", "ccmp", "mark", "mkmk"], set(), set()),
+    # Geist Serif has no italic yet; its italics are Instrument Serif's.
+    ("fonts.css", "Geist Serif", "italic", "instrument-serif-italic", "instrumentserif/InstrumentSerif-Italic.ttf", [], ["kern", "liga"], set(), set()),
     # Pinning opsz before limiting wght matches the old Fontsource-based outlines.
     ("fonts-body.css", "Newsreader Variable", "normal", "newsreader", "newsreader/Newsreader[opsz,wght].ttf", [{"opsz": 16}, {"wght": (400, 650)}], ["kern", "liga", "rvrn"], set(), set()),
     ("fonts-body.css", "Newsreader Variable", "italic", "newsreader-italic", "newsreader/Newsreader-Italic[opsz,wght].ttf", [{"opsz": 16}, {"wght": (400, 650)}], ["kern", "liga", "rvrn"], set(), set()),
@@ -51,7 +53,8 @@ FACES = [
 
 
 def fetch(path: str) -> TTFont:
-    with urllib.request.urlopen(f"{SOURCE}/{path.replace('[', '%5B').replace(']', '%5D')}") as res:
+    url = path if path.startswith("https://") else f"{SOURCE}/{path}"
+    with urllib.request.urlopen(url.replace("[", "%5B").replace("]", "%5D")) as res:
         return TTFont(BytesIO(res.read()))
 
 

@@ -21,29 +21,28 @@
 }
 
 @font-face {
-  font-family: "Instrument Serif";
+  font-family: "Geist Serif";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("./fonts/instrument-serif-core.woff2") format("woff2");
+  src: url("./fonts/geist-serif-core.woff2") format("woff2");
   unicode-range:
-    U+20-7E, U+A0, U+B7, U+2013-2014, U+2018-2019, U+201C-201D, U+2026;
+    U+20-5D, U+5F-7E, U+A0, U+B7, U+2013-2014, U+2018-2019, U+201C-201D, U+2026;
 }
 
 @font-face {
-  font-family: "Instrument Serif";
+  font-family: "Geist Serif";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("./fonts/instrument-serif-ext.woff2") format("woff2");
+  src: url("./fonts/geist-serif-ext.woff2") format("woff2");
   unicode-range:
-    U+A1-A3, U+A5, U+A7-AB, U+AE-B0, U+B4, U+B6, U+B8, U+BA-BB, U+BF-107,
-    U+10A-113, U+116-11B, U+11E-123, U+126-127, U+12A-12B, U+12E-133, U+136-137,
-    U+139-13E, U+141-148, U+14A-14D, U+150-15B, U+15E-161, U+164-165, U+16A-17E;
+    U+A1, U+A5-AB, U+AE-B0, U+B4, U+B6, U+B8, U+BA-BB, U+BF-113, U+116-12B,
+    U+12E-137, U+139-13E, U+141-148, U+14C-14D, U+150-165, U+168-17E;
 }
 
 @font-face {
-  font-family: "Instrument Serif";
+  font-family: "Geist Serif";
   font-style: italic;
   font-weight: 400;
   font-display: swap;
@@ -53,7 +52,7 @@
 }
 
 @font-face {
-  font-family: "Instrument Serif";
+  font-family: "Geist Serif";
   font-style: italic;
   font-weight: 400;
   font-display: swap;
@@ -66,16 +65,16 @@
 
 /* Metric-matched local fallbacks so the swap doesn't reflow (numbers via @capsizecss/metrics). */
 @font-face {
-  font-family: "Instrument Serif Fallback";
+  font-family: "Geist Serif Fallback";
   font-style: normal;
   src: local("Georgia");
-  ascent-override: 129.426%;
-  descent-override: 40.5273%;
-  size-adjust: 76.4916%;
+  ascent-override: 95.1126%;
+  descent-override: 27.9186%;
+  size-adjust: 105.6643%;
 }
 
 @font-face {
-  font-family: "Instrument Serif Fallback";
+  font-family: "Geist Serif Fallback";
   font-style: italic;
   src: local("Georgia Italic"), local("Georgia-Italic");
   ascent-override: 129.426%;
@@ -84,17 +83,17 @@
 }
 
 @font-face {
-  font-family: "Instrument Serif Fallback Times";
+  font-family: "Geist Serif Fallback Times";
   font-style: normal;
   src: local("Times New Roman"), local("TimesNewRomanPSMT");
-  ascent-override: 117.9435%;
-  descent-override: 36.9318%;
+  ascent-override: 86.6743%;
+  descent-override: 25.4417%;
   line-gap-override: 0%;
-  size-adjust: 83.9385%;
+  size-adjust: 115.9513%;
 }
 
 @font-face {
-  font-family: "Instrument Serif Fallback Times";
+  font-family: "Geist Serif Fallback Times";
   font-style: italic;
   src: local("Times New Roman Italic"), local("TimesNewRomanPS-ItalicMT");
   ascent-override: 117.9435%;
@@ -105,17 +104,17 @@
 
 /* Android and most Linux desktops have neither Georgia nor Times. */
 @font-face {
-  font-family: "Instrument Serif Fallback Noto";
+  font-family: "Geist Serif Fallback Noto";
   font-style: normal;
   src: local("Noto Serif"), local("NotoSerif-Regular");
-  ascent-override: 139.48%;
-  descent-override: 43.68%;
+  ascent-override: 102.498%;
+  descent-override: 30.0865%;
   line-gap-override: 0%;
-  size-adjust: 70.98%;
+  size-adjust: 98.0506%;
 }
 
 @font-face {
-  font-family: "Instrument Serif Fallback Noto";
+  font-family: "Geist Serif Fallback Noto";
   font-style: italic;
   src: local("Noto Serif Italic"), local("NotoSerif-Italic");
   ascent-override: 128.83%;

@@ -12,7 +12,7 @@ import { baseUrlOf, pageMeta, preloadFont, RSS_LINK } from "@/lib/head";
 import { getSiteInfo } from "@/lib/site";
 import { useBeacon } from "@/lib/use-stats";
 import geistMonoWoff2 from "../fonts/geist-mono-core.woff2?url";
-import instrumentWoff2 from "../fonts/instrument-serif-core.woff2?url";
+import serifWoff2 from "../fonts/geist-serif-core.woff2?url";
 import appCss from "../styles.css?url";
 
 const TRAILING_SLASH_RE = /(.)\/$/;
@@ -76,7 +76,7 @@ export const Route = createRootRoute({
       ],
       links: [
         { rel: "stylesheet", href: appCss },
-        ...(found ? [preloadFont(instrumentWoff2)] : []),
+        ...(found ? [preloadFont(serifWoff2)] : []),
         preloadFont(geistMonoWoff2),
         { rel: "icon", href: "/favicon.ico" },
         { rel: "apple-touch-icon", href: "/image.png" },
