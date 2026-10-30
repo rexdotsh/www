@@ -14,17 +14,21 @@ export type NowPlaying = ReturnType<typeof transform>;
 
 export async function getNowPlaying(token: string, signal: AbortSignal) {
   const headers = { Authorization: `Bearer ${token}` };
+  // Usually nothing is playing: ask for the last track alongside, not after
+  // the 204.
+  const recent = fetch(RECENTLY_PLAYED, { headers, signal }).catch(() => null);
   const response = await fetch(NOW_PLAYING, { headers, signal });
   if (response.status === 204) {
-    const recent = await fetch(RECENTLY_PLAYED, { headers, signal });
-    if (!recent.ok) {
+    const last = await recent;
+    if (!last?.ok) {
       throw new Error("Failed to fetch recently played");
     }
-    const data = (await recent.json()) as {
+    const data = (await last.json()) as {
       items?: { track: RawTrack }[];
     };
     return data.items?.[0] ? transform(data.items[0].track) : null;
   }
+  void recent.then((last) => last?.body?.cancel());
   if (!response.ok) {
     throw new Error("Failed to fetch now playing");
   }
