@@ -16,6 +16,7 @@ import { useNowPlaying } from "@/lib/use-now-playing";
 import { usePreview } from "@/lib/use-preview";
 import { useSiteStats, visitor } from "@/lib/use-stats";
 import instrumentItalicWoff2 from "../fonts/instrument-serif-italic-core.woff2?url";
+import homeCss from "../home.css?url";
 
 const rootRoute = getRouteApi("__root__");
 
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/")({
   component: Home,
   head: ({ matches }) => ({
     links: [
+      { rel: "stylesheet", href: homeCss },
       embedLink(`${baseUrlOf(matches)}/api/embed.json`),
       preloadFont(instrumentItalicWoff2),
     ],
