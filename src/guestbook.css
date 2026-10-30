@@ -202,12 +202,14 @@
 
 .signature-msg {
   display: block;
-  font-family:
-    var(--font-serif-body), var(--font-serif-display), Georgia, serif;
   font-style: italic;
   font-size: 13.5px;
   line-height: 1.4;
   color: var(--ink);
+}
+
+.guestbook[data-opened] .signature-msg {
+  font-family: var(--font-serif-body);
 }
 
 .signature-by {

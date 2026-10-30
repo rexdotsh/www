@@ -33,6 +33,12 @@ export default function Guestbook({ caption }: { caption: string }) {
   const stats = useSiteStats();
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState(false);
+  // The card is in the page from the start, just hidden: its messages take
+  // Newsreader once it first opens, so a visit that never opens it skips the font.
+  const [opened, setOpened] = useState(false);
+  if ((open || hover) && !opened) {
+    setOpened(true);
+  }
   const [mode, setMode] = useState<Mode>("read");
   const [index, setIndex] = useState(0);
   const [fresh, setFresh] = useState<number | null>(null);
@@ -100,6 +106,7 @@ export default function Guestbook({ caption }: { caption: string }) {
     <span
       className="guestbook"
       data-open={open || hover ? "" : undefined}
+      data-opened={opened ? "" : undefined}
       // Tab-out only; a null target is the iOS keyboard closing.
       onBlur={(event) => {
         if (
