@@ -23,7 +23,7 @@ bun run typecheck  # tsc --noEmit
 bun run build
 ```
 
-Run lint + typecheck before committing. Spotify routes need `.dev.vars` (copy the example).
+Run lint + typecheck before committing. Spotify routes need `.dev.vars` (copy the example). `bun run dev` also runs `workers/room` as an auxiliary worker (`vite.config.ts`), so stats, the guestbook and `/status` use local, initially empty DOs.
 
 ## Code
 

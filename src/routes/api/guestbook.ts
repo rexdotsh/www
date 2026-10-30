@@ -35,10 +35,6 @@ export const Route = createFileRoute("/api/guestbook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const stub = room();
-        if (!stub) {
-          return new Response(null, { status: 503 });
-        }
         if (isBot(request) || isPreview(request) || isCrossSite(request)) {
           return new Response(null, { status: 403 });
         }
@@ -76,7 +72,7 @@ export const Route = createFileRoute("/api/guestbook")({
         }
         const hash = await ipHash(request);
         try {
-          const result = await stub.sign({
+          const result = await room().sign({
             name,
             message,
             city: placeOf(request),
@@ -99,11 +95,10 @@ export const Route = createFileRoute("/api/guestbook")({
           return new Response(null, { status: 401 });
         }
         const id = Number(new URL(request.url).searchParams.get("id"));
-        const stub = room();
-        if (!(stub && Number.isInteger(id) && id > 0)) {
+        if (!(Number.isInteger(id) && id > 0)) {
           return new Response(null, { status: 400 });
         }
-        await stub.hide(id);
+        await room().hide(id);
         return new Response(null, { status: 204 });
       },
       ANY: notAllowed("POST, DELETE"),
