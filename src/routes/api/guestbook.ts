@@ -6,7 +6,6 @@ import {
   isBot,
   isCrossSite,
   isPreview,
-  isRude,
   limited,
   notAllowed,
   placeOf,
@@ -70,6 +69,8 @@ export const Route = createFileRoute("/api/guestbook")({
         ) {
           return Response.json({ ok: false, reason: "empty" }, { status: 400 });
         }
+        // Its word list is heavy to load, and only a signature needs it.
+        const { isRude } = await import("@/server/rude");
         if (isRude(message) || isRude(name)) {
           return Response.json({ ok: false, reason: "rude" }, { status: 422 });
         }
