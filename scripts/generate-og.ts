@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import monoWoff from "@fontsource/geist-mono/files/geist-mono-latin-400-normal.woff" with { type: "file" };
 import serifItalicWoff from "@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff" with { type: "file" };
 import serifWoff from "@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff" with { type: "file" };
+import optimise from "@jsquash/oxipng/optimise";
 import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 import { ASCII_ROSE } from "../src/lib/ascii-rose";
@@ -228,7 +229,10 @@ const render = async (node: Node, file: string) => {
   const png = new Resvg(svg, {
     fitTo: { mode: "width", value: WIDTH },
   }).render();
-  fs.writeFileSync(file, png.asPng());
+  const optimised = await optimise(new Uint8Array(png.asPng()).buffer, {
+    optimiseAlpha: false,
+  });
+  fs.writeFileSync(file, new Uint8Array(optimised));
 };
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
