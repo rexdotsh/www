@@ -45,9 +45,12 @@ export default {
     if (to) {
       headers.set("Cache-Control", "public, max-age=86400");
     }
-    // Server functions carry live data; without this the Worker cache keeps them for hours.
-    if (pathname.startsWith("/_serverFn/")) {
+    // Server functions carry live data; without this the Worker cache keeps them
+    // for hours. Errors too: mid-deploy, a new chunk can reach the Worker before
+    // its asset is live, and a cached 404 for it breaks the page until the next deploy.
+    if (pathname.startsWith("/_serverFn/") || response.status >= 400) {
       headers.set("Cache-Control", "no-store");
+      headers.delete("Cloudflare-CDN-Cache-Control");
     }
     return new Response(response.body, {
       headers,
