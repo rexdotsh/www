@@ -313,6 +313,13 @@
 }
 
 @media (hover: hover) and (pointer: fine) and (min-width: 768px) {
+  /* A blurred word gets its own layer, which would lift the next line over the
+     open link's bottom edge and take the hover back, on and off. */
+  .peek-trigger:not([data-peek-closed]):hover,
+  .peek-trigger:not([data-peek-closed]):has(:focus-visible) {
+    z-index: 40;
+  }
+
   .peek-trigger:not([data-peek-closed]):hover .peek,
   .peek-trigger:not([data-peek-closed]):has(:focus-visible) .peek {
     transform: translateX(-50%);
